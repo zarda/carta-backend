@@ -46,7 +46,7 @@ INCLUDEPATH += /usr/local/opt/libuv/include
 LIBS += -L/usr/local/opt/libuv/lib -luv
 
 INCLUDEPATH += ../../../ThirdParty/uWebSockets/include
-LIBS += -L../../../ThirdParty/uWebSockets/lib -luWS -lz
+LIBS += -L../../../ThirdParty/uWebSockets/lib -luWS -lz -lssl
 
 unix: LIBS += -L$$OUT_PWD/../core/ -lcore
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
