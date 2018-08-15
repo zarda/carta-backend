@@ -46,7 +46,16 @@ INCLUDEPATH += /usr/local/opt/libuv/include
 LIBS += -L/usr/local/opt/libuv/lib -luv
 
 INCLUDEPATH += ../../../ThirdParty/uWebSockets/include
-LIBS += -L../../../ThirdParty/uWebSockets/lib -luWS -lz
+LIBS += -L../../../ThirdParty/uWebSockets/lib -luWS -lz -lssl
+
+INCLUDEPATH += ../../../ThirdParty/CCfits/include
+LIBS += -L../../../ThirdParty/CCfits/lib -lCCfits
+
+INCLUDEPATH += ../../../ThirdParty/cfitsio/include
+LIBS += -L../../../ThirdParty/cfitsio/lib -lcfitsio -lz
+
+INCLUDEPATH += ../../../ThirdParty/imageanalysis/include
+LIBS += -L../../../ThirdParty/imageanalysis/lib -limageanalysis
 
 unix: LIBS += -L$$OUT_PWD/../core/ -lcore
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
