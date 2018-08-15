@@ -47,6 +47,8 @@
 
 #include "CartaLib/IImage.h"
 
+#include <CCfits/CCfits>
+
 /// \brief internal class of NewServerConnector, containing extra information we like
 ///  to remember with each view
 ///
@@ -342,17 +344,71 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         sendSerializedMessage(message, respName, msg);
         return;
 
-    } else if (eventName == "FILE_INFO_REQUEST") {
+    } else if (eventName == "FILE_INFO_REQUEST") {        
         respName = "FILE_INFO_RESPONSE";
 
-        // we cannot handle the request so far, return a fake response.
-        std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
-        fileInfoResponse->set_success(false);
-        msg = fileInfoResponse;
+        std::shared_ptr<CARTA::FileInfoRequest> _fileInfoRequest(new CARTA::FileInfoRequest());
+        _fileInfoRequest->ParseFromArray(message + 36, static_cast<int>(length) - 36);
+        auto _filename = _fileInfoRequest->file();
+        auto _folder = _fileInfoRequest->directory();
+        auto _file = _folder +"/" +_filename;
 
-        // send the serialized message to the frontend
-        sendSerializedMessage(message, respName, msg);
-        return;
+        std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
+        fileInfoResponse->set_message(_file);
+        try {
+
+            std::shared_ptr<CCfits::FITS> pInfile(new CCfits::FITS(_file,CCfits::Read,false));
+            CCfits::PHDU& image = pInfile->pHDU();
+
+            // read all user-specifed, coordinate, and checksum keys in the image
+            image.readAllKeys();
+
+            auto _fileInfo = new CARTA::FileInfo();
+            _fileInfo->set_name(_filename);
+            _fileInfo->set_type(CARTA::FileType::FITS);
+            fileInfoResponse->set_allocated_file_info(_fileInfo); //Set file info
+
+            auto _fileInfoExt = new CARTA::FileInfoExtended();
+            _fileInfoExt->set_dimensions(static_cast<int>(image.axes()));
+                auto _headerEntryDim = _fileInfoExt->add_header_entries();
+                _headerEntryDim->set_name("Dimensions");
+                _headerEntryDim->set_value(std::to_string(image.axes()));
+            _fileInfoExt->set_width(static_cast<int>(image.axis(0)));
+                auto _headerEntryWidth = _fileInfoExt->add_header_entries();
+                _headerEntryWidth->set_name("Width");
+                _headerEntryWidth->set_value(std::to_string(image.axis(1)));
+            _fileInfoExt->set_height(static_cast<int>(image.axis(1)));
+                auto _headerEntryHeight = _fileInfoExt->add_header_entries();
+                _headerEntryHeight->set_name("Height");
+                _headerEntryHeight->set_value(std::to_string(image.axis(1)));
+            if (static_cast<int>(image.axes()) >= 3) {
+                _fileInfoExt->set_depth(static_cast<int>(image.axis(2)));
+                    auto _headerEntryDepth = _fileInfoExt->add_header_entries();
+                    _headerEntryDepth->set_name("Depth");
+                    _headerEntryDepth->set_value(std::to_string(image.axis(2)));
+            }
+            if (static_cast<int>(image.axes()) >= 4) {
+                _fileInfoExt->set_stokes(static_cast<int>(image.axis(3)));
+                    auto _headerEntryStoke = _fileInfoExt->add_header_entries();
+                    _headerEntryStoke->set_name("Stoke");
+                    _headerEntryStoke->set_value(std::to_string(image.axis(3)));
+            }
+
+            for(auto key : image.keyWord()){
+                auto _headerEntry = _fileInfoExt->add_header_entries();
+                _headerEntry->set_name(key.first);
+                string _keyvalue;
+                key.second->value(_keyvalue);
+                _headerEntry->set_value(_keyvalue);
+            }
+            fileInfoResponse->set_allocated_file_info_extended(_fileInfoExt); //Set file info ext
+
+        } catch (std::exception e) {
+            fileInfoResponse->set_success(false);
+        }
+
+        fileInfoResponse->set_success(true);
+        msg = fileInfoResponse;
 
     } else if (eventName == "OPEN_FILE") {
         respName = "OPEN_FILE_ACK";
