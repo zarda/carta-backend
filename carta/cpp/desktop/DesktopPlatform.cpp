@@ -4,14 +4,8 @@
 
 #include "DesktopPlatform.h"
 #include "SessionDispatcher.h"
-// #include "MainWindow.h"
-#include "core/CmdLine.h"
-#include "core/Globals.h"
 
 #include <QtWidgets>
-//#include <QWebSettings>
-#include <QDesktopWidget>
-#include <unistd.h>
 
 std::string warningColor, criticalColor, fatalColor, resetColor;
 static void initializeColors() {
@@ -70,54 +64,9 @@ DesktopPlatform::DesktopPlatform()
     // install a custom message handler
     qInstallMessageHandler( qtMessageHandler);
 
-    // figure out which url to use to load the html5 component
-    // by default it's the locally compiled filesystem, but we let the developer
-    // override it for debugging purposes
-    QUrl url;
-    auto & cmdLineInfo = * Globals::instance()->cmdLineInfo();
-    if( cmdLineInfo.htmlPath().isEmpty()) {
-        // check if we have index in qrc
-        if( QFileInfo(":/html/desktopIndexRelease.html").exists()) {
-            url = "qrc:///html/desktopIndexRelease.html";
-        } else {
-            url = "http://www.google.com";
-        }
-    } else {
-        url = QUrl::fromUserInput( cmdLineInfo.htmlPath());
-    }
-
-    // get the filename sfrom the command line
-    m_initialFileList = cmdLineInfo.fileList();
-
     // create the connector
     m_connector = new SessionDispatcher();
 
-    // enable web inspector
-//    QWebSettings::enablePersistentStorage( "/tmp/xyz");
-//    QWebSettings::globalSettings()->setAttribute( QWebSettings::DeveloperExtrasEnabled, true);
-//    QWebSettings::globalSettings()->setAttribute( QWebSettings::Accelerated2dCanvasEnabled, true);
-
-    // create main window
-//    m_mainWindow = new MainWindow();
-//    m_mainWindow-> resize( 1280, 800);
-
-//    // center the main window on the screen
-//    QDesktopWidget wid;
-//    int screenWidth = wid.screen()->width();
-//    int screenHeight = wid.screen()->height();
-//    int panelWidth = m_mainWindow->frameGeometry().width();
-//    int panelHeight = m_mainWindow->frameGeometry().height();
-//    m_mainWindow->setGeometry( (screenWidth/2)-(panelWidth/2), (screenHeight/2)-(panelHeight/2), panelWidth, panelHeight);
-
-//    // add platform and connector to JS exports
-//    m_mainWindow->addJSExport( "QtPlatform", this);
-//    m_mainWindow->addJSExport( "QtConnector", m_connector);
-
-//    // load the url
-//    m_mainWindow->loadUrl( url);
-
-//    // display the window
-//    m_mainWindow->show();
 }
 
 IConnector * DesktopPlatform::connector()
@@ -129,7 +78,6 @@ void DesktopPlatform::goFullScreen()
 {
     // m_mainWindow->showFullScreen();
 }
-
 
 const QStringList & DesktopPlatform::initialFileList()
 {
