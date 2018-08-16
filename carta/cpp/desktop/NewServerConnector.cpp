@@ -362,6 +362,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
             // read all user-specifed, coordinate, and checksum keys in the image
             image.readAllKeys();
+            //std::cout << image << std::endl;
 
             auto _fileInfo = new CARTA::FileInfo();
             _fileInfo->set_name(_filename);
@@ -409,6 +410,10 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         fileInfoResponse->set_success(true);
         msg = fileInfoResponse;
+
+        // send the serialized message to the frontend
+        sendSerializedMessage(message, respName, msg);
+        return;
 
     } else if (eventName == "OPEN_FILE") {
         respName = "OPEN_FILE_ACK";
