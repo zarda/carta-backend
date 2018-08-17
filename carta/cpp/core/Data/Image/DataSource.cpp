@@ -689,39 +689,34 @@ RegionHistogramData DataSource::_getPixels2Histogram(int frameLow, int frameHigh
     return result;
 }
 
-std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, double yMin, double yMax,
+std::vector<float> DataSource::_getRasterImageData(int xMin, int xMax, int yMin, int yMax,
     int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
+
+    std::vector<float> results;
 
     // get the raw data
     Carta::Lib::NdArray::RawViewInterface* view = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
 
-    std::vector<float> results;
-    int ilb = xMin;
-    int iub = xMax;
-    int jlb = yMin;
-    int jub = yMax;
-
     // check if the downsampling parameter "mip" is smaller than the image width or high
-    if (abs(mip) > std::min(view->dims()[0], view->dims()[1])) {
+    if (mip <= 0 || abs(mip) > std::min(view->dims()[0], view->dims()[1])) {
         qWarning() << "Downsampling parameter, mip, is larger than the image width or high. Return 0";
         return results;
     }
-
-    int nRows = (jub - jlb) / mip;
-    int nCols = (iub - ilb) / mip;
 
     int prepareCols = view->dims()[0]; // get the full width length
     int prepareRows = mip;
     int area = prepareCols * prepareRows;
     std::vector<float> prepareArea(area);
-    int nextRowToReadIn = jlb;
+
+    int nRows = (yMax - yMin) / mip;
+    int nCols = (xMax - xMin) / mip;
+    int nextRowToReadIn = yMin;
 
     auto updateRows = [&]() -> void {
         CARTA_ASSERT(nextRowToReadIn < view->dims()[1]); // check if the row index is beyond the length of the image high
 
         SliceND rowSlice;
-        int update = prepareRows;
-        rowSlice.next().start( nextRowToReadIn ).end( nextRowToReadIn + update );
+        rowSlice.next().start( nextRowToReadIn ).end( nextRowToReadIn + prepareRows );
         auto rawRowView = view -> getView( rowSlice );
 
         // make a float view of this raw row view
@@ -745,7 +740,7 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
             for (int e = 0; e < elems; e++) {
                 int row = e / mip;
                 int col = e % mip;
-                int index = ((row * prepareCols) + (col + (ilb + (i * mip))));
+                int index = ((row * prepareCols) + (col + (xMin + (i * mip))));
                 if (std::isfinite(prepareArea[index])) {
                     rawData += prepareArea[index];
                 } else {
@@ -756,7 +751,7 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
             rawData = (denominator < 1 ? minIntensity : rawData / denominator);
             results.push_back(rawData);
         }
-        nextRowToReadIn += update;
+        nextRowToReadIn += prepareRows;
     };
 
     // scan the raw data for with rows for down sampling

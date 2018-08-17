@@ -252,7 +252,7 @@ public:
      * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
      * @return - vector of pixels.
      */
-    std::vector<float> getRasterImageData(double x_min, double x_max, double y_min, double y_max,
+    std::vector<float> getRasterImageData(int x_min, int x_max, int y_min, int y_max,
             int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const;
 
     /**

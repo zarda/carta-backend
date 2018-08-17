@@ -395,7 +395,7 @@ RegionHistogramData LayerData::_getPixels2Histogram(int frameLow, int frameHigh,
     return results;
 }
 
-std::vector<float> LayerData::_getRasterImageData(double xMin, double xMax, double yMin, double yMax,
+std::vector<float> LayerData::_getRasterImageData(int xMin, int xMax, int yMin, int yMax,
     int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
     std::vector<float> results;
     if (m_dataSource) {

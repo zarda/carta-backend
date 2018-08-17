@@ -388,7 +388,7 @@ RegionHistogramData Controller::getPixels2Histogram(int frameLow, int frameHigh,
     return result;
 }
 
-std::vector<float> Controller::getRasterImageData(double x_min, double x_max, double y_min, double y_max,
+std::vector<float> Controller::getRasterImageData(int x_min, int x_max, int y_min, int y_max,
     int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
     std::vector<float> result = m_stack->_getRasterImageData(x_min, x_max, y_min, y_max, mip, minIntensity, frameLow, frameHigh, stokeFrame);
     return result;
