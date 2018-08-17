@@ -701,18 +701,23 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
     int jlb = yMin;
     int jub = yMax;
 
+    // check if the downsampling parameter "mip" is smaller than the image width or high
+    if (abs(mip) > std::min(view->dims()[0], view->dims()[1])) {
+        qWarning() << "Downsampling parameter, mip, is larger than the image width or high. Return 0";
+        return results;
+    }
+
     int nRows = (jub - jlb) / mip;
     int nCols = (iub - ilb) / mip;
 
-    int prepareCols = iub - ilb;
+    int prepareCols = view->dims()[0]; // get the full width length
     int prepareRows = mip;
     int area = prepareCols * prepareRows;
-    float rawData;
     std::vector<float> prepareArea(area);
     int nextRowToReadIn = jlb;
 
     auto updateRows = [&]() -> void {
-        CARTA_ASSERT(nextRowToReadIn < view->dims()[1]);
+        CARTA_ASSERT(nextRowToReadIn < view->dims()[1]); // check if the row index is beyond the length of the image high
 
         SliceND rowSlice;
         int update = prepareRows;
@@ -726,18 +731,21 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
         fview.forEach( [&] ( const float & val ) {
             // To improve the performance, the prepareArea also update only one row
             // by computing the module
-            prepareArea[(t++) % area] = val;
+            prepareArea[(t++)] = val;
         });
+        if (t != area) {
+            qFatal("The prepared length of the raw data array is not consistent with the slice cut!!");
+        }
 
         // Calculate the mean of each block (mip X mip)
-        for (int i = ilb; i < ilb + nCols; i++) {
-            rawData = 0;
+        for (int i = 0; i < nCols; i++) {
+            float rawData = 0;
             int elems = mip * mip;
             float denominator = elems;
             for (int e = 0; e < elems; e++) {
                 int row = e / mip;
                 int col = e % mip;
-                int index = (row * prepareCols + col + i * mip) % area;
+                int index = ((row * prepareCols) + (col + (ilb + (i * mip))));
                 if (std::isfinite(prepareArea[index])) {
                     rawData += prepareArea[index];
                 } else {
@@ -752,7 +760,7 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
     };
 
     // scan the raw data for with rows for down sampling
-    for (int j = jlb; j < jlb + nRows; j++) {
+    for (int j = 0; j < nRows; j++) {
         updateRows();
     }
 
