@@ -665,6 +665,8 @@ RegionHistogramData DataSource::_getPixels2Histogram(int frameLow, int frameHigh
         return result;
     } else {
         minIntensity = minMaxIntensities[0];
+        // assign the minimum of the pixel value as a private parameter
+        m_minIntensity = minIntensity;
         maxIntensity = minMaxIntensities[1];
     }
 
@@ -690,9 +692,15 @@ RegionHistogramData DataSource::_getPixels2Histogram(int frameLow, int frameHigh
 }
 
 std::vector<float> DataSource::_getRasterImageData(int xMin, int xMax, int yMin, int yMax,
-    int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
+    int mip, int frameLow, int frameHigh, int stokeFrame) const {
 
     std::vector<float> results;
+
+    // check if the minimum of the pixel value is valid
+    if (m_minIntensity == std::numeric_limits<double>::min()) {
+        qWarning() << "The minimum of the pixel value is invalid! Return 0";
+        return results;
+    }
 
     // get the raw data
     Carta::Lib::NdArray::RawViewInterface* view = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
@@ -748,7 +756,7 @@ std::vector<float> DataSource::_getRasterImageData(int xMin, int xMax, int yMin,
                 }
             }
             // set the NaN type of the pixel as the minimum of the other finite pixel values
-            rawData = (denominator < 1 ? minIntensity : rawData / denominator);
+            rawData = (denominator < 1 ? m_minIntensity : rawData / denominator);
             results.push_back(rawData);
         }
         nextRowToReadIn += prepareRows;
@@ -1234,6 +1242,7 @@ QString DataSource::_setFileName( const QString& fileName, bool* success ){
                     _resetPan();
 
                     m_fileName = file;
+                    qDebug() << "********** (DataSource) m_fileName=" << m_fileName;
                 }
                 else {
                     result = "Could not find any plugin to load image";

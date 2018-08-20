@@ -266,7 +266,7 @@ protected:
      * @return - vector of pixels.
      */
     virtual std::vector<float> _getRasterImageData(int xMin, int xMax, int yMin, int yMax,
-            int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const Q_DECL_OVERRIDE;
+            int mip, int frameLow, int frameHigh, int stokeFrame) const Q_DECL_OVERRIDE;
 
     /**
      * Return the layer with the given name, if a name is specified; otherwise, return the current

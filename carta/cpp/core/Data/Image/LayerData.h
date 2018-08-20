@@ -400,7 +400,7 @@ protected:
      * @return - vector of pixels.
      */
     virtual std::vector<float> _getRasterImageData(int xMin, int xMax, int yMin, int yMax,
-            int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const Q_DECL_OVERRIDE;
+            int mip, int frameLow, int frameHigh, int stokeFrame) const Q_DECL_OVERRIDE;
 
     /**
      * Return the units of the pixels.

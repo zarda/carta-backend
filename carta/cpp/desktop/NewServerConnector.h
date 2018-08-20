@@ -125,7 +125,6 @@ protected:
 
 private:
     bool m_changeImage = false;
-    double m_minIntensity;
     int m_xMin = 0;
     int m_xMax = 0;
     int m_yMin = 0;

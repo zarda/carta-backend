@@ -311,7 +311,7 @@ protected:
      * @return - vector of pixels.
      */
     virtual std::vector<float> _getRasterImageData(int xMin, int xMax, int yMin, int yMax,
-            int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const = 0;
+            int mip, int frameLow, int frameHigh, int stokeFrame) const = 0;
 
     /**
      * Returns whether or not the layer can be loaded with the indicated frames.

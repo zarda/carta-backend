@@ -526,11 +526,11 @@ RegionHistogramData LayerGroup::_getPixels2Histogram(int frameLow, int frameHigh
 }
 
 std::vector<float> LayerGroup::_getRasterImageData(int xMin, int xMax, int yMin, int yMax,
-    int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
+    int mip, int frameLow, int frameHigh, int stokeFrame) const {
     std::vector<float> results;
     int dataIndex = _getIndexCurrent();
     if (dataIndex >= 0) {
-        results = m_children[dataIndex]->_getRasterImageData(xMin, xMax, yMin, yMax, mip, minIntensity, frameLow, frameHigh, stokeFrame);
+        results = m_children[dataIndex]->_getRasterImageData(xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
     }
     return results;
 }

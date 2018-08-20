@@ -441,8 +441,6 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
             Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
             RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
             std::vector<uint32_t> pixels2histogram = regionHisotgramData.bins;
-            // the minimum value of pixels is the first bin center
-            m_minIntensity = regionHisotgramData.first_bin_center;
 
             // add RegionHistogramData message
             std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
@@ -457,7 +455,9 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
             histogram->set_channel(frameLow);
             histogram->set_num_bins(regionHisotgramData.num_bins);
             histogram->set_bin_width(regionHisotgramData.bin_width);
-            histogram->set_first_bin_center(m_minIntensity);
+
+            // the minimum value of pixels is the first bin center
+            histogram->set_first_bin_center(regionHisotgramData.first_bin_center);
 
             for (auto intensity : pixels2histogram) {
                 histogram->add_bins(intensity);
@@ -513,7 +513,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         // get the down sampling raster image raw data
         std::vector<float> imageData = controller->getRasterImageData(x_min, x_max, y_min, y_max, mip,
-            m_minIntensity, frameLow, frameHigh, stokeFrame);
+            frameLow, frameHigh, stokeFrame);
         qDebug() << "number of the raw data sent L=" << imageData.size() << ", WxH=" << W * H
                  << ", Difference:" << (W * H - imageData.size());
 
