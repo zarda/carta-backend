@@ -476,21 +476,21 @@ std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > LayerGroup::_g
     return images;
 }
 
-
+// this function is replaced in the Stack.cpp, so it is just a dummy function.
 int LayerGroup::_getIndexCurrent( ) const {
     int dataIndex = -1;
     //The current index should be the first selected one.
-    int childCount = m_children.size();
-    for ( int i = 0; i < childCount; i++ ){
-        if ( m_children[i]->_isSelected()){
-            dataIndex = i;
-            break;
-        }
-    }
+    //int childCount = m_children.size();
+    //for ( int i = 0; i < childCount; i++ ){
+    //    if ( m_children[i]->_isSelected()){
+    //        dataIndex = i;
+    //        break;
+    //    }
+    //}
     //Just choose the top one if nothing is selected
-    if ( dataIndex == -1 && childCount > 0 ){
-        dataIndex = 0;
-    }
+    //if ( dataIndex == -1 && childCount > 0 ){
+    //    dataIndex = 0;
+    //}
     return dataIndex;
 }
 
