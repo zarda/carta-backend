@@ -386,11 +386,6 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         int fileId = openFile.file_id();
         qDebug() << "Open the file ID:" << fileId;
 
-        if (success) {
-            m_changeImage = true;
-            qDebug() << "Image file (or channel) changed, re-calculate the pixels to histogram data!";
-        }
-
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
 
         CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
@@ -428,52 +423,47 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         sendSerializedMessage(message, respName, msg);
 
         /////////////////////////////////////////////////////////////////////
-        if (m_changeImage) {
-            qDebug() << "Calculating the regional histogram data....................................";
+        qDebug() << "Calculating the regional histogram data....................................";
 
-            respName = "REGION_HISTOGRAM_DATA";
+        respName = "REGION_HISTOGRAM_DATA";
 
-            int frameLow = 0;
-            int frameHigh = frameLow;
-            int stokeFrame = 0;
+        int frameLow = 0;
+        int frameHigh = frameLow;
+        int stokeFrame = 0;
 
-            // calculate pixels to histogram data
-            int numberOfBins = 10000;
-            Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-            RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
-            std::vector<uint32_t> pixels2histogram = regionHisotgramData.bins;
+        // calculate pixels to histogram data
+        int numberOfBins = 10000;
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
+        RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+        std::vector<uint32_t> pixels2histogram = regionHisotgramData.bins;
 
-            // add RegionHistogramData message
-            std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
-            region_histogram_data->set_file_id(openFile.file_id());
+        // add RegionHistogramData message
+        std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
+        region_histogram_data->set_file_id(openFile.file_id());
 
-            // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
-            region_histogram_data->set_region_id(-1);
+        // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
+        region_histogram_data->set_region_id(-1);
 
-            region_histogram_data->set_stokes(stokeFrame);
+        region_histogram_data->set_stokes(stokeFrame);
 
-            CARTA::Histogram* histogram = region_histogram_data->add_histograms();
-            histogram->set_channel(frameLow);
-            histogram->set_num_bins(regionHisotgramData.num_bins);
-            histogram->set_bin_width(regionHisotgramData.bin_width);
+        CARTA::Histogram* histogram = region_histogram_data->add_histograms();
+        histogram->set_channel(frameLow);
+        histogram->set_num_bins(regionHisotgramData.num_bins);
+        histogram->set_bin_width(regionHisotgramData.bin_width);
 
-            // the minimum value of pixels is the first bin center
-            histogram->set_first_bin_center(regionHisotgramData.first_bin_center);
+        // the minimum value of pixels is the first bin center
+        histogram->set_first_bin_center(regionHisotgramData.first_bin_center);
 
-            for (auto intensity : pixels2histogram) {
-                histogram->add_bins(intensity);
-            }
-
-            msg = region_histogram_data;
-
-            qDebug() << ".......................................................................Done";
-
-            // send the serialized message to the frontend
-            sendSerializedMessage(message, respName, msg);
-
-            // set m_changeImage = false, in order to avoid the re-calculation of pixels to histogram
-            //m_changeImage = false;
+        for (auto intensity : pixels2histogram) {
+            histogram->add_bins(intensity);
         }
+
+        msg = region_histogram_data;
+
+        qDebug() << ".......................................................................Done";
+
+        // send the serialized message to the frontend
+        sendSerializedMessage(message, respName, msg);
         /////////////////////////////////////////////////////////////////////
 
         return;
@@ -499,10 +489,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         int y_min = viewSetting.image_bounds().y_min();
         int y_max = viewSetting.image_bounds().y_max();
 
-        if (m_changeImage) {
-            // set m_changeImage = false, in order to avoid the re-calculation of pixels to histogram
-            m_changeImage = false;
-        } else if (mip == m_mip && x_min == m_xMin && x_max == m_xMax && y_min == m_yMin && y_max == m_yMax) {
+        if (mip == m_mip && x_min == m_xMin && x_max == m_xMax && y_min == m_yMin && y_max == m_yMax) {
             // if the required region of image viewer from frontend is the same with the previous requirement, ignore it.
             qDebug() << "Image boundary settings are repeated.";
             return;
