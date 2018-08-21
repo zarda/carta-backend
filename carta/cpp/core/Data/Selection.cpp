@@ -240,8 +240,8 @@ QString Selection::setIndex(int frameValue) {
             int oldValue = m_state.getValue<int>(INDEX_KEY );
             if ( oldValue != frameValue ){
                 m_state.setValue<int>(INDEX_KEY, frameValue);
-                m_state.flushState();
-                emit indexChanged( );
+//                m_state.flushState();
+//                emit indexChanged( );
             }
         }
         else {
