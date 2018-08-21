@@ -830,6 +830,7 @@ void LayerGroup::_removeData( int index ){
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         objMan->removeObject( id );
         m_children.removeAt( index );
+        qDebug() << "[LayerGroup] remove the image index=" << index;
     }
 }
 
