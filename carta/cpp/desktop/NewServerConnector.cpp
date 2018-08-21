@@ -354,23 +354,32 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         sendSerializedMessage(message, respName, msg);
         return;
 
+    } else if (eventName == "CLOSE_FILE") {
+
+        CARTA::CloseFile closeFile;
+        closeFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+        int closeFileId = closeFile.file_id();
+        qDebug() << "[NewServerConnector] Close file id=" << closeFileId;
+
     } else if (eventName == "OPEN_FILE") {
         respName = "OPEN_FILE_ACK";
 
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+        qDebug() << "[NewServerConnector] controllerID=" << controllerID;
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
-        bool success;
 
         CARTA::OpenFile openFile;
         openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
 
         QString fileDir = QString::fromStdString(openFile.directory());
-        QString fileName = QString::fromStdString(openFile.file());
         if (!QDir(fileDir).exists()) {
             qWarning() << "File directory doesn't exist! (" << fileDir << ")";
             return;
         }
+
+        bool success;
+        QString fileName = QString::fromStdString(openFile.file());
 
         controller->addData(fileDir + "/" + fileName, &success);
 
