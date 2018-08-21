@@ -115,13 +115,13 @@ ViewManager::ViewManager( const QString& path, const QString& id)
       m_pluginsLoaded( nullptr ),
       m_snapshots( nullptr ){
 
-    _setupSingletons();
+    //_setupSingletons();
 
-    _initCallbacks();
-    _initializeDefaultState();
+    //_initCallbacks();
+    //_initializeDefaultState();
 
-    QTime time = QTime::currentTime();
-    qsrand((uint)time.msec());
+    //QTime time = QTime::currentTime();
+    //qsrand((uint)time.msec());
 
     //Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     //objMan->printObjects();
