@@ -88,6 +88,7 @@ QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackI
         else {
             m_children.append( std::shared_ptr<Layer>(targetSource) );
             *stackIndex = m_children.size() - 1;
+            qDebug() << "[LayerGroup] *stackIndex=" << *stackIndex;
         }
     }
     else {

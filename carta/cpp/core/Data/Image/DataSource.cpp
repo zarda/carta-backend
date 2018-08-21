@@ -1242,7 +1242,7 @@ QString DataSource::_setFileName( const QString& fileName, bool* success ){
                     _resetPan();
 
                     m_fileName = file;
-                    qDebug() << "********** (DataSource) m_fileName=" << m_fileName;
+                    qDebug() << "[DataSource] m_fileName=" << m_fileName;
                 }
                 else {
                     result = "Could not find any plugin to load image";

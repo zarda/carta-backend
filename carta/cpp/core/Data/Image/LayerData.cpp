@@ -1014,6 +1014,7 @@ QString LayerData::_setFileName( const QString& fileName, bool * success ){
 
         QString shortName = dLoader->getShortName( fileName );
         QString layerName = m_state.getValue<QString>( Util::NAME );
+        qDebug() << "[LayerData] shortName=" << shortName;
         if ( layerName.isEmpty() || layerName.length() == 0 ){
             m_state.setValue<QString>( Util::NAME, shortName );
             m_state.flushState();

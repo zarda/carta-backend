@@ -432,9 +432,10 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         // get the controller
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+        qDebug() << "[NewServerConnector] controllerID=" << controllerID;
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
 
-        //qDebug() << "File ID requested by frontend:" << viewSetting.file_id();
+        qDebug() << "File ID requested by frontend:" << viewSetting.file_id();
         int frameLow = 0;
         int frameHigh = frameLow;
         int stokeFrame = 0;
