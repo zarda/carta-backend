@@ -529,26 +529,26 @@ QString Stack::_resetFrames( int val ){
 	QString layerId;
 	if ( 0 <= val && val < m_children.size()){
 		//Update the data selectors upper bound based on the data.
-		int visibleCount = _getStackSizeVisible();
-		m_selectImage->setUpperBound( visibleCount );
-		m_selectImage->setIndex(val);
-                QString ImageUnit = m_children[val]->_getPixelUnits();
-                bool spectralAxis = m_children[val]->_isSpectralAxis();
-                std::shared_ptr<Carta::Lib::Image::ImageInterface> image = m_children[val]->_getImage();
-                bool hasbeam = image->hasBeam();
-		UnitsIntensity* uIntensity = Util::findSingletonObject<UnitsIntensity>();
-                uIntensity->setDefaultUnit(ImageUnit, hasbeam, spectralAxis);
+        int visibleCount = _getStackSizeVisible();
+        m_selectImage->setUpperBound( visibleCount );
+        m_selectImage->setIndex(val);
+//                QString ImageUnit = m_children[val]->_getPixelUnits();
+//                bool spectralAxis = m_children[val]->_isSpectralAxis();
+//                std::shared_ptr<Carta::Lib::Image::ImageInterface> image = m_children[val]->_getImage();
+//                bool hasbeam = image->hasBeam();
+//		UnitsIntensity* uIntensity = Util::findSingletonObject<UnitsIntensity>();
+//                uIntensity->setDefaultUnit(ImageUnit, hasbeam, spectralAxis);
 		layerId = m_children[val]->_getLayerId();
-		int selectCount = m_selects.size();
-		for ( int i = 0; i < selectCount; i++ ){
-			AxisInfo::KnownType type = static_cast<AxisInfo::KnownType>(i);
-			int upperBound = _getFrameCount( type );
-			m_selects[i]->setUpperBound( upperBound );
-			if ( m_selects[i]->getIndex() > m_selects[i]->getUpperBound()){
-				m_selects[i]->setIndex( 0 );
-				emit frameChanged( type );
-			}
-		}
+//		int selectCount = m_selects.size();
+//		for ( int i = 0; i < selectCount; i++ ){
+//			AxisInfo::KnownType type = static_cast<AxisInfo::KnownType>(i);
+//			int upperBound = _getFrameCount( type );
+//			m_selects[i]->setUpperBound( upperBound );
+//			if ( m_selects[i]->getIndex() > m_selects[i]->getUpperBound()){
+//				m_selects[i]->setIndex( 0 );
+//				emit frameChanged( type );
+//			}
+//		}
 	}
 	return layerId;
 }
