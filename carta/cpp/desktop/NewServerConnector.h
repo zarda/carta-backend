@@ -124,7 +124,6 @@ protected:
     std::map< QString, QString > m_state;
 
 private:
-    bool m_changeImage = false;
     int m_xMin = 0;
     int m_xMax = 0;
     int m_yMin = 0;
