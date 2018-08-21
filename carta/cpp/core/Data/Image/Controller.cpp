@@ -1632,10 +1632,10 @@ void Controller::setFrameImage( int val) {
             _setLayersSelected( names );
         }
 
-        Carta::State::StateInterface gridState = m_stack->_getGridState();
-        // m_gridControls->_resetState( gridState );
-        _updateCursorText( true );
-        emit dataChanged( this );
+//        Carta::State::StateInterface gridState = m_stack->_getGridState();
+//        m_gridControls->_resetState( gridState );
+//        _updateCursorText( true );
+//        emit dataChanged( this );
     }
 }
 
