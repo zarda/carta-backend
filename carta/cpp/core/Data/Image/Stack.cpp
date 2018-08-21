@@ -62,11 +62,12 @@ QString Stack::_addDataImage(const QString& fileName, bool* success ) {
     QString result = _addData( fileName, success, &stackIndex);
     if ( *success && stackIndex >= 0 ){
         _resetFrames( stackIndex );
+        qDebug() << "[Stack] stackIndex=" << stackIndex;
         // NOTE: If the gridcontrol is removed in the future, I think
         // this part should emit a viewload signal.
-        _saveState();
+        //_saveState();
     }
-    emit viewLoad();
+    //emit viewLoad();
     return result;
 }
 
