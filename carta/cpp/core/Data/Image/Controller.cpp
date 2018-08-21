@@ -1723,7 +1723,7 @@ QString Controller::_setLayersSelected( QStringList names ){
             }
         }
         // refresh the map of axes immediately after read data
-        _setAxisMap();
+//        _setAxisMap();
         //emit colorChanged( this );
         // The signal below causes the duplicate behaviors
         // Use setLayersSelected() to replace the original callback
