@@ -299,6 +299,7 @@ int Stack::_getIndexCurrent( ) const {
             }
         }
     }
+    qDebug() << "[Stack] dataIndex=" << dataIndex;
     return dataIndex;
 }
 
