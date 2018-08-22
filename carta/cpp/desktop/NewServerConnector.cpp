@@ -462,6 +462,9 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         qDebug() << ".......................................................................Done";
 
+        // Sleep for 1 millisecond. It is applied trying to solve the empty of histogram sent to the frontend.
+        QThread::msleep(1);
+
         // send the serialized message to the frontend
         sendSerializedMessage(message, respName, msg);
         /////////////////////////////////////////////////////////////////////
