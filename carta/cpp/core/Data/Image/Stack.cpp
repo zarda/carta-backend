@@ -57,12 +57,15 @@ Stack::Stack(const QString& path, const QString& id) :
     _initializeSelections();
 }
 
-QString Stack::_addDataImage(const QString& fileName, bool* success ) {
+QString Stack::_addDataImage(const QString& fileName, bool* success, int fileId) {
     int stackIndex = -1;
-    QString result = _addData( fileName, success, &stackIndex);
+    // add fileId here
+    QString result = _addData( fileName, success, &stackIndex, fileId);
     if ( *success && stackIndex >= 0 ){
-        _resetFrames( stackIndex );
-        qDebug() << "[Stack] stackIndex=" << stackIndex;
+//        _resetFrames( stackIndex );
+//        qDebug() << "[Stack] stackIndex=" << stackIndex;
+        // set the file id on the image viewer
+        _setFileId(fileId);
         // NOTE: If the gridcontrol is removed in the future, I think
         // this part should emit a viewload signal.
         //_saveState();
@@ -284,22 +287,27 @@ int Stack::_getIndex( const QString& layerId) const {
 }
 
 int Stack::_getIndexCurrent( ) const {
-    int dataIndex = -1;
-    if ( m_selectImage ){
-        int index = m_selectImage->getIndex();
-        int visibleIndex = -1;
-        int dataCount = m_children.size();
-        for ( int i = 0; i < dataCount; i++ ){
-            if ( m_children[i]->_isVisible() && !m_children[i]->_isEmpty()){
-                visibleIndex++;
-                if ( visibleIndex == index ){
-                    dataIndex = i;
-                    break;
-                }
-            }
-        }
+    int dataIndex = 0;
+//    if ( m_selectImage ){
+//        int index = m_selectImage->getIndex();
+//        int visibleIndex = -1;
+//        int dataCount = m_children.size();
+//        for ( int i = 0; i < dataCount; i++ ){
+//            if ( m_children[i]->_isVisible() && !m_children[i]->_isEmpty()){
+//                visibleIndex++;
+//                if ( visibleIndex == index ){
+//                    dataIndex = i;
+//                    break;
+//                }
+//            }
+//        }
+//    }
+    // get the private parameter of fileId here
+    if (m_fileId >= 0) {
+        dataIndex = m_fileId;
     }
-    qDebug() << "[Stack] dataIndex=" << dataIndex;
+    qDebug() << "[Stack] dataIndex (current index)=" << dataIndex;
+//    qDebug() << "[Stack] m_fileId=" << m_fileId;
     return dataIndex;
 }
 
@@ -1027,6 +1035,9 @@ void Stack::_viewResize(){
     emit viewLoad();
 }
 
+void Stack::_setFileId(int fileId) {
+    m_fileId = fileId;
+}
 
 Stack::~Stack() {
 	if ( m_selectImage != nullptr ){

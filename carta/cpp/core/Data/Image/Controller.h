@@ -87,7 +87,12 @@ public:
      * @return - the identifier for the data that was added, if it was added successfully;
      *      otherwise, an error message.
      */
-    QString addData(const QString& fileName, bool* success);
+    QString addData(const QString& fileName, bool* success, int fileId);
+
+
+    // set the file id as the private parameter in the Stack object,
+    // which represents the current image shown on the frontend image viewer
+    void setFileId(int fileId);
 
     /**
      * Apply the indicated clips to managed images.
@@ -699,7 +704,7 @@ private:
 	class Factory;
 
 	/// Add an image to the stack from a file.
-	QString _addDataImage( const QString& fileName, bool* success );
+    QString _addDataImage(const QString& fileName, bool* success, int fileId);
 
 	//Clear the color map.
 	void _clearColorMap();

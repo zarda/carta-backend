@@ -20,7 +20,7 @@ DataFactory::DataFactory(){
 }
 
 
-QString DataFactory::addData( Controller* controller, const QString& fileName, bool* success ){
+QString DataFactory::addData(Controller* controller, const QString& fileName, bool* success , int fileId){
     QString result;
     *success = false;
     if ( controller ){
@@ -43,7 +43,7 @@ QString DataFactory::addData( Controller* controller, const QString& fileName, b
 //        }
         //Try loading it as an image.
 //        if ( !(*success) ){
-            result = controller->_addDataImage( fileName, success );
+            result = controller->_addDataImage(fileName, success, fileId);
 //        }
     }
     else {

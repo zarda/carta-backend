@@ -697,7 +697,7 @@ QString ViewManager::loadFile( const QString& controlId, const QString& fileName
            //Add the data to it
             _makeDataLoader();
            QString path = m_dataLoader->getFile( fileName, "" );
-           result = m_controllers[i]->addData( path, fileLoaded );
+//           result = m_controllers[i]->addData( path, fileLoaded );
            break;
         }
     }

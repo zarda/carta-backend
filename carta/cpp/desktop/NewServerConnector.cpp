@@ -381,10 +381,10 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         bool success;
         QString fileName = QString::fromStdString(openFile.file());
 
-        controller->addData(fileDir + "/" + fileName, &success);
-
         int fileId = openFile.file_id();
-        qDebug() << "Open the file ID:" << fileId;
+        qDebug() << "[NewServerConnector] Open the file ID:" << fileId;
+
+        controller->addData(fileDir + "/" + fileName, &success, fileId);
 
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
 
@@ -481,7 +481,12 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         qDebug() << "[NewServerConnector] controllerID=" << controllerID;
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
 
-        qDebug() << "File ID requested by frontend:" << viewSetting.file_id();
+        int fileId = viewSetting.file_id();
+        qDebug() << "[NewServerConnector] File ID requested by frontend:" << fileId;
+
+        // set the file id as the private parameter in the Stack object
+        controller->setFileId(fileId);
+
         int frameLow = 0;
         int frameHigh = frameLow;
         int stokeFrame = 0;

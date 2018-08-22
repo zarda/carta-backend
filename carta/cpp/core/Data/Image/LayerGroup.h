@@ -52,7 +52,7 @@ protected:
      * @param stackIndex - set to the index of the image in this group if it is loaded
      *      in this group.
      */
-    QString _addData(const QString& fileName, bool* success, int* stackIndex);
+    QString _addData(const QString& fileName, bool* success, int* stackIndex, int fileId);
 
 
 

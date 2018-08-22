@@ -67,7 +67,7 @@ void LayerGroup::_addContourSet( std::shared_ptr<DataContours> contourSet){
     }
 }
 
-QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackIndex ) {
+QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackIndex, int fileId) {
     QString result;
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     LayerData* targetSource = objMan->createObject<LayerData>();
@@ -80,15 +80,29 @@ QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackI
     //If we are making a new layer, see if there is a selected group.  If so,
     //add to the group.  If not, add to this group.
     if ( *success ){
-        _setColorSupport( targetSource );
-        std::shared_ptr<Layer> selectedGroup = _getSelectedGroup();
-        if (selectedGroup ){
-            selectedGroup->_addLayer( std::shared_ptr<Layer>(targetSource) );
-        }
-        else {
-            m_children.append( std::shared_ptr<Layer>(targetSource) );
-            *stackIndex = m_children.size() - 1;
-            qDebug() << "[LayerGroup] *stackIndex=" << *stackIndex;
+//        _setColorSupport( targetSource );
+//        std::shared_ptr<Layer> selectedGroup = _getSelectedGroup();
+//        if (selectedGroup ){
+//            selectedGroup->_addLayer( std::shared_ptr<Layer>(targetSource) );
+//        }
+//        else {
+//            m_children.append( std::shared_ptr<Layer>(targetSource) );
+//            *stackIndex = m_children.size() - 1;
+//            qDebug() << "[LayerGroup] *stackIndex=" << *stackIndex;
+//            qDebug() << "[LayerGroup] fileId=" << fileId;
+//        }
+        if (fileId >= 0 && m_children.size() - 1 >= fileId) {
+            // there is a children exists, replace it
+            qDebug() << "[LayerGroup] There is an image object exists, replace it, fileId=" << fileId;
+            m_children.replace(fileId, std::shared_ptr<Layer>(targetSource));
+            *stackIndex = fileId;
+        } else if (fileId >= 0 && m_children.size() - 1 < fileId) {
+            // append a new children in the list
+            qDebug() << "[LayerGroup] Append a new image object in the list, fileId=" << fileId;
+            m_children.append(std::shared_ptr<Layer>(targetSource));
+            *stackIndex = fileId;
+        } else {
+            qCritical() << "No image object is cached! check fileId=" << fileId << ", m_children.size()=" << m_children.size();
         }
     }
     else {
@@ -921,7 +935,8 @@ void LayerGroup::_resetState( const Carta::State::StateInterface& restoreState )
             QString fileName = restoreState.getValue<QString>( fileLookup );
             if ( !fileName.isEmpty()){
                 bool success = false;
-                _addData( fileName, &success, &dataIndex );
+                // this is a dummy function since I have modified just to let compile success. Need to be handled in future
+                _addData( fileName, &success, &dataIndex, -1);
             }
         }
         int childCount = m_children.size();

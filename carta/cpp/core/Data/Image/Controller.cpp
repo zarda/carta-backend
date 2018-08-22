@@ -124,21 +124,27 @@ void Controller::addContourSet( std::shared_ptr<DataContours> contourSet){
 	m_stack->_addContourSet( contourSet );
 }
 
-QString Controller::addData(const QString& fileName, bool* success) {
+QString Controller::addData(const QString& fileName, bool* success, int fileId) {
 	*success = false;
-	QString result = DataFactory::addData( this, fileName, success );
+    QString result = DataFactory::addData( this, fileName, success, fileId);
     return result;
 }
 
-QString Controller::_addDataImage(const QString& fileName, bool* success ) {
-    QString result = m_stack->_addDataImage( fileName, success );
+void Controller::setFileId(int fileId) {
+    // set the file id as the private parameter in the Stack object
+    m_stack->_setFileId(fileId);
+}
+
+QString Controller::_addDataImage(const QString& fileName, bool* success, int fileId) {
+    // assign the fileId as a private parameter in the m_stack
+    QString result = m_stack->_addDataImage(fileName, success, fileId);
     if ( *success ){
-        if ( isStackSelectAuto() ){
-            QStringList selectedLayers;
-            QString stackId= m_stack->_getCurrentId();
-            selectedLayers.append( stackId );
-            _setLayersSelected( selectedLayers );
-        }
+//        if ( isStackSelectAuto() ){
+//            QStringList selectedLayers;
+//            QString stackId= m_stack->_getCurrentId();
+//            selectedLayers.append( stackId );
+//            _setLayersSelected( selectedLayers );
+//        }
         // _setSkyCSName();
         // _updateDisplayAxes();
         //emit dataChanged( this );
