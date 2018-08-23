@@ -39,14 +39,14 @@ INCLUDEPATH += ../core
 INCLUDEPATH += ../../../ThirdParty/protobuf/include
 LIBS += -L../../../ThirdParty/protobuf/lib -lprotobuf
 
-INCLUDEPATH += /usr/local/opt/openssl/include
-LIBS += -L/usr/local/opt/openssl/lib -lssl
+INCLUDEPATH += /usr/include/openssl
+LIBS += -L/usr/lib/x86_64-linux-gnu -lssl
 
-INCLUDEPATH += /usr/local/opt/libuv/include
-LIBS += -L/usr/local/opt/libuv/lib -luv
+INCLUDEPATH += /usr/include
+LIBS += -L/usr/lib/x86_64-linux-gnu -luv
 
 INCLUDEPATH += ../../../ThirdParty/uWebSockets/include
-LIBS += -L../../../ThirdParty/uWebSockets/lib -luWS -lz
+LIBS += -L../../../ThirdParty/uWebSockets/lib -luWS -lz -lssl
 
 unix: LIBS += -L$$OUT_PWD/../core/ -lcore
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
