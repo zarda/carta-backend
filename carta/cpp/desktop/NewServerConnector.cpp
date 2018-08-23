@@ -462,8 +462,11 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         qDebug() << ".......................................................................Done";
 
+        // mark the image file is changed
+        m_changeImage = true;
+
         // Sleep for 1 millisecond. It is applied trying to solve the empty of histogram sent to the frontend.
-        QThread::msleep(1);
+        //QThread::msleep(1);
 
         // send the serialized message to the frontend
         sendSerializedMessage(message, respName, msg);
@@ -497,7 +500,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         int y_min = viewSetting.image_bounds().y_min();
         int y_max = viewSetting.image_bounds().y_max();
 
-        if (mip == m_mip && x_min == m_xMin && x_max == m_xMax && y_min == m_yMin && y_max == m_yMax) {
+        if (mip == m_mip && x_min == m_xMin && x_max == m_xMax && y_min == m_yMin && y_max == m_yMax && !m_changeImage) {
             // if the required region of image viewer from frontend is the same with the previous requirement, ignore it.
             qDebug() << "Image boundary settings are repeated.";
             return;
@@ -508,6 +511,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
             m_xMax = x_max;
             m_yMin = y_min;
             m_yMax = y_max;
+            m_changeImage = false;
         }
 
         /////////////////////////////////////////////////////////////////////
