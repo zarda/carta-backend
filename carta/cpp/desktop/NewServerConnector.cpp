@@ -270,7 +270,7 @@ void NewServerConnector::startWebSocket(){
 void NewServerConnector::startViewerSlot(const QString & sessionID) {
 
     QString name = QThread::currentThread()->objectName();
-    // qDebug() << "current thread name:" << name;
+    qDebug() << "[NewServerConnector] Current thread name:" << name;
     if (name != sessionID) {
         qDebug()<< "ignore startViewerSlot";
         return;
@@ -436,6 +436,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
         RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
         std::vector<uint32_t> pixels2histogram = regionHisotgramData.bins;
+        //qDebug() << "pixels2histogram=" << pixels2histogram;
 
         // add RegionHistogramData message
         std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
