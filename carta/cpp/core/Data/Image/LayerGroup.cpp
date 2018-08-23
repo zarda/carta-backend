@@ -96,10 +96,12 @@ QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackI
             qDebug() << "[LayerGroup] There is an image object exists, replace it, fileId=" << fileId;
             m_children.replace(fileId, std::shared_ptr<Layer>(targetSource));
             *stackIndex = fileId;
-        } else if (fileId >= 0 && m_children.size() - 1 < fileId) {
+        } else if (fileId >= 0 && m_children.size() == fileId) {
             // append a new children in the list
             qDebug() << "[LayerGroup] Append a new image object in the list, fileId=" << fileId;
             m_children.append(std::shared_ptr<Layer>(targetSource));
+            //qDebug() << "[LayerGroup] Insert a new image object in the list, fileId=" << fileId;
+            //m_children.insert(fileId, std::shared_ptr<Layer>(targetSource));
             *stackIndex = fileId;
         } else {
             qCritical() << "No image object is cached! check fileId=" << fileId << ", m_children.size()=" << m_children.size();

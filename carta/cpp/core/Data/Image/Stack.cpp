@@ -303,9 +303,12 @@ int Stack::_getIndexCurrent( ) const {
 //        }
 //    }
     // get the private parameter of fileId here
-    if (m_fileId >= 0) {
+    if (m_fileId >= 0 && m_fileId < m_children.size()) {
         dataIndex = m_fileId;
+    } else {
+        qFatal("Image index requested by the frontend is not matched with the backend status!");
     }
+
     qDebug() << "[Stack] dataIndex (current index)=" << dataIndex;
 //    qDebug() << "[Stack] m_fileId=" << m_fileId;
     return dataIndex;
