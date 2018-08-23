@@ -95,13 +95,13 @@ else{
     QMAKE_CFLAGS += -fopenmp
 }
 
-# use gcc 4.8.1
-CONFIG += gcc481
+# use gcc 5.5.0
+CONFIG += gcc550
 
-#gcc481 {
-#    COMPILER = g++-4.8
+#gcc550 {
+   COMPILER = g++-5
 #} else {
-    COMPILER = g++
+#   COMPILER = g++
 #}
 
 QMAKE_CXX = $${COMPILER}
