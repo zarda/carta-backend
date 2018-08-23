@@ -9,9 +9,9 @@ SUBDIRS = \
     desktop \
     plugins \
     Tests \
-    testCache \
-    testRegion \
-    testPercentile
+#    testCache \
+#    testRegion \
+#    testPercentile
 
 isEmpty(NOSERVER) {
 	SUBDIRS +=server
