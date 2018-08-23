@@ -732,11 +732,17 @@ std::vector<float> DataSource::_getRasterImageData(int xMin, int xMax, int yMin,
 
         int t = 0;
         fview.forEach( [&] ( const float & val ) {
-            // To improve the performance, the prepareArea also update only one row
-            // by computing the module
-            prepareArea[(t++)] = val;
+            // To improve the performance, the prepareArea also update only one row by computing the module
+            if (std::isfinite(val)) {
+                prepareArea[(t++)] = val;
+            } else {
+                prepareArea[(t++)] = m_minIntensity;
+            }
         });
+
         if (t != area) {
+            qDebug() << "The prepared length of the raw data array:" << area
+                     << "is not consistent with the slice cut:" << t << "!!";
             qFatal("The prepared length of the raw data array is not consistent with the slice cut!!");
         }
 
@@ -986,11 +992,19 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
                         slice.end(sliceSize);
                     }
                 } else {
-                    // for the other axis, get the entire range
-                    qDebug() << "++++++++ find the other axis index"<< i
-                             << ", get the channel range= [0 ," << sliceSize << "]";
-                    slice.start(0);
-                    slice.end(sliceSize);
+                    // for the other axis, assume it is a spectral frame
+                    if (0 <= frameStart && frameStart < sliceSize &&
+                        0 <= frameEnd && frameEnd < sliceSize) {
+                        slice.start(frameStart);
+                        slice.end(frameEnd + 1);
+                        qDebug() << "++++++++ find the other axis index=" << i
+                                 << ", get the channel range= [" << frameStart << "," << frameEnd << "]";
+                    } else {
+                        qDebug() << "++++++++ find the other axis index=" << i
+                                 << ", get the channel range= [0 ," << sliceSize << "]";
+                        slice.start(0);
+                        slice.end(sliceSize);
+                    }
                 }
 
                 slice.step( 1 );
