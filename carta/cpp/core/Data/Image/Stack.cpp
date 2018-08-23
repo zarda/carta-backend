@@ -83,35 +83,36 @@ bool Stack::_addGroup( ){
 }
 
 bool Stack::_closeData( const QString& id ){
+    // remove the fileId
     bool dataClosed = LayerGroup::_closeData( id );
-    if ( dataClosed ){
-        int selectedImage = m_selectImage->getIndex();
-        int visibleImageCount = _getStackSizeVisible();
-        m_selectImage->setUpperBound( visibleImageCount );
-        if ( selectedImage >= visibleImageCount ){
-            m_selectImage->setIndex(visibleImageCount - 1);
-        }
-        //Update the channel upper bound and index if necessary
-        int targetData = _getIndexCurrent();
-        int selectCount = m_selects.size();
-        for ( int i = 0; i < selectCount; i++ ){
-            int frameCount = 1;
-            AxisInfo::KnownType axisType= static_cast<AxisInfo::KnownType>( i );
-            if ( targetData >= 0 ){
-                frameCount = m_children[targetData]->_getFrameCount( axisType );
-            }
-            int oldIndex = m_selects[i]->getIndex();
-            if ( oldIndex >= frameCount && frameCount > 0){
-                _setFrameAxis( frameCount - 1, axisType );
-            }
-            else {
-                _setFrameAxis( 0, axisType );
-            }
-            m_selects[i]->setUpperBound( frameCount );
-        }
-        emit viewLoad( );
-        _saveState();
-    }
+//    if ( dataClosed ){
+//        int selectedImage = m_selectImage->getIndex();
+//        int visibleImageCount = _getStackSizeVisible();
+//        m_selectImage->setUpperBound( visibleImageCount );
+//        if ( selectedImage >= visibleImageCount ){
+//            m_selectImage->setIndex(visibleImageCount - 1);
+//        }
+//        //Update the channel upper bound and index if necessary
+//        int targetData = _getIndexCurrent();
+//        int selectCount = m_selects.size();
+//        for ( int i = 0; i < selectCount; i++ ){
+//            int frameCount = 1;
+//            AxisInfo::KnownType axisType= static_cast<AxisInfo::KnownType>( i );
+//            if ( targetData >= 0 ){
+//                frameCount = m_children[targetData]->_getFrameCount( axisType );
+//            }
+//            int oldIndex = m_selects[i]->getIndex();
+//            if ( oldIndex >= frameCount && frameCount > 0){
+//                _setFrameAxis( frameCount - 1, axisType );
+//            }
+//            else {
+//                _setFrameAxis( 0, axisType );
+//            }
+//            m_selects[i]->setUpperBound( frameCount );
+//        }
+//        emit viewLoad( );
+//        _saveState();
+//    }
     return dataClosed;
 }
 

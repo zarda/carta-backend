@@ -217,29 +217,35 @@ std::shared_ptr<DataContours> LayerGroup::_getContour( const QString& name ){
 
 
 bool LayerGroup::_closeData( const QString& id ){
-    int targetIndex = -1;
+//    int targetIndex = -1;
     bool dataClosed = false;
     int dataCount = m_children.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        bool childMatch = m_children[i]->_isMatch( id );
-        if ( childMatch ){
-            targetIndex = i;
-            break;
-        }
-    }
+    int closeIndex = id.toInt();
+//    for ( int i = 0; i < dataCount; i++ ){
+//        bool childMatch = m_children[i]->_isMatch( id );
+//        if ( childMatch ){
+//            targetIndex = i;
+//            break;
+//        }
+//    }
+//
+//    if ( targetIndex >= 0 ){
+//        _removeData( targetIndex );
+//        dataClosed = true;
+//    }
+//    else {
+//        //See if any of the composite children can remove it.
+//        for ( int i = 0; i < dataCount; i++ ){
+//           bool childClosed = m_children[i]->_closeData( id );
+//           if ( childClosed ){
+//               dataClosed = true;
+//           }
+//        }
+//    }
 
-    if ( targetIndex >= 0 ){
-        _removeData( targetIndex );
+    if (closeIndex >= 0 && closeIndex < dataCount) {
+        _removeData(closeIndex);
         dataClosed = true;
-    }
-    else {
-        //See if any of the composite children can remove it.
-        for ( int i = 0; i < dataCount; i++ ){
-           bool childClosed = m_children[i]->_closeData( id );
-           if ( childClosed ){
-               dataClosed = true;
-           }
-        }
     }
     return dataClosed;
 }
