@@ -430,21 +430,20 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         int frameLow = 0;
         int frameHigh = frameLow;
         int stokeFrame = 0;
+        // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
+        int regionId = -1;
 
         // calculate pixels to histogram data
         int numberOfBins = 10000;
         Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-        RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+        RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
         std::vector<uint32_t> pixels2histogram = regionHisotgramData.bins;
         //qDebug() << "pixels2histogram=" << pixels2histogram;
 
         // add RegionHistogramData message
         std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
-        region_histogram_data->set_file_id(fileId);
-
-        // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
-        region_histogram_data->set_region_id(-1);
-
+        region_histogram_data->set_file_id(regionHisotgramData.fileId);
+        region_histogram_data->set_region_id(regionHisotgramData.regionId);
         region_histogram_data->set_stokes(regionHisotgramData.stokeFrame);
 
         CARTA::Histogram* histogram = region_histogram_data->add_histograms();

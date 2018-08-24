@@ -640,7 +640,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
     return intensities;
 }
 
-RegionHistogramData DataSource::_getPixels2Histogram(int frameLow, int frameHigh,
+RegionHistogramData DataSource::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
     int numberOfBins, int stokeFrame,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) {
 
@@ -686,7 +686,8 @@ RegionHistogramData DataSource::_getPixels2Histogram(int frameLow, int frameHigh
     }
 
     int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
-    result = calculator->pixels2histogram(doubleView, minIntensity, maxIntensity, numberOfBins, spectralIndex, converter, hertzValues, frameLow, stokeFrame);
+    result = calculator->pixels2histogram(fileId, regionId, doubleView, minIntensity, maxIntensity,
+                                          numberOfBins, spectralIndex, converter, hertzValues, frameLow, stokeFrame);
 
     return result;
 }

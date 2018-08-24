@@ -15,6 +15,8 @@ namespace Carta {
 namespace Lib {
 
 struct RegionHistogramData {
+    int fileId;
+    int regionId;
     int frameLow;
     int stokeFrame;
     //int32_t channel;
@@ -74,6 +76,8 @@ public:
     );
 
     virtual RegionHistogramData pixels2histogram(
+        int fileId,
+        int regionId,
         Carta::Lib::NdArray::TypedView <Scalar> & view,
         double minIntensity,
         double maxIntensity,
@@ -117,6 +121,8 @@ std::map<double, Scalar> IPercentilesToPixels<Scalar>::percentile2pixels(
 
 template <typename Scalar>
 RegionHistogramData IPercentilesToPixels<Scalar>::pixels2histogram(
+    int fileId,
+    int regionId,
     Carta::Lib::NdArray::TypedView <Scalar> & view,
     double minIntensity,
     double maxIntensity,
@@ -127,6 +133,8 @@ RegionHistogramData IPercentilesToPixels<Scalar>::pixels2histogram(
     int frameLow,
     int stokeFrame
 ) {
+    Q_UNUSED(fileId);
+    Q_UNUSED(regionId);
     Q_UNUSED(view);
     Q_UNUSED(minIntensity);
     Q_UNUSED(maxIntensity);

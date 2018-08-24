@@ -538,12 +538,12 @@ std::vector<double> LayerGroup::_getIntensity( int frameLow, int frameHigh,
     return results;
 }
 
-RegionHistogramData LayerGroup::_getPixels2Histogram(int frameLow, int frameHigh,
+RegionHistogramData LayerGroup::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
     int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
     RegionHistogramData results;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        results = m_children[dataIndex]->_getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+        results = m_children[dataIndex]->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
     }
     return results;
 }

@@ -64,6 +64,8 @@ public:
         const std::vector<double> hertzValues
     ) override;
     RegionHistogramData pixels2histogram(
+        const int fileId,
+        const int regionId,
         Carta::Lib::NdArray::TypedView < Scalar > & view,
         double minIntensity,
         double maxIntensity,
@@ -363,6 +365,8 @@ MinMaxPercentiles<Scalar>::percentile2pixels(
 
 template <typename Scalar>
 RegionHistogramData MinMaxPercentiles<Scalar>::pixels2histogram(
+    int fileId,
+    int regionId,
     Carta::Lib::NdArray::TypedView <Scalar> & view,
     double minIntensity,
     double maxIntensity,
@@ -437,6 +441,8 @@ RegionHistogramData MinMaxPercentiles<Scalar>::pixels2histogram(
     }
 
     RegionHistogramData result;
+    result.fileId = fileId;
+    result.regionId = regionId;
     result.num_bins = numberOfBins + 1;
     result.bin_width = intensityRange / numberOfBins;
     result.first_bin_center = minIntensity;

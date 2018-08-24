@@ -389,8 +389,8 @@ std::vector<double> Controller::getIntensity( int frameLow, int frameHigh, const
     return intensities;
 }
 
-RegionHistogramData Controller::getPixels2Histogram(int frameLow, int frameHigh, int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
-    RegionHistogramData result = m_stack->_getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+RegionHistogramData Controller::getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
+    RegionHistogramData result = m_stack->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
     return result;
 }
 
