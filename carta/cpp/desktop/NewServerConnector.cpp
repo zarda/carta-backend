@@ -270,7 +270,7 @@ void NewServerConnector::startWebSocket(){
 void NewServerConnector::startViewerSlot(const QString & sessionID) {
 
     QString name = QThread::currentThread()->objectName();
-    // qDebug() << "current thread name:" << name;
+    qDebug() << "[NewServerConnector] Current thread name:" << name;
     if (name != sessionID) {
         qDebug()<< "ignore startViewerSlot";
         return;
@@ -354,30 +354,37 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         sendSerializedMessage(message, respName, msg);
         return;
 
+    } else if (eventName == "CLOSE_FILE") {
+
+        CARTA::CloseFile closeFile;
+        closeFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+        int closeFileId = closeFile.file_id();
+        qDebug() << "[NewServerConnector] Close file id=" << closeFileId;
+
     } else if (eventName == "OPEN_FILE") {
         respName = "OPEN_FILE_ACK";
 
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+        qDebug() << "[NewServerConnector] controllerID=" << controllerID;
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
-        bool success;
 
         CARTA::OpenFile openFile;
         openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
 
         QString fileDir = QString::fromStdString(openFile.directory());
-        QString fileName = QString::fromStdString(openFile.file());
         if (!QDir(fileDir).exists()) {
             qWarning() << "File directory doesn't exist! (" << fileDir << ")";
             return;
         }
 
-        controller->addData(fileDir + "/" + fileName, &success);
+        bool success;
+        QString fileName = QString::fromStdString(openFile.file());
 
-        if (success) {
-            m_changeImage = true;
-            qDebug() << "Image file (or channel) changed, re-calculate the pixels to histogram data!";
-        }
+        int fileId = openFile.file_id();
+        qDebug() << "[NewServerConnector] Open the file ID:" << fileId;
+
+        controller->addData(fileDir + "/" + fileName, &success, fileId);
 
         std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
 
@@ -414,6 +421,58 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         // send the serialized message to the frontend
         sendSerializedMessage(message, respName, msg);
+
+        /////////////////////////////////////////////////////////////////////
+        qDebug() << "Calculating the regional histogram data....................................";
+
+        respName = "REGION_HISTOGRAM_DATA";
+
+        int frameLow = 0;
+        int frameHigh = frameLow;
+        int stokeFrame = 0;
+
+        // calculate pixels to histogram data
+        int numberOfBins = 10000;
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
+        RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+        std::vector<uint32_t> pixels2histogram = regionHisotgramData.bins;
+        //qDebug() << "pixels2histogram=" << pixels2histogram;
+
+        // add RegionHistogramData message
+        std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
+        region_histogram_data->set_file_id(openFile.file_id());
+
+        // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
+        region_histogram_data->set_region_id(-1);
+
+        region_histogram_data->set_stokes(stokeFrame);
+
+        CARTA::Histogram* histogram = region_histogram_data->add_histograms();
+        histogram->set_channel(frameLow);
+        histogram->set_num_bins(regionHisotgramData.num_bins);
+        histogram->set_bin_width(regionHisotgramData.bin_width);
+
+        // the minimum value of pixels is the first bin center
+        histogram->set_first_bin_center(regionHisotgramData.first_bin_center);
+
+        for (auto intensity : pixels2histogram) {
+            histogram->add_bins(intensity);
+        }
+
+        msg = region_histogram_data;
+
+        qDebug() << ".......................................................................Done";
+
+        // mark the image file is changed
+        m_changeImage = true;
+
+        // Sleep for 1 millisecond. It is applied trying to solve the empty of histogram sent to the frontend.
+        //QThread::msleep(1);
+
+        // send the serialized message to the frontend
+        sendSerializedMessage(message, respName, msg);
+        /////////////////////////////////////////////////////////////////////
+
         return;
 
     } else if (eventName == "SET_IMAGE_VIEW") {
@@ -423,57 +482,18 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         // get the controller
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+        qDebug() << "[NewServerConnector] controllerID=" << controllerID;
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
 
-        //qDebug() << "File ID requested by frontend:" << viewSetting.file_id();
+        int fileId = viewSetting.file_id();
+        qDebug() << "[NewServerConnector] File ID requested by frontend:" << fileId;
+
+        // set the file id as the private parameter in the Stack object
+        controller->setFileId(fileId);
+
         int frameLow = 0;
         int frameHigh = frameLow;
         int stokeFrame = 0;
-
-        /////////////////////////////////////////////////////////////////////
-        if (m_changeImage) {
-            qDebug() << "Calculating the regional histogram data....................................";
-
-            respName = "REGION_HISTOGRAM_DATA";
-
-            // calculate pixels to histogram data
-            int numberOfBins = 10000;
-            Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-            RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
-            std::vector<uint32_t> pixels2histogram = regionHisotgramData.bins;
-            // the minimum value of pixels is the first bin center
-            m_minIntensity = regionHisotgramData.first_bin_center;
-
-            // add RegionHistogramData message
-            std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
-            region_histogram_data->set_file_id(viewSetting.file_id());
-
-            // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
-            region_histogram_data->set_region_id(-1);
-
-            region_histogram_data->set_stokes(stokeFrame);
-
-            CARTA::Histogram* histogram = region_histogram_data->add_histograms();
-            histogram->set_channel(frameLow);
-            histogram->set_num_bins(regionHisotgramData.num_bins);
-            histogram->set_bin_width(regionHisotgramData.bin_width);
-            histogram->set_first_bin_center(m_minIntensity);
-
-            for (auto intensity : pixels2histogram) {
-                histogram->add_bins(intensity);
-            }
-
-            msg = region_histogram_data;
-
-            qDebug() << ".......................................................................Done";
-
-            // send the serialized message to the frontend
-            sendSerializedMessage(message, respName, msg);
-
-            // set m_changeImage = false, in order to avoid the re-calculation of pixels to histogram
-            //m_changeImage = false;
-        }
-        /////////////////////////////////////////////////////////////////////
 
         int mip = viewSetting.mip();
         int x_min = viewSetting.image_bounds().x_min();
@@ -481,10 +501,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         int y_min = viewSetting.image_bounds().y_min();
         int y_max = viewSetting.image_bounds().y_max();
 
-        if (m_changeImage) {
-            // set m_changeImage = false, in order to avoid the re-calculation of pixels to histogram
-            m_changeImage = false;
-        } else if (mip == m_mip && x_min == m_xMin && x_max == m_xMax && y_min == m_yMin && y_max == m_yMax) {
+        if (mip == m_mip && x_min == m_xMin && x_max == m_xMax && y_min == m_yMin && y_max == m_yMax && !m_changeImage) {
             // if the required region of image viewer from frontend is the same with the previous requirement, ignore it.
             qDebug() << "Image boundary settings are repeated.";
             return;
@@ -495,6 +512,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
             m_xMax = x_max;
             m_yMin = y_min;
             m_yMax = y_max;
+            m_changeImage = false;
         }
 
         /////////////////////////////////////////////////////////////////////
@@ -513,7 +531,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         // get the down sampling raster image raw data
         std::vector<float> imageData = controller->getRasterImageData(x_min, x_max, y_min, y_max, mip,
-            m_minIntensity, frameLow, frameHigh, stokeFrame);
+            frameLow, frameHigh, stokeFrame);
         qDebug() << "number of the raw data sent L=" << imageData.size() << ", WxH=" << W * H
                  << ", Difference:" << (W * H - imageData.size());
 
