@@ -537,18 +537,24 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         // add the RasterImageData message
         CARTA::ImageBounds* imgBounds = new CARTA::ImageBounds();
-        imgBounds->CopyFrom(viewSetting.image_bounds());
+        imgBounds->set_x_min(x_min);
+        imgBounds->set_x_max(x_max);
+        imgBounds->set_y_min(y_min);
+        imgBounds->set_y_max(y_max);
 
         std::shared_ptr<CARTA::RasterImageData> raster(new CARTA::RasterImageData());
-        raster->set_file_id(viewSetting.file_id());
+        raster->set_file_id(fileId);
         raster->set_allocated_image_bounds(imgBounds);
         raster->set_channel(frameLow);
         raster->set_stokes(stokeFrame);
-        raster->set_mip(viewSetting.mip());
-        // raster->set_compression_type(viewSetting.compression_type());
-        raster->set_compression_type(CARTA::CompressionType::NONE);
-        raster->set_compression_quality(viewSetting.compression_quality());
+        raster->set_mip(mip);
         raster->add_image_data(imageData.data(), imageData.size() * sizeof(float));
+
+        // use the compression type from the viewSetting will cause problems on the frontend
+        //raster->set_compression_type(viewSetting.compression_type());
+        raster->set_compression_type(CARTA::CompressionType::NONE);
+
+        raster->set_compression_quality(viewSetting.compression_quality());
 
         msg = raster;
 
