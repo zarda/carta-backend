@@ -548,12 +548,12 @@ PBMSharedPtr LayerGroup::_getPixels2Histogram(int fileId, int regionId, int fram
     return results;
 }
 
-std::vector<float> LayerGroup::_getRasterImageData(int xMin, int xMax, int yMin, int yMax,
+PBMSharedPtr LayerGroup::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
     int mip, int frameLow, int frameHigh, int stokeFrame) const {
-    std::vector<float> results;
+    PBMSharedPtr results;
     int dataIndex = _getIndexCurrent();
     if (dataIndex >= 0) {
-        results = m_children[dataIndex]->_getRasterImageData(xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
+        results = m_children[dataIndex]->_getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
     }
     return results;
 }

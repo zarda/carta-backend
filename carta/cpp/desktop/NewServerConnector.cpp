@@ -30,7 +30,7 @@
 #include "CartaLib/Proto/file_info.pb.h"
 #include "CartaLib/Proto/open_file.pb.h"
 #include "CartaLib/Proto/set_image_view.pb.h"
-#include "CartaLib/Proto/raster_image.pb.h"
+//#include "CartaLib/Proto/raster_image.pb.h"
 #include "CartaLib/Proto/spectral_profile.pb.h"
 #include "CartaLib/Proto/spatial_profile.pb.h"
 #include "CartaLib/Proto/set_image_channels.pb.h"
@@ -423,8 +423,6 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         sendSerializedMessage(message, respName, msg);
 
         /////////////////////////////////////////////////////////////////////
-        qDebug() << "Calculating the regional histogram data....................................";
-
         respName = "REGION_HISTOGRAM_DATA";
 
         int frameLow = 0;
@@ -439,8 +437,6 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
 
         msg = region_histogram_data;
-
-        qDebug() << ".......................................................................Done";
 
         // mark the image file is changed
         m_changeImage = true;
@@ -495,49 +491,11 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         }
 
         /////////////////////////////////////////////////////////////////////
-        qDebug() << "Down sampling the raster image data........................................";
-
         respName = "RASTER_IMAGE_DATA";
 
-        qDebug() << "Dawn sampling factor mip:" << mip;
-
-        int W = (x_max - x_min) / mip;
-        int H = (y_max - y_min) / mip;
-        qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << x_min << "," << x_max << "]"
-                 << "--> W=" << W;
-        qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << y_min << "," << y_max << "]"
-                 << "--> H=" << H;
-
         // get the down sampling raster image raw data
-        std::vector<float> imageData = controller->getRasterImageData(x_min, x_max, y_min, y_max, mip,
-            frameLow, frameHigh, stokeFrame);
-        qDebug() << "number of the raw data sent L=" << imageData.size() << ", WxH=" << W * H
-                 << ", Difference:" << (W * H - imageData.size());
-
-        // add the RasterImageData message
-        CARTA::ImageBounds* imgBounds = new CARTA::ImageBounds();
-        imgBounds->set_x_min(x_min);
-        imgBounds->set_x_max(x_max);
-        imgBounds->set_y_min(y_min);
-        imgBounds->set_y_max(y_max);
-
-        std::shared_ptr<CARTA::RasterImageData> raster(new CARTA::RasterImageData());
-        raster->set_file_id(fileId);
-        raster->set_allocated_image_bounds(imgBounds);
-        raster->set_channel(frameLow);
-        raster->set_stokes(stokeFrame);
-        raster->set_mip(mip);
-        raster->add_image_data(imageData.data(), imageData.size() * sizeof(float));
-
-        // use the compression type from the viewSetting will cause problems on the frontend
-        //raster->set_compression_type(viewSetting.compression_type());
-        raster->set_compression_type(CARTA::CompressionType::NONE);
-
-        raster->set_compression_quality(viewSetting.compression_quality());
-
+        PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame);
         msg = raster;
-
-        qDebug() << ".......................................................................Done";
 
         // send the serialized message to the frontend
         sendSerializedMessage(message, respName, msg);

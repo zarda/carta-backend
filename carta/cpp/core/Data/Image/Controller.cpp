@@ -394,9 +394,9 @@ PBMSharedPtr Controller::getPixels2Histogram(int fileId, int regionId, int frame
     return result;
 }
 
-std::vector<float> Controller::getRasterImageData(int x_min, int x_max, int y_min, int y_max,
+PBMSharedPtr Controller::getRasterImageData(int fileId, int x_min, int x_max, int y_min, int y_max,
     int mip, int frameLow, int frameHigh, int stokeFrame) const {
-    std::vector<float> result = m_stack->_getRasterImageData(x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame);
+    PBMSharedPtr result = m_stack->_getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame);
     return result;
 }
 

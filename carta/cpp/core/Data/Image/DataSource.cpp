@@ -644,6 +644,7 @@ PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int fram
     int numberOfBins, int stokeFrame,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) {
 
+    qDebug() << "Calculating the regional histogram data...................................>";
     RegionHistogramData result; // results from the "percentileAlgorithms.h"
 
     // get the raw data
@@ -707,19 +708,27 @@ PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int fram
     for (auto intensity : result.bins) {
         histogram->add_bins(intensity);
     }
+    qDebug() << ".......................................................................Done";
 
     return region_histogram_data;
 }
 
-std::vector<float> DataSource::_getRasterImageData(int xMin, int xMax, int yMin, int yMax,
+PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
     int mip, int frameLow, int frameHigh, int stokeFrame) const {
 
-    std::vector<float> results;
+    qDebug() << "Down sampling the raster image data.......................................>";
+    qDebug() << "Dawn sampling factor mip:" << mip;
+    int W = (xMax - xMin) / mip;
+    int H = (yMax - yMin) / mip;
+    qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << xMin << "," << xMax << "]" << "--> W=" << W;
+    qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << yMin << "," << yMax << "]" << "--> H=" << H;
+
+    std::vector<float> results; // the image raw data with downsampling
 
     // check if the minimum of the pixel value is valid
     if (m_minIntensity == std::numeric_limits<double>::min()) {
         qWarning() << "The minimum of the pixel value is invalid! Return 0";
-        return results;
+        return nullptr;
     }
 
     // get the raw data
@@ -728,7 +737,7 @@ std::vector<float> DataSource::_getRasterImageData(int xMin, int xMax, int yMin,
     // check if the downsampling parameter "mip" is smaller than the image width or high
     if (mip <= 0 || abs(mip) > std::min(view->dims()[0], view->dims()[1])) {
         qWarning() << "Downsampling parameter, mip, is larger than the image width or high. Return 0";
-        return results;
+        return nullptr;
     }
 
     int prepareCols = view->dims()[0]; // get the full width length
@@ -793,7 +802,36 @@ std::vector<float> DataSource::_getRasterImageData(int xMin, int xMax, int yMin,
         updateRows();
     }
 
-    return results;
+    // add the RasterImageData message
+    CARTA::ImageBounds* imgBounds = new CARTA::ImageBounds();
+    imgBounds->set_x_min(xMin);
+    imgBounds->set_x_max(xMax);
+    imgBounds->set_y_min(yMin);
+    imgBounds->set_y_max(yMax);
+
+    std::shared_ptr<CARTA::RasterImageData> raster(new CARTA::RasterImageData());
+    raster->set_file_id(fileId);
+    raster->set_allocated_image_bounds(imgBounds);
+    raster->set_channel(frameLow);
+    raster->set_stokes(stokeFrame);
+    raster->set_mip(mip);
+    raster->add_image_data(results.data(), results.size() * sizeof(float));
+
+    //
+    // leave empty in the following two messages
+    //
+    // use the compression type from the "viewSetting" will cause problems on the frontend
+    //raster->set_compression_type(viewSetting.compression_type());
+    //
+    // use the following type is OK
+    //raster->set_compression_type(CARTA::CompressionType::NONE);
+    //
+    //raster->set_compression_quality(viewSetting.compression_quality());
+
+    qDebug() << "number of the raw data sent L=" << results.size() << ", WxH=" << W * H << ", Difference:" << (W * H - results.size());
+    qDebug() << ".......................................................................Done";
+
+    return raster;
 }
 
 QColor DataSource::_getNanColor() const {

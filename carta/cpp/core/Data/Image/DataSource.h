@@ -14,6 +14,7 @@
 #include <memory>
 
 #include "CartaLib/Proto/region_histogram.pb.h"
+#include "CartaLib/Proto/raster_image.pb.h"
 
 typedef Carta::Lib::RegionHistogramData RegionHistogramData;
 typedef std::shared_ptr<google::protobuf::MessageLite> PBMSharedPtr;
@@ -276,7 +277,7 @@ private:
      * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
      * @return - vector of pixels.
      */
-    std::vector<float> _getRasterImageData(int xMin, int xMax, int yMin, int yMax,
+    PBMSharedPtr _getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
             int mip, int frameLow, int frameHigh, int stokeFrame) const;
 
     /**

@@ -395,11 +395,11 @@ PBMSharedPtr LayerData::_getPixels2Histogram(int fileId, int regionId, int frame
     return results;
 }
 
-std::vector<float> LayerData::_getRasterImageData(int xMin, int xMax, int yMin, int yMax,
+PBMSharedPtr LayerData::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
     int mip, int frameLow, int frameHigh, int stokeFrame) const {
-    std::vector<float> results;
+    PBMSharedPtr results;
     if (m_dataSource) {
-        results = m_dataSource->_getRasterImageData(xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
+        results = m_dataSource->_getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
     }
     return results;
 }
