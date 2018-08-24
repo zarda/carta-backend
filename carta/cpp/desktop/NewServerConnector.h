@@ -15,8 +15,6 @@
 #include <QList>
 #include <QByteArray>
 
-typedef Carta::Lib::RegionHistogramData RegionHistogramData;
-
 class IView;
 
 /// private info we keep with each view

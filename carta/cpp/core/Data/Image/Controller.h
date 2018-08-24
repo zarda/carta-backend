@@ -17,7 +17,7 @@
 #include <QObject>
 #include <set>
 
-typedef Carta::Lib::RegionHistogramData RegionHistogramData;
+typedef std::shared_ptr<google::protobuf::MessageLite> PBMSharedPtr;
 
 class CoordinateFormatterInterface;
 
@@ -240,7 +240,7 @@ public:
      * @param converter - used to convert the pixel values for different unit
      * @return - a struct RegionHistogramData
      */
-    RegionHistogramData getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
+    PBMSharedPtr getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
 

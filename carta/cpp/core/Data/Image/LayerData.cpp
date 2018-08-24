@@ -385,10 +385,10 @@ std::vector<double> LayerData::_getIntensity( int frameLow, int frameHigh,
     return intensities;
 }
 
-RegionHistogramData LayerData::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
+PBMSharedPtr LayerData::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
     int numberOfBins, int stokeFrame,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
-    RegionHistogramData results;
+    PBMSharedPtr results;
     if ( m_dataSource ){
         results = m_dataSource->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
     }

@@ -37,7 +37,7 @@
 #include "CartaLib/Proto/set_cursor.pb.h"
 #include "CartaLib/Proto/region_stats.pb.h"
 #include "CartaLib/Proto/region_requirements.pb.h"
-#include "CartaLib/Proto/region_histogram.pb.h"
+//#include "CartaLib/Proto/region_histogram.pb.h"
 #include "CartaLib/Proto/region.pb.h"
 #include "CartaLib/Proto/error.pb.h"
 #include "CartaLib/Proto/contour_image.pb.h"
@@ -432,31 +432,11 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         int stokeFrame = 0;
         // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
         int regionId = -1;
-
         // calculate pixels to histogram data
         int numberOfBins = 10000;
+
         Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-        RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
-        std::vector<uint32_t> pixels2histogram = regionHisotgramData.bins;
-        //qDebug() << "pixels2histogram=" << pixels2histogram;
-
-        // add RegionHistogramData message
-        std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
-        region_histogram_data->set_file_id(regionHisotgramData.fileId);
-        region_histogram_data->set_region_id(regionHisotgramData.regionId);
-        region_histogram_data->set_stokes(regionHisotgramData.stokeFrame);
-
-        CARTA::Histogram* histogram = region_histogram_data->add_histograms();
-        histogram->set_channel(regionHisotgramData.frameLow);
-        histogram->set_num_bins(regionHisotgramData.num_bins);
-        histogram->set_bin_width(regionHisotgramData.bin_width);
-
-        // the minimum value of pixels is the first bin center
-        histogram->set_first_bin_center(regionHisotgramData.first_bin_center);
-
-        for (auto intensity : pixels2histogram) {
-            histogram->add_bins(intensity);
-        }
+        PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
 
         msg = region_histogram_data;
 
