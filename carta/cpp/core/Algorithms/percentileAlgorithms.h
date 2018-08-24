@@ -70,7 +70,9 @@ public:
         const int numberOfBins,
         const int spectralIndex,
         const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-        const std::vector<double> hertzValues
+        const std::vector<double> hertzValues,
+        const int frameLow,
+        const int stokeFrame
     ) override;
 };
 
@@ -367,7 +369,9 @@ RegionHistogramData MinMaxPercentiles<Scalar>::pixels2histogram(
     int numberOfBins,
     int spectralIndex,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-    std::vector<double> hertzValues
+    std::vector<double> hertzValues,
+    int frameLow,
+    int stokeFrame
 ) {
     // if we have a frame-dependent converter and no spectral axis,
     // we can't do anything because we don't know the channel units
@@ -437,6 +441,8 @@ RegionHistogramData MinMaxPercentiles<Scalar>::pixels2histogram(
     result.bin_width = intensityRange / numberOfBins;
     result.first_bin_center = minIntensity;
     result.bins = bins;
+    result.frameLow = frameLow;
+    result.stokeFrame = stokeFrame;
 
     return result;
 }

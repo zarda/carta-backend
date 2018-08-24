@@ -440,15 +440,15 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         // add RegionHistogramData message
         std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
-        region_histogram_data->set_file_id(openFile.file_id());
+        region_histogram_data->set_file_id(fileId);
 
         // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
         region_histogram_data->set_region_id(-1);
 
-        region_histogram_data->set_stokes(stokeFrame);
+        region_histogram_data->set_stokes(regionHisotgramData.stokeFrame);
 
         CARTA::Histogram* histogram = region_histogram_data->add_histograms();
-        histogram->set_channel(frameLow);
+        histogram->set_channel(regionHisotgramData.frameLow);
         histogram->set_num_bins(regionHisotgramData.num_bins);
         histogram->set_bin_width(regionHisotgramData.bin_width);
 

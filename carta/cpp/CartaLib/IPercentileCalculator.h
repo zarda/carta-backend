@@ -15,6 +15,8 @@ namespace Carta {
 namespace Lib {
 
 struct RegionHistogramData {
+    int frameLow;
+    int stokeFrame;
     //int32_t channel;
     int32_t num_bins;
     double bin_width;
@@ -78,7 +80,9 @@ public:
         int numberOfBins,
         int spectralIndex,
         Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-        std::vector<double> hertzValues
+        std::vector<double> hertzValues,
+        int frameLow,
+        int stokeFrame
     );
 
     const bool isApproximate=false;
@@ -119,7 +123,9 @@ RegionHistogramData IPercentilesToPixels<Scalar>::pixels2histogram(
     int numberOfBins,
     int spectralIndex,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-    std::vector<double> hertzValues
+    std::vector<double> hertzValues,
+    int frameLow,
+    int stokeFrame
 ) {
     Q_UNUSED(view);
     Q_UNUSED(minIntensity);
@@ -128,6 +134,8 @@ RegionHistogramData IPercentilesToPixels<Scalar>::pixels2histogram(
     Q_UNUSED(spectralIndex);
     Q_UNUSED(converter);
     Q_UNUSED(hertzValues);
+    Q_UNUSED(frameLow);
+    Q_UNUSED(stokeFrame);
     qFatal( "Unimplemented virtual function: pixels2histogram()");
 }
 

@@ -686,7 +686,7 @@ RegionHistogramData DataSource::_getPixels2Histogram(int frameLow, int frameHigh
     }
 
     int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
-    result = calculator->pixels2histogram(doubleView, minIntensity, maxIntensity, numberOfBins, spectralIndex, converter, hertzValues);
+    result = calculator->pixels2histogram(doubleView, minIntensity, maxIntensity, numberOfBins, spectralIndex, converter, hertzValues, frameLow, stokeFrame);
 
     return result;
 }
