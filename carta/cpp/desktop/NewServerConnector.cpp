@@ -504,7 +504,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         if (mip == m_mip && x_min == m_xMin && x_max == m_xMax && y_min == m_yMin && y_max == m_yMax && !m_changeImage) {
             // if the required region of image viewer from frontend is the same with the previous requirement, ignore it.
             qDebug() << "Image boundary settings are repeated.";
-            return;
+//            return;
         } else {
             qDebug() << "Cache the new image boundary settings.";
             m_mip = mip;
