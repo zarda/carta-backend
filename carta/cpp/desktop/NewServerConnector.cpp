@@ -414,7 +414,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         // we cannot handle the request so far, return a fake response.
         std::shared_ptr<CARTA::OpenFileAck> ack(new CARTA::OpenFileAck());
         ack->set_success(true);
-        ack->set_file_id(openFile.file_id());
+        ack->set_file_id(fileId);
         ack->set_allocated_file_info(fileInfo);
         ack->set_allocated_file_info_extended(fileInfoExt);
         msg = ack;
