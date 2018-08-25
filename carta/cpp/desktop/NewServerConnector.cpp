@@ -439,7 +439,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         msg = region_histogram_data;
 
         // mark the image file is changed
-        m_changeImage = true;
+        //m_changeImage = true;
 
         // Sleep for 1 millisecond. It is applied trying to solve the empty of histogram sent to the frontend.
         //QThread::msleep(1);
@@ -476,23 +476,87 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         int y_min = viewSetting.image_bounds().y_min();
         int y_max = viewSetting.image_bounds().y_max();
 
-        if (mip == m_mip && x_min == m_xMin && x_max == m_xMax && y_min == m_yMin && y_max == m_yMax && !m_changeImage) {
-            // if the required region of image viewer from frontend is the same with the previous requirement, ignore it.
-            qDebug() << "Image boundary settings are repeated.";
+//        if (mip == m_mip && x_min == m_xMin && x_max == m_xMax && y_min == m_yMin && y_max == m_yMax && !m_changeImage) {
+//            // if the required region of image viewer from frontend is the same with the previous requirement, ignore it.
+//            qDebug() << "Image boundary settings are repeated.";
 //            return;
-        } else {
-            qDebug() << "Cache the new image boundary settings.";
-            m_mip = mip;
-            m_xMin = x_min;
-            m_xMax = x_max;
-            m_yMin = y_min;
-            m_yMax = y_max;
-            m_changeImage = false;
-        }
+//        } else {
+//            qDebug() << "Cache the new image boundary settings.";
+//            m_mip = mip;
+//            m_xMin = x_min;
+//            m_xMax = x_max;
+//            m_yMin = y_min;
+//            m_yMax = y_max;
+//            m_changeImage = false;
+//        }
+
+        // set image viewer bounds with respect to the fileId
+        m_imageBounds[fileId] = {x_min, x_max, y_min, y_max, mip};
 
         /////////////////////////////////////////////////////////////////////
         respName = "RASTER_IMAGE_DATA";
 
+        // get the down sampling raster image raw data
+        PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame);
+        msg = raster;
+
+        // send the serialized message to the frontend
+        sendSerializedMessage(message, respName, msg);
+        return;
+        /////////////////////////////////////////////////////////////////////
+
+    } else if (eventName == "SET_IMAGE_CHANNELS") {
+
+        CARTA::SetImageChannels setImageChannels;
+        setImageChannels.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+        int fileId = setImageChannels.file_id();
+        int channel = setImageChannels.channel();
+        int stoke = setImageChannels.stokes();
+        qDebug() << "Set image channel=" << channel << ", fileId=" << fileId << ", stoke=" << stoke;
+
+        // get the controller
+        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+        qDebug() << "[NewServerConnector] controllerID=" << controllerID;
+        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+
+        // set the file id as the private parameter in the Stack object
+        controller->setFileId(fileId);
+
+        /////////////////////////////////////////////////////////////////////
+        respName = "REGION_HISTOGRAM_DATA";
+
+        int frameLow = channel;
+        int frameHigh = frameLow;
+        int stokeFrame = stoke;
+        // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
+        int regionId = -1;
+        // calculate pixels to histogram data
+        int numberOfBins = 10000;
+
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
+        PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+
+        msg = region_histogram_data;
+
+        // mark the image file is changed
+        //m_changeImage = true;
+
+        // send the serialized message to the frontend
+        sendSerializedMessage(message, respName, msg);
+        /////////////////////////////////////////////////////////////////////
+
+        /////////////////////////////////////////////////////////////////////
+        respName = "RASTER_IMAGE_DATA";
+
+        // get image viewer bounds with respect to the fileId
+        int x_min = m_imageBounds[fileId][0];
+        int x_max = m_imageBounds[fileId][1];
+        int y_min = m_imageBounds[fileId][2];
+        int y_max = m_imageBounds[fileId][3];
+        int mip = m_imageBounds[fileId][4];
+
+        // use image bounds with respect to the fileID
         // get the down sampling raster image raw data
         PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame);
         msg = raster;
