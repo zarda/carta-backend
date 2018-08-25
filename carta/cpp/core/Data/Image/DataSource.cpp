@@ -716,13 +716,6 @@ PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int fram
 PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
     int mip, int frameLow, int frameHigh, int stokeFrame) const {
 
-    qDebug() << "Down sampling the raster image data.......................................>";
-    qDebug() << "Dawn sampling factor mip:" << mip;
-    int W = (xMax - xMin) / mip;
-    int H = (yMax - yMin) / mip;
-    qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << xMin << "," << xMax << "]" << "--> W=" << W;
-    qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << yMin << "," << yMax << "]" << "--> H=" << H;
-
     std::vector<float> results; // the image raw data with downsampling
 
     // check if the minimum of the pixel value is valid
@@ -739,6 +732,13 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
         qWarning() << "Downsampling parameter, mip, is larger than the image width or high. Return 0";
         return nullptr;
     }
+
+    qDebug() << "Down sampling the raster image data.......................................>";
+    qDebug() << "Dawn sampling factor mip:" << mip;
+    int W = (xMax - xMin) / mip;
+    int H = (yMax - yMin) / mip;
+    qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << xMin << "," << xMax << "]" << "--> W=" << W;
+    qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << yMin << "," << yMax << "]" << "--> H=" << H;
 
     int prepareCols = view->dims()[0]; // get the full width length
     int prepareRows = mip;
@@ -771,7 +771,8 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
 
         if (t != area) {
             qDebug() << "The prepared length of the raw data array:" << area
-                     << "is not consistent with the slice cut:" << t << "!!";
+                     << "=" << prepareCols << "X" << prepareRows
+                     << ", which is not consistent with the slice cut:" << t << "!!";
             qFatal("The prepared length of the raw data array is not consistent with the slice cut!!");
         }
 
