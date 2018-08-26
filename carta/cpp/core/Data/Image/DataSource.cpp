@@ -720,7 +720,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
 
     // check if the minimum of the pixel value is valid
     if (m_minIntensity == std::numeric_limits<double>::min()) {
-        qWarning() << "The minimum of the pixel value is invalid! Return 0";
+        qWarning() << "The minimum of the pixel value is invalid! Return nullptr";
         return nullptr;
     }
 
@@ -729,8 +729,12 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
 
     // check if the downsampling parameter "mip" is smaller than the image width or high
     if (mip <= 0 || abs(mip) > std::min(view->dims()[0], view->dims()[1])) {
-        qWarning() << "Downsampling parameter, mip, is larger than the image width or high. Return 0";
-        return nullptr;
+        qWarning() << "Downsampling parameter, mip=" << mip
+                   << ", which is larger than the image width=" <<  view->dims()[0]
+                   << "or high=" << view->dims()[1] << ". Return nullptr";
+        //return nullptr;
+        // [Try] it may be due to the frontend signal problem, reset the mip as 1 to pass, and then resend the next correct signal
+        mip = 1;
     }
 
     qDebug() << "Down sampling the raster image data.......................................>";
