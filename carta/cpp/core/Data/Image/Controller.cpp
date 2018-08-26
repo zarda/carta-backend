@@ -389,6 +389,16 @@ std::vector<double> Controller::getIntensity( int frameLow, int frameHigh, const
     return intensities;
 }
 
+int Controller::getStokeIndicator() const {
+    int result = m_stack->_getStokeIndicator();
+    return result;
+}
+
+int Controller::getSpectralIndicator() const {
+    int result = m_stack->_getSpectralIndicator();
+    return result;
+}
+
 PBMSharedPtr Controller::getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
     PBMSharedPtr result = m_stack->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
     return result;

@@ -297,6 +297,9 @@ protected:
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const = 0;
 
+    virtual int _getStokeIndicator() const = 0;
+    virtual int _getSpectralIndicator() const = 0;
+
     /**
      * Returns a vector of pixels.
      * @param xMin - lower bound of the x-pixel-coordinate.

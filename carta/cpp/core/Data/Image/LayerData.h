@@ -384,6 +384,9 @@ protected:
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const Q_DECL_OVERRIDE;
 
+    virtual int _getStokeIndicator() const Q_DECL_OVERRIDE;
+    virtual int _getSpectralIndicator() const Q_DECL_OVERRIDE;
+
     /**
      * Returns a vector of pixels.
      * @param xMin - lower bound of the x-pixel-coordinate.

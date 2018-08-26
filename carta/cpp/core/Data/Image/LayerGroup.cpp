@@ -538,6 +538,24 @@ std::vector<double> LayerGroup::_getIntensity( int frameLow, int frameHigh,
     return results;
 }
 
+int LayerGroup::_getStokeIndicator() const {
+    int result;
+    int dataIndex = _getIndexCurrent();
+    if (dataIndex >= 0) {
+        result = m_children[dataIndex]->_getStokeIndicator();
+    }
+    return result;
+}
+
+int LayerGroup::_getSpectralIndicator() const {
+    int result;
+    int dataIndex = _getIndexCurrent();
+    if (dataIndex >= 0) {
+        result = m_children[dataIndex]->_getSpectralIndicator();
+    }
+    return result;
+}
+
 PBMSharedPtr LayerGroup::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
     int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
     PBMSharedPtr results;

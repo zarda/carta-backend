@@ -264,6 +264,9 @@ private:
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter);
 
+    int _getStokeIndicator();
+    int _getSpectralIndicator();
+
     /**
      * Returns a vector of pixels.
      * @param xMin - lower bound of the x-pixel-coordinate.

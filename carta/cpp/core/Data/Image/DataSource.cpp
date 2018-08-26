@@ -996,6 +996,16 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawData( int frameStart, 
     return rawData;
 }
 
+int DataSource::_getStokeIndicator() {
+    int result = Util::getAxisIndex(m_image, AxisInfo::KnownType::STOKES);
+    return result;
+}
+
+int DataSource::_getSpectralIndicator() {
+    int result = Util::getAxisIndex(m_image, AxisInfo::KnownType::SPECTRAL);
+    return result;
+}
+
 Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int frameStart, int frameEnd, int stokeFrame ) const {
 
     Carta::Lib::NdArray::RawViewInterface* rawData = nullptr;

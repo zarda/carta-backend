@@ -385,6 +385,22 @@ std::vector<double> LayerData::_getIntensity( int frameLow, int frameHigh,
     return intensities;
 }
 
+int LayerData::_getStokeIndicator() const {
+    int result;
+    if ( m_dataSource ){
+        result = m_dataSource->_getStokeIndicator();
+    }
+    return result;
+}
+
+int LayerData::_getSpectralIndicator() const {
+    int result;
+    if ( m_dataSource ){
+        result = m_dataSource->_getSpectralIndicator();
+    }
+    return result;
+}
+
 PBMSharedPtr LayerData::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
     int numberOfBins, int stokeFrame,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
