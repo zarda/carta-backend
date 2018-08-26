@@ -436,17 +436,21 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         // send the serialized message to the frontend
         sendSerializedMessage(message, respName, msg);
 
+        // set the initial channel for spectral and stoke frames
+        m_currentChannel[fileId] = {0, 0};
+
+        m_changeFrame[fileId] = false;
+
         /////////////////////////////////////////////////////////////////////
         respName = "REGION_HISTOGRAM_DATA";
 
-        int frameLow = 0;
+        int frameLow = m_currentChannel[fileId][0];
         int frameHigh = frameLow;
-        int stokeFrame = 0;
+        int stokeFrame = m_currentChannel[fileId][1];
         // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
         int regionId = -1;
-        // calculate pixels to histogram data
-        int numberOfBins = 10000;
 
+        // calculate pixels to histogram data
         Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
         PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
 
@@ -480,9 +484,31 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         // set the file id as the private parameter in the Stack object
         controller->setFileId(fileId);
 
-        int frameLow = 0;
+        int frameLow = m_currentChannel[fileId][0];
         int frameHigh = frameLow;
-        int stokeFrame = 0;
+        int stokeFrame = m_currentChannel[fileId][1];
+
+        // if (frameLow != 0 || stokeFrame !=0) re-calculate the histogram!!
+        if (m_changeFrame[fileId]) {
+            qDebug() << "Re-calculate the pixel histogram!!";
+            /////////////////////////////////////////////////////////////////////
+            respName = "REGION_HISTOGRAM_DATA";
+
+            // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
+            int regionId = -1;
+
+            // calculate pixels to histogram data
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
+            PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+
+            msg = region_histogram_data;
+
+            // send the serialized message to the frontend
+            sendSerializedMessage(message, respName, msg);
+
+            m_changeFrame[fileId] = false;
+            /////////////////////////////////////////////////////////////////////
+        }
 
         int mip = viewSetting.mip();
         int x_min = viewSetting.image_bounds().x_min();
@@ -528,6 +554,11 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         int stoke = setImageChannels.stokes();
         qDebug() << "Set image channel=" << channel << ", fileId=" << fileId << ", stoke=" << stoke;
 
+        // set the new channel for spectral and stoke frames
+        m_currentChannel[fileId] = {channel, stoke};
+
+        m_changeFrame[fileId] = true;
+
         // get the controller
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
@@ -540,14 +571,13 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         /////////////////////////////////////////////////////////////////////
         respName = "REGION_HISTOGRAM_DATA";
 
-        int frameLow = channel;
+        int frameLow = m_currentChannel[fileId][0];
         int frameHigh = frameLow;
-        int stokeFrame = stoke;
+        int stokeFrame = m_currentChannel[fileId][1];
         // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
         int regionId = -1;
-        // calculate pixels to histogram data
-        int numberOfBins = 10000;
 
+        // calculate pixels to histogram data
         Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
         PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
 
