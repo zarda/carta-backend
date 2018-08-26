@@ -403,12 +403,26 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         fileInfoExt->set_dimensions(dims.size());
         fileInfoExt->set_width(dims[0]);
         fileInfoExt->set_height(dims[1]);
-        if (dims.size() >= 3) {
-            fileInfoExt->set_depth(dims[2]);
+
+        int stokeIndicator = controller->getStokeIndicator();
+        // set the stoke axis if it exists
+        if (stokeIndicator > 0) { // if stoke axis exists
+            if (dims[stokeIndicator] > 0) { // if stoke dimension > 0
+                fileInfoExt->set_stokes(dims[stokeIndicator]);
+            }
         }
-        if (dims.size() >= 4) {
-            fileInfoExt->set_stokes(dims[3]);
+
+        // for the dims[k] that is not the stoke frame nor the x- or y-axis,
+        // we assume it is a depth (it is the Spectral axis or the other unmarked axis)
+        if (dims.size() > 2) {
+            for (int i = 2; i < dims.size(); i++) {
+                if (i != stokeIndicator && dims[i] > 0) {
+                    fileInfoExt->set_depth(dims[i]);
+                    break;
+                }
+            }
         }
+
         // CARTA::HeaderEntry* headEntry = fileInfoExt->add_header_entries();
 
         // we cannot handle the request so far, return a fake response.
