@@ -131,6 +131,7 @@ private:
     // image viewer bounds with respect to the fileId: m_imageBounds[fileId] = {x_min, x_max, y_min, y_max, mip}
     std::map<int, std::vector<int> > m_imageBounds;
     std::map<int, std::vector<int> > m_currentChannel; // m_currentChannel[fileId] = {spectralFrame, stokeFrame}
+    std::map<int, std::vector<int> > m_calHistRange; // m_calHistRange[fileId] = {frameLow, frameHigh, stokeFrame}
     std::map<int, bool> m_changeFrame;
     const int numberOfBins = 10000; // define number of bins for calculating pixels to histogram data
 };

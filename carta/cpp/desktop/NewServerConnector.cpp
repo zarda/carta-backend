@@ -414,10 +414,12 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         // for the dims[k] that is not the stoke frame nor the x- or y-axis,
         // we assume it is a depth (it is the Spectral axis or the other unmarked axis)
+        int lastFrame = 0;
         if (dims.size() > 2) {
             for (int i = 2; i < dims.size(); i++) {
                 if (i != stokeIndicator && dims[i] > 0) {
                     fileInfoExt->set_depth(dims[i]);
+                    lastFrame = dims[i] - 1;
                     break;
                 }
             }
@@ -437,22 +439,26 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         sendSerializedMessage(message, respName, msg);
 
         // set the initial channel for spectral and stoke frames
-        m_currentChannel[fileId] = {0, 0};
+        m_currentChannel[fileId] = {0, 0}; // {frameLow, stokeFrame}
+
+        // set spectral and stoke frame ranges to calculate the pixel to histogram data
+        //m_calHistRange[fileId] = {0, lastFrame, 0}; // {frameLow, frameHigh, stokeFrame}
+        m_calHistRange[fileId] = {0, 0, 0}; // {frameLow, frameHigh, stokeFrame}
 
         m_changeFrame[fileId] = false;
 
         /////////////////////////////////////////////////////////////////////
         respName = "REGION_HISTOGRAM_DATA";
 
-        int frameLow = m_currentChannel[fileId][0];
-        int frameHigh = frameLow;
-        int stokeFrame = m_currentChannel[fileId][1];
+        //int frameLow = m_currentChannel[fileId][0];
+        //int frameHigh = frameLow;
+        //int stokeFrame = m_currentChannel[fileId][1];
         // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
         int regionId = -1;
 
         // calculate pixels to histogram data
         Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-        PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+        PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
 
         msg = region_histogram_data;
 
@@ -499,7 +505,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
             // calculate pixels to histogram data
             Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-            PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+            PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
 
             msg = region_histogram_data;
 
@@ -557,6 +563,10 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         // set the new channel for spectral and stoke frames
         m_currentChannel[fileId] = {channel, stoke};
 
+        // set spectral and stoke frame ranges to calculate the pixel to histogram data
+        //m_calHistRange[fileId] = {0, lastFrame, 0};
+        m_calHistRange[fileId] = {channel, channel, stoke};
+
         m_changeFrame[fileId] = true;
 
         // get the controller
@@ -579,7 +589,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         // calculate pixels to histogram data
         Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-        PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+        PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
 
         msg = region_histogram_data;
 
