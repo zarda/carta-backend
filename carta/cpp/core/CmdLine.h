@@ -31,6 +31,10 @@ public:
     /// -1 indicates no port was specified
     int scriptPort() const;
 
+    /// return the port number on which the Session Dispatcher listens for commands
+    /// -1 indicates no port was specified
+    int port() const;
+
 protected:
 
     friend ParsedInfo parse( const QStringList & argv);
@@ -38,6 +42,7 @@ protected:
     QString m_htmlPath;
     QStringList m_fileList;
     int m_scriptPort = -1;
+    int m_port = -1;
 
 };
 
