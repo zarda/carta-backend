@@ -16,10 +16,6 @@
 #include <QCoreApplication>
 #include <functional>
 
-#include <sstream>
-
-#include <cstdlib>
-
 #include <QStringList>
 
 #include <thread>
