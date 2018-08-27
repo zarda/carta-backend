@@ -522,20 +522,6 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         int y_min = viewSetting.image_bounds().y_min();
         int y_max = viewSetting.image_bounds().y_max();
 
-//        if (mip == m_mip && x_min == m_xMin && x_max == m_xMax && y_min == m_yMin && y_max == m_yMax && !m_changeImage) {
-//            // if the required region of image viewer from frontend is the same with the previous requirement, ignore it.
-//            qDebug() << "Image boundary settings are repeated.";
-//            return;
-//        } else {
-//            qDebug() << "Cache the new image boundary settings.";
-//            m_mip = mip;
-//            m_xMin = x_min;
-//            m_xMax = x_max;
-//            m_yMin = y_min;
-//            m_yMax = y_max;
-//            m_changeImage = false;
-//        }
-
         // set image viewer bounds with respect to the fileId
         m_imageBounds[fileId] = {x_min, x_max, y_min, y_max, mip};
 
