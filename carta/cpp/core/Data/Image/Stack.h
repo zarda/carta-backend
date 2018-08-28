@@ -102,7 +102,7 @@ private:
 
     QStringList _getOpenedFileList();
 
-    QString _addDataImage(const QString& fileName, bool* success );
+    QString _addDataImage(const QString& fileName, bool* success , int fileId);
 
     void _displayAxesChanged(std::vector<Carta::Lib::AxisInfo::KnownType> displayAxisTypes, bool applyAll );
 
@@ -226,6 +226,11 @@ private:
 
     /// Saves images
     SaveService *m_saveService;
+
+    // save the current file id on the frontend image viewer
+    int m_fileId = -1;
+    // set the current file id on the frontend image viewer
+    void _setFileId(int fileId);
 
     Stack(const Stack& other);
     Stack& operator=(const Stack& other);

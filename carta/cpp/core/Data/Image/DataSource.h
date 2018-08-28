@@ -273,8 +273,8 @@ private:
      * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
      * @return - vector of pixels.
      */
-    std::vector<float> _getRasterImageData(double xMin, double xMax, double yMin, double yMax,
-            int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const;
+    std::vector<float> _getRasterImageData(int xMin, int xMax, int yMin, int yMax,
+            int mip, int frameLow, int frameHigh, int stokeFrame) const;
 
     /**
      * Returns the color used to draw nan pixels.
@@ -579,6 +579,9 @@ private:
     //Indices of the display axes.
     int m_axisIndexX;
     int m_axisIndexY;
+
+    // minimum of the pixel value
+    double m_minIntensity = std::numeric_limits<double>::min();
 
     const static int INDEX_LOCATION;
     const static int INDEX_INTENSITY;

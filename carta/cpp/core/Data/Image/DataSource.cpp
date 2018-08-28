@@ -665,6 +665,8 @@ RegionHistogramData DataSource::_getPixels2Histogram(int frameLow, int frameHigh
         return result;
     } else {
         minIntensity = minMaxIntensities[0];
+        // assign the minimum of the pixel value as a private parameter
+        m_minIntensity = minIntensity;
         maxIntensity = minMaxIntensities[1];
     }
 
@@ -689,34 +691,40 @@ RegionHistogramData DataSource::_getPixels2Histogram(int frameLow, int frameHigh
     return result;
 }
 
-std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, double yMin, double yMax,
-    int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
+std::vector<float> DataSource::_getRasterImageData(int xMin, int xMax, int yMin, int yMax,
+    int mip, int frameLow, int frameHigh, int stokeFrame) const {
+
+    std::vector<float> results;
+
+    // check if the minimum of the pixel value is valid
+    if (m_minIntensity == std::numeric_limits<double>::min()) {
+        qWarning() << "The minimum of the pixel value is invalid! Return 0";
+        return results;
+    }
 
     // get the raw data
     Carta::Lib::NdArray::RawViewInterface* view = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
 
-    std::vector<float> results;
-    int ilb = xMin;
-    int iub = xMax;
-    int jlb = yMin;
-    int jub = yMax;
+    // check if the downsampling parameter "mip" is smaller than the image width or high
+    if (mip <= 0 || abs(mip) > std::min(view->dims()[0], view->dims()[1])) {
+        qWarning() << "Downsampling parameter, mip, is larger than the image width or high. Return 0";
+        return results;
+    }
 
-    int nRows = (jub - jlb) / mip;
-    int nCols = (iub - ilb) / mip;
-
-    int prepareCols = iub - ilb;
+    int prepareCols = view->dims()[0]; // get the full width length
     int prepareRows = mip;
     int area = prepareCols * prepareRows;
-    float rawData;
     std::vector<float> prepareArea(area);
-    int nextRowToReadIn = jlb;
+
+    int nRows = (yMax - yMin) / mip;
+    int nCols = (xMax - xMin) / mip;
+    int nextRowToReadIn = yMin;
 
     auto updateRows = [&]() -> void {
-        CARTA_ASSERT(nextRowToReadIn < view->dims()[1]);
+        CARTA_ASSERT(nextRowToReadIn < view->dims()[1]); // check if the row index is beyond the length of the image high
 
         SliceND rowSlice;
-        int update = prepareRows;
-        rowSlice.next().start( nextRowToReadIn ).end( nextRowToReadIn + update );
+        rowSlice.next().start( nextRowToReadIn ).end( nextRowToReadIn + prepareRows );
         auto rawRowView = view -> getView( rowSlice );
 
         // make a float view of this raw row view
@@ -724,20 +732,29 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
 
         int t = 0;
         fview.forEach( [&] ( const float & val ) {
-            // To improve the performance, the prepareArea also update only one row
-            // by computing the module
-            prepareArea[(t++) % area] = val;
+            // To improve the performance, the prepareArea also update only one row by computing the module
+            if (std::isfinite(val)) {
+                prepareArea[(t++)] = val;
+            } else {
+                prepareArea[(t++)] = m_minIntensity;
+            }
         });
 
+        if (t != area) {
+            qDebug() << "The prepared length of the raw data array:" << area
+                     << "is not consistent with the slice cut:" << t << "!!";
+            qFatal("The prepared length of the raw data array is not consistent with the slice cut!!");
+        }
+
         // Calculate the mean of each block (mip X mip)
-        for (int i = ilb; i < ilb + nCols; i++) {
-            rawData = 0;
+        for (int i = 0; i < nCols; i++) {
+            float rawData = 0;
             int elems = mip * mip;
             float denominator = elems;
             for (int e = 0; e < elems; e++) {
                 int row = e / mip;
                 int col = e % mip;
-                int index = (row * prepareCols + col + i * mip) % area;
+                int index = ((row * prepareCols) + (col + (xMin + (i * mip))));
                 if (std::isfinite(prepareArea[index])) {
                     rawData += prepareArea[index];
                 } else {
@@ -745,14 +762,14 @@ std::vector<float> DataSource::_getRasterImageData(double xMin, double xMax, dou
                 }
             }
             // set the NaN type of the pixel as the minimum of the other finite pixel values
-            rawData = (denominator < 1 ? minIntensity : rawData / denominator);
+            rawData = (denominator < 1 ? m_minIntensity : rawData / denominator);
             results.push_back(rawData);
         }
-        nextRowToReadIn += update;
+        nextRowToReadIn += prepareRows;
     };
 
     // scan the raw data for with rows for down sampling
-    for (int j = jlb; j < jlb + nRows; j++) {
+    for (int j = 0; j < nRows; j++) {
         updateRows();
     }
 
@@ -975,11 +992,19 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
                         slice.end(sliceSize);
                     }
                 } else {
-                    // for the other axis, get the entire range
-                    qDebug() << "++++++++ find the other axis index"<< i
-                             << ", get the channel range= [0 ," << sliceSize << "]";
-                    slice.start(0);
-                    slice.end(sliceSize);
+                    // for the other axis, assume it is a spectral frame
+                    if (0 <= frameStart && frameStart < sliceSize &&
+                        0 <= frameEnd && frameEnd < sliceSize) {
+                        slice.start(frameStart);
+                        slice.end(frameEnd + 1);
+                        qDebug() << "++++++++ find the other axis index=" << i
+                                 << ", get the channel range= [" << frameStart << "," << frameEnd << "]";
+                    } else {
+                        qDebug() << "++++++++ find the other axis index=" << i
+                                 << ", get the channel range= [0 ," << sliceSize << "]";
+                        slice.start(0);
+                        slice.end(sliceSize);
+                    }
                 }
 
                 slice.step( 1 );
@@ -1231,6 +1256,7 @@ QString DataSource::_setFileName( const QString& fileName, bool* success ){
                     _resetPan();
 
                     m_fileName = file;
+                    qDebug() << "[DataSource] m_fileName=" << m_fileName;
                 }
                 else {
                     result = "Could not find any plugin to load image";

@@ -67,7 +67,7 @@ void LayerGroup::_addContourSet( std::shared_ptr<DataContours> contourSet){
     }
 }
 
-QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackIndex ) {
+QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackIndex, int fileId) {
     QString result;
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     LayerData* targetSource = objMan->createObject<LayerData>();
@@ -80,14 +80,31 @@ QString LayerGroup::_addData(const QString& fileName, bool* success, int* stackI
     //If we are making a new layer, see if there is a selected group.  If so,
     //add to the group.  If not, add to this group.
     if ( *success ){
-        _setColorSupport( targetSource );
-        std::shared_ptr<Layer> selectedGroup = _getSelectedGroup();
-        if (selectedGroup ){
-            selectedGroup->_addLayer( std::shared_ptr<Layer>(targetSource) );
-        }
-        else {
-            m_children.append( std::shared_ptr<Layer>(targetSource) );
-            *stackIndex = m_children.size() - 1;
+//        _setColorSupport( targetSource );
+//        std::shared_ptr<Layer> selectedGroup = _getSelectedGroup();
+//        if (selectedGroup ){
+//            selectedGroup->_addLayer( std::shared_ptr<Layer>(targetSource) );
+//        }
+//        else {
+//            m_children.append( std::shared_ptr<Layer>(targetSource) );
+//            *stackIndex = m_children.size() - 1;
+//            qDebug() << "[LayerGroup] *stackIndex=" << *stackIndex;
+//            qDebug() << "[LayerGroup] fileId=" << fileId;
+//        }
+        if (fileId >= 0 && m_children.size() - 1 >= fileId) {
+            // there is a children exists, replace it
+            qDebug() << "[LayerGroup] There is an image object exists, replace it, fileId=" << fileId;
+            m_children.replace(fileId, std::shared_ptr<Layer>(targetSource));
+            *stackIndex = fileId;
+        } else if (fileId >= 0 && m_children.size() == fileId) {
+            // append a new children in the list
+            qDebug() << "[LayerGroup] Append a new image object in the list, fileId=" << fileId;
+            m_children.append(std::shared_ptr<Layer>(targetSource));
+            //qDebug() << "[LayerGroup] Insert a new image object in the list, fileId=" << fileId;
+            //m_children.insert(fileId, std::shared_ptr<Layer>(targetSource));
+            *stackIndex = fileId;
+        } else {
+            qCritical() << "No image object is cached! check fileId=" << fileId << ", m_children.size()=" << m_children.size();
         }
     }
     else {
@@ -200,29 +217,35 @@ std::shared_ptr<DataContours> LayerGroup::_getContour( const QString& name ){
 
 
 bool LayerGroup::_closeData( const QString& id ){
-    int targetIndex = -1;
+//    int targetIndex = -1;
     bool dataClosed = false;
     int dataCount = m_children.size();
-    for ( int i = 0; i < dataCount; i++ ){
-        bool childMatch = m_children[i]->_isMatch( id );
-        if ( childMatch ){
-            targetIndex = i;
-            break;
-        }
-    }
+    int closeIndex = id.toInt();
+//    for ( int i = 0; i < dataCount; i++ ){
+//        bool childMatch = m_children[i]->_isMatch( id );
+//        if ( childMatch ){
+//            targetIndex = i;
+//            break;
+//        }
+//    }
+//
+//    if ( targetIndex >= 0 ){
+//        _removeData( targetIndex );
+//        dataClosed = true;
+//    }
+//    else {
+//        //See if any of the composite children can remove it.
+//        for ( int i = 0; i < dataCount; i++ ){
+//           bool childClosed = m_children[i]->_closeData( id );
+//           if ( childClosed ){
+//               dataClosed = true;
+//           }
+//        }
+//    }
 
-    if ( targetIndex >= 0 ){
-        _removeData( targetIndex );
+    if (closeIndex >= 0 && closeIndex < dataCount) {
+        _removeData(closeIndex);
         dataClosed = true;
-    }
-    else {
-        //See if any of the composite children can remove it.
-        for ( int i = 0; i < dataCount; i++ ){
-           bool childClosed = m_children[i]->_closeData( id );
-           if ( childClosed ){
-               dataClosed = true;
-           }
-        }
     }
     return dataClosed;
 }
@@ -476,21 +499,21 @@ std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > LayerGroup::_g
     return images;
 }
 
-
+// this function is replaced in the Stack.cpp, so it is just a dummy function.
 int LayerGroup::_getIndexCurrent( ) const {
     int dataIndex = -1;
     //The current index should be the first selected one.
-    int childCount = m_children.size();
-    for ( int i = 0; i < childCount; i++ ){
-        if ( m_children[i]->_isSelected()){
-            dataIndex = i;
-            break;
-        }
-    }
+    //int childCount = m_children.size();
+    //for ( int i = 0; i < childCount; i++ ){
+    //    if ( m_children[i]->_isSelected()){
+    //        dataIndex = i;
+    //        break;
+    //    }
+    //}
     //Just choose the top one if nothing is selected
-    if ( dataIndex == -1 && childCount > 0 ){
-        dataIndex = 0;
-    }
+    //if ( dataIndex == -1 && childCount > 0 ){
+    //    dataIndex = 0;
+    //}
     return dataIndex;
 }
 
@@ -525,12 +548,12 @@ RegionHistogramData LayerGroup::_getPixels2Histogram(int frameLow, int frameHigh
     return results;
 }
 
-std::vector<float> LayerGroup::_getRasterImageData(double xMin, double xMax, double yMin, double yMax,
-    int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
+std::vector<float> LayerGroup::_getRasterImageData(int xMin, int xMax, int yMin, int yMax,
+    int mip, int frameLow, int frameHigh, int stokeFrame) const {
     std::vector<float> results;
     int dataIndex = _getIndexCurrent();
     if (dataIndex >= 0) {
-        results = m_children[dataIndex]->_getRasterImageData(xMin, xMax, yMin, yMax, mip, minIntensity, frameLow, frameHigh, stokeFrame);
+        results = m_children[dataIndex]->_getRasterImageData(xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
     }
     return results;
 }
@@ -829,6 +852,7 @@ void LayerGroup::_removeData( int index ){
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         objMan->removeObject( id );
         m_children.removeAt( index );
+        qDebug() << "[LayerGroup] remove the image index=" << index;
     }
 }
 
@@ -919,7 +943,8 @@ void LayerGroup::_resetState( const Carta::State::StateInterface& restoreState )
             QString fileName = restoreState.getValue<QString>( fileLookup );
             if ( !fileName.isEmpty()){
                 bool success = false;
-                _addData( fileName, &success, &dataIndex );
+                // this is a dummy function since I have modified just to let compile success. Need to be handled in future
+                _addData( fileName, &success, &dataIndex, -1);
             }
         }
         int childCount = m_children.size();

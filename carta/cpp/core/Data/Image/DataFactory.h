@@ -29,7 +29,7 @@ public:
      *      the carta object managing the image if the data was added.
      */
     static QString
-    addData( Controller* controller, const QString& fileName, bool* success );
+    addData( Controller* controller, const QString& fileName, bool* success, int fileId);
 
 
     virtual ~DataFactory();
