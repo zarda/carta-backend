@@ -424,6 +424,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
                 }
             }
         }
+        m_lastFrame[fileId] = lastFrame;
 
         // CARTA::HeaderEntry* headEntry = fileInfoExt->add_header_entries();
 
@@ -442,7 +443,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         m_currentChannel[fileId] = {0, 0}; // {frameLow, stokeFrame}
 
         // set spectral and stoke frame ranges to calculate the pixel to histogram data
-        //m_calHistRange[fileId] = {0, lastFrame, 0}; // {frameLow, frameHigh, stokeFrame}
+        //m_calHistRange[fileId] = {0, m_lastFrame[fileId], 0}; // {frameLow, frameHigh, stokeFrame}
         m_calHistRange[fileId] = {0, 0, 0}; // {frameLow, frameHigh, stokeFrame}
 
         m_changeFrame[fileId] = false;
@@ -450,9 +451,6 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         /////////////////////////////////////////////////////////////////////
         respName = "REGION_HISTOGRAM_DATA";
 
-        //int frameLow = m_currentChannel[fileId][0];
-        //int frameHigh = frameLow;
-        //int stokeFrame = m_currentChannel[fileId][1];
         // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
         int regionId = -1;
 
@@ -461,12 +459,6 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
 
         msg = region_histogram_data;
-
-        // mark the image file is changed
-        //m_changeImage = true;
-
-        // Sleep for 1 millisecond. It is applied trying to solve the empty of histogram sent to the frontend.
-        //QThread::msleep(1);
 
         // send the serialized message to the frontend
         sendSerializedMessage(message, respName, msg);
@@ -564,17 +556,18 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         // Insert non-global object id
         // QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0");
         // QString cmd = controllerID + ":" + eventName;
+        qCritical() << "There is no event handler:" << eventName;
 
-        auto & allCallbacks = m_messageCallbackMap[eventName];
-
-        if (allCallbacks.size() == 0) {
-            qCritical() << "There is no event handler:" << eventName;
-            return;
-        }
-
-        for( auto & cb : allCallbacks ) {
-            msg = cb( eventName, "", "1");
-        }
+//        auto & allCallbacks = m_messageCallbackMap[eventName];
+//
+//        if (allCallbacks.size() == 0) {
+//            qCritical() << "There is no event handler:" << eventName;
+//            return;
+//        }
+//
+//        for (auto & cb : allCallbacks) {
+//            msg = cb(eventName, "", "1");
+//        }
 
         return;
     }
@@ -598,11 +591,9 @@ void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId,
         qDebug() << "[NewServerConnector] Internal signal is repeated!! Don't know the reason yet, just ignore the signal!!";
         return;
     }
-    // set the new channel for spectral and stoke frames
-    //m_currentChannel[fileId] = {channel, stoke};
 
     // set spectral and stoke frame ranges to calculate the pixel to histogram data
-    //m_calHistRange[fileId] = {0, lastFrame, 0};
+    //m_calHistRange[fileId] = {0, m_lastFrame[fileId], 0};
     m_calHistRange[fileId] = {channel, channel, stoke};
 
     m_changeFrame[fileId] = true;
@@ -619,9 +610,6 @@ void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId,
     /////////////////////////////////////////////////////////////////////
     respName = "REGION_HISTOGRAM_DATA";
 
-    int frameLow = m_currentChannel[fileId][0];
-    int frameHigh = frameLow;
-    int stokeFrame = m_currentChannel[fileId][1];
     // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
     int regionId = -1;
 
@@ -641,6 +629,10 @@ void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId,
     /////////////////////////////////////////////////////////////////////
     respName = "RASTER_IMAGE_DATA";
 
+    int frameLow = m_currentChannel[fileId][0];
+    int frameHigh = frameLow;
+    int stokeFrame = m_currentChannel[fileId][1];
+
     // get image viewer bounds with respect to the fileId
     int x_min = m_imageBounds[fileId][0];
     int x_max = m_imageBounds[fileId][1];
@@ -648,8 +640,7 @@ void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId,
     int y_max = m_imageBounds[fileId][3];
     int mip = m_imageBounds[fileId][4];
 
-    // use image bounds with respect to the fileID
-    // get the down sampling raster image raw data
+    // use image bounds with respect to the fileID and get the down sampling raster image raw data
     PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame);
     msg = raster;
 

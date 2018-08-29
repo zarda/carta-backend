@@ -131,6 +131,7 @@ private:
     std::map<int, std::vector<int> > m_imageBounds;
     std::map<int, std::vector<int> > m_currentChannel; // m_currentChannel[fileId] = {spectralFrame, stokeFrame}
     std::map<int, std::vector<int> > m_calHistRange; // m_calHistRange[fileId] = {frameLow, frameHigh, stokeFrame}
+    std::map<int, int> m_lastFrame; // m_lastFrame[fileId] = lastFrame (for the spectral axis)
     std::map<int, bool> m_changeFrame;
     const int numberOfBins = 10000; // define number of bins for calculating pixels to histogram data
 };
