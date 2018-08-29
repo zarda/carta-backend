@@ -590,8 +590,16 @@ void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId,
     QString respName;
     PBMSharedPtr msg;
 
+    if (m_currentChannel[fileId][0] != channel || m_currentChannel[fileId][1] != stoke) {
+        // update the current channel and stoke
+        m_currentChannel[fileId][0] = channel;
+        m_currentChannel[fileId][1] = stoke;
+    } else {
+        qDebug() << "[NewServerConnector] Internal signal is repeated!! Don't know the reason yet, just ignore the signal!!";
+        return;
+    }
     // set the new channel for spectral and stoke frames
-    m_currentChannel[fileId] = {channel, stoke};
+    //m_currentChannel[fileId] = {channel, stoke};
 
     // set spectral and stoke frame ranges to calculate the pixel to histogram data
     //m_calHistRange[fileId] = {0, lastFrame, 0};
