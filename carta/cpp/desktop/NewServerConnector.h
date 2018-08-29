@@ -58,6 +58,8 @@ public slots:
     void onBinaryMessage(char* message, size_t length);
     void sendSerializedMessage(char* message, QString respName, PBMSharedPtr msg);
 
+    void imageChannelUpdateSignalSlot(char* message, int fileId, int channel, int stoke);
+
 signals:
 
     //grimmer: newArch will not use stateChange mechanism anymore
@@ -69,6 +71,8 @@ signals:
 
     void jsTextMessageResultSignal(QString result);
     void jsBinaryMessageResultSignal(char* message, size_t length);
+
+    void imageChannelUpdateSignal(char* message, int fileId, int channel, int stoke);
 
     // /// we emit this signal when state is changed (either by c++ or by javascript)
     // /// we listen to this signal, and so does javascript

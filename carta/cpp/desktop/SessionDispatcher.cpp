@@ -27,6 +27,7 @@
 
 #include "NewServerConnector.h"
 #include "CartaLib/Proto/register_viewer.pb.h"
+#include "CartaLib/Proto/set_image_channels.pb.h"
 
 void SessionDispatcher::startWebSocket(){
 
@@ -88,7 +89,7 @@ void SessionDispatcher::onTextMessage(uWS::WebSocket<uWS::SERVER> *ws, char* mes
 void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* message, size_t length){
 
     if (length < EVENT_NAME_LENGTH + EVENT_ID_LENGTH) {
-        qFatal("Illegal message.");
+        qFatal("[SessionDispatcher] Illegal message.");
         return;
     }
 
@@ -101,7 +102,7 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
     }
 
     QString eventName = QString::fromStdString(std::string(message, nullIndex));
-    qDebug() << "Event received: " << eventName << QTime::currentTime().toString();
+    qDebug() << "[SessionDispatcher] Event received: " << eventName << QTime::currentTime().toString();
 
     if ( eventName == "REGISTER_VIEWER" ){
 
@@ -133,6 +134,7 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
             connect(connector, SIGNAL(startViewerSignal(const QString &)), connector, SLOT(startViewerSlot(const QString &)));
 //            connect(connector, SIGNAL(onTextMessageSignal(QString)), connector, SLOT(onTextMessage(QString)));
             connect(connector, SIGNAL(onBinaryMessageSignal(char*, size_t)), connector, SLOT(onBinaryMessage(char*, size_t)));
+            connect(connector, SIGNAL(imageChannelUpdateSignal(char*, int, int, int)), connector, SLOT(imageChannelUpdateSignalSlot(char*, int, int, int)));
 
 //            connect(connector, SIGNAL(jsTextMessageResultSignal(QString)), this, SLOT(forwardTextMessageResult(QString)) );
             connect(connector, SIGNAL(jsBinaryMessageResultSignal(char*, size_t)), this, SLOT(forwardBinaryMessageResult(char*, size_t)) );
@@ -188,7 +190,17 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
     }
 
     if (connector != nullptr){
-        emit connector->onBinaryMessageSignal(message, length);
+        if (eventName == "SET_IMAGE_CHANNELS") {
+            CARTA::SetImageChannels setImageChannels;
+            setImageChannels.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+            int fileId = setImageChannels.file_id();
+            int channel = setImageChannels.channel();
+            int stoke = setImageChannels.stokes();
+            qDebug() << "[SessionDispatcher] Set image channel=" << channel << ", fileId=" << fileId << ", stoke=" << stoke;
+            emit connector->imageChannelUpdateSignal(message, fileId, channel, stoke);
+        } else {
+            emit connector->onBinaryMessageSignal(message, length);
+        }
     }
 }
 
