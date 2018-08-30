@@ -1022,7 +1022,7 @@ Carta::Lib::NdArray::RawViewInterface* DataSource::_getRawDataForStoke( int fram
         // if the image dimension=4, then dim[0]: x-axis, dim[1]: y-axis, dim[2]: stoke-axis, and dim[3]: channel-axis
         //                                                            or  dim[2]: channel-axis, and dim[3]: stoke-axis
         int imageDim =m_image->dims().size();
-        qDebug() << "++++++++ Dimension of image raw data=" << imageDim;
+        //qDebug() << "++++++++ Dimension of image raw data=" << imageDim;
 
         SliceND frameSlice = SliceND().next();
 

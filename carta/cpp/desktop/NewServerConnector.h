@@ -59,6 +59,7 @@ public slots:
     void sendSerializedMessage(char* message, QString respName, PBMSharedPtr msg);
 
     void imageChannelUpdateSignalSlot(char* message, int fileId, int channel, int stoke);
+    void setImageViewSignalSlot(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip);
 
 signals:
 
@@ -73,6 +74,7 @@ signals:
     void jsBinaryMessageResultSignal(char* message, size_t length);
 
     void imageChannelUpdateSignal(char* message, int fileId, int channel, int stoke);
+    void setImageViewSignal(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip);
 
     // /// we emit this signal when state is changed (either by c++ or by javascript)
     // /// we listen to this signal, and so does javascript
@@ -127,8 +129,7 @@ protected:
 
 private:
 
-    // image viewer bounds with respect to the fileId: m_imageBounds[fileId] = {x_min, x_max, y_min, y_max, mip}
-    std::map<int, std::vector<int> > m_imageBounds;
+    std::map<int, std::vector<int> > m_imageBounds; // m_imageBounds[fileId] = {x_min, x_max, y_min, y_max, mip}
     std::map<int, std::vector<int> > m_currentChannel; // m_currentChannel[fileId] = {spectralFrame, stokeFrame}
     std::map<int, std::vector<int> > m_calHistRange; // m_calHistRange[fileId] = {frameLow, frameHigh, stokeFrame}
     std::map<int, int> m_lastFrame; // m_lastFrame[fileId] = lastFrame (for the spectral axis)

@@ -33,7 +33,7 @@
 //#include "CartaLib/Proto/raster_image.pb.h"
 #include "CartaLib/Proto/spectral_profile.pb.h"
 #include "CartaLib/Proto/spatial_profile.pb.h"
-#include "CartaLib/Proto/set_image_channels.pb.h"
+//#include "CartaLib/Proto/set_image_channels.pb.h"
 #include "CartaLib/Proto/set_cursor.pb.h"
 #include "CartaLib/Proto/region_stats.pb.h"
 #include "CartaLib/Proto/region_requirements.pb.h"
@@ -439,6 +439,9 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         // send the serialized message to the frontend
         sendSerializedMessage(message, respName, msg);
 
+        // set the initial image bounds
+        m_imageBounds[fileId] = {0, 0, 0, 0, 0}; // {x_min, x_max, y_min, y_max, mip}
+
         // set the initial channel for spectral and stoke frames
         m_currentChannel[fileId] = {0, 0}; // {frameLow, stokeFrame}
 
@@ -465,69 +468,6 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         /////////////////////////////////////////////////////////////////////
 
         return;
-
-    } else if (eventName == "SET_IMAGE_VIEW") {
-        CARTA::SetImageView viewSetting;
-        viewSetting.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-
-        // get the controller
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
-        qDebug() << "[NewServerConnector] controllerID=" << controllerID;
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
-
-        int fileId = viewSetting.file_id();
-        qDebug() << "[NewServerConnector] File ID requested by frontend:" << fileId;
-
-        // set the file id as the private parameter in the Stack object
-        controller->setFileId(fileId);
-
-        int frameLow = m_currentChannel[fileId][0];
-        int frameHigh = frameLow;
-        int stokeFrame = m_currentChannel[fileId][1];
-
-        // if (frameLow != 0 || stokeFrame !=0) re-calculate the histogram!!
-        if (m_changeFrame[fileId]) {
-            qDebug() << "Re-calculate the pixel histogram!!";
-            /////////////////////////////////////////////////////////////////////
-            respName = "REGION_HISTOGRAM_DATA";
-
-            // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
-            int regionId = -1;
-
-            // calculate pixels to histogram data
-            Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-            PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
-
-            msg = region_histogram_data;
-
-            // send the serialized message to the frontend
-            sendSerializedMessage(message, respName, msg);
-
-            m_changeFrame[fileId] = false;
-            /////////////////////////////////////////////////////////////////////
-        }
-
-        int mip = viewSetting.mip();
-        int x_min = viewSetting.image_bounds().x_min();
-        int x_max = viewSetting.image_bounds().x_max();
-        int y_min = viewSetting.image_bounds().y_min();
-        int y_max = viewSetting.image_bounds().y_max();
-
-        // set image viewer bounds with respect to the fileId
-        m_imageBounds[fileId] = {x_min, x_max, y_min, y_max, mip};
-
-        /////////////////////////////////////////////////////////////////////
-        respName = "RASTER_IMAGE_DATA";
-
-        // get the down sampling raster image raw data
-        PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame);
-        msg = raster;
-
-        // send the serialized message to the frontend
-        sendSerializedMessage(message, respName, msg);
-        return;
-        /////////////////////////////////////////////////////////////////////
 
     } else if (eventName == "START_ANIMATION") {
 
@@ -577,6 +517,69 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
     return;
 }
 
+void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip) {
+
+    if (xMin != m_imageBounds[fileId][0] || xMax != m_imageBounds[fileId][1] ||
+        yMin != m_imageBounds[fileId][2] || yMax != m_imageBounds[fileId][3] ||
+        mip != m_imageBounds[fileId][4]) {
+        // update image viewer bounds with respect to the fileId
+        m_imageBounds[fileId] = {xMin, xMax, yMin, yMax, mip};
+    } else {
+        qDebug() << "[NewServerConnector] Frontend image viewer signal is repeated, just ignore the signal!!";
+        return;
+    }
+
+    QString respName;
+    PBMSharedPtr msg;
+
+    // get the controller
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+    qDebug() << "[NewServerConnector] controllerID=" << controllerID;
+    Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+
+    // set the file id as the private parameter in the Stack object
+    controller->setFileId(fileId);
+
+    int frameLow = m_currentChannel[fileId][0];
+    int frameHigh = frameLow;
+    int stokeFrame = m_currentChannel[fileId][1];
+
+    // check if need to re-calculate the histogram!!
+    if (m_changeFrame[fileId]) {
+        qDebug() << "Re-calculate the pixel histogram!!";
+        /////////////////////////////////////////////////////////////////////
+        respName = "REGION_HISTOGRAM_DATA";
+
+        // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
+        int regionId = -1;
+
+        // calculate pixels to histogram data
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
+        PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
+
+        msg = region_histogram_data;
+
+        // send the serialized message to the frontend
+        sendSerializedMessage(message, respName, msg);
+
+        m_changeFrame[fileId] = false;
+        /////////////////////////////////////////////////////////////////////
+    }
+
+    /////////////////////////////////////////////////////////////////////
+    respName = "RASTER_IMAGE_DATA";
+
+    // get the down sampling raster image raw data
+    PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
+    msg = raster;
+
+    // send the serialized message to the frontend
+    sendSerializedMessage(message, respName, msg);
+    return;
+    /////////////////////////////////////////////////////////////////////
+}
+
 void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId, int channel, int stoke) {
     qDebug() << "[NewServerConnector] Set image channel=" << channel << ", fileId=" << fileId << ", stoke=" << stoke;
 
@@ -619,9 +622,6 @@ void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId,
 
     msg = region_histogram_data;
 
-    // mark the image file is changed
-    //m_changeImage = true;
-
     // send the serialized message to the frontend
     sendSerializedMessage(message, respName, msg);
     /////////////////////////////////////////////////////////////////////
@@ -657,7 +657,6 @@ void NewServerConnector::sendSerializedMessage(char* message, QString respName, 
         emit jsBinaryMessageResultSignal(result.data(), requiredSize);
         qDebug() << "[NewServerConnector] Send event:" << respName << QTime::currentTime().toString();
     }
-
 }
 
 // void NewServerConnector::stateChangedSlot(const QString & key, const QString & value)

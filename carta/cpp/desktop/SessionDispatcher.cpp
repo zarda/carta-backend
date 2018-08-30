@@ -28,6 +28,7 @@
 #include "NewServerConnector.h"
 #include "CartaLib/Proto/register_viewer.pb.h"
 #include "CartaLib/Proto/set_image_channels.pb.h"
+#include "CartaLib/Proto/set_image_view.pb.h"
 
 void SessionDispatcher::startWebSocket(){
 
@@ -132,7 +133,10 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
             connect(connector, SIGNAL(startViewerSignal(const QString &)), connector, SLOT(startViewerSlot(const QString &)));
 //            connect(connector, SIGNAL(onTextMessageSignal(QString)), connector, SLOT(onTextMessage(QString)));
             connect(connector, SIGNAL(onBinaryMessageSignal(char*, size_t)), connector, SLOT(onBinaryMessage(char*, size_t)));
-            connect(connector, SIGNAL(imageChannelUpdateSignal(char*, int, int, int)), connector, SLOT(imageChannelUpdateSignalSlot(char*, int, int, int)));
+            connect(connector, SIGNAL(imageChannelUpdateSignal(char*, int, int, int)),
+                    connector, SLOT(imageChannelUpdateSignalSlot(char*, int, int, int)));
+            connect(connector, SIGNAL(setImageViewSignal(char*, int , int, int, int, int, int)),
+                    connector, SLOT(setImageViewSignalSlot(char*, int , int, int, int, int, int)));
 
 //            connect(connector, SIGNAL(jsTextMessageResultSignal(QString)), this, SLOT(forwardTextMessageResult(QString)) );
             connect(connector, SIGNAL(jsBinaryMessageResultSignal(char*, size_t)), this, SLOT(forwardBinaryMessageResult(char*, size_t)) );
@@ -189,7 +193,22 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
     }
 
     if (connector != nullptr) {
-        if (eventName == "SET_IMAGE_CHANNELS") {
+        if (eventName == "SET_IMAGE_VIEW") {
+
+            CARTA::SetImageView viewSetting;
+            viewSetting.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+            int fileId = viewSetting.file_id();
+            int mip = viewSetting.mip();
+            int xMin = viewSetting.image_bounds().x_min();
+            int xMax = viewSetting.image_bounds().x_max();
+            int yMin = viewSetting.image_bounds().y_min();
+            int yMax = viewSetting.image_bounds().y_max();
+            qDebug() << "[SessionDispatcher] Set image bounds [x_min, x_max, y_min, y_max, mip]=["
+                     << xMin << "," << xMax << "," << yMin << "," << yMax << "," << mip << "]";
+            emit connector->setImageViewSignal(message, fileId, xMin, xMax, yMin, yMax, mip);
+
+        } else if (eventName == "SET_IMAGE_CHANNELS") {
+
             CARTA::SetImageChannels setImageChannels;
             setImageChannels.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
             int fileId = setImageChannels.file_id();
@@ -197,6 +216,7 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
             int stoke = setImageChannels.stokes();
             qDebug() << "[SessionDispatcher] Set image channel=" << channel << ", fileId=" << fileId << ", stoke=" << stoke;
             emit connector->imageChannelUpdateSignal(message, fileId, channel, stoke);
+
         } else {
             emit connector->onBinaryMessageSignal(message, length);
         }
