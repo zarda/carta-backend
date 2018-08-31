@@ -27,7 +27,6 @@
 #include <QThread>
 
 #include "CartaLib/Proto/file_list.pb.h"
-#include "CartaLib/Proto/file_info.pb.h"
 #include "CartaLib/Proto/open_file.pb.h"
 #include "CartaLib/Proto/set_image_view.pb.h"
 #include "CartaLib/Proto/raster_image.pb.h"
@@ -48,7 +47,6 @@
 #include "CartaLib/IImage.h"
 
 // File_Info implementation test
-// #include "FitsHeaderExtractor.h"
 #include "CartaLib/Hooks/ImageStatisticsHook.h"
 #include "Globals.h"
 
@@ -374,10 +372,8 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
             fileInfo->set_type(CARTA::FileType::CASA);
         }
 
-        // FileInfo: size
-
-        // FileInfoExtended
-
+        // FileInfoExtended part 1: add extended information
+        // [TODO] refactor part 1 to reduce code size
         const std::vector<int> dims = image->dims();
         CARTA::FileInfoExtended* fileInfoExt = new CARTA::FileInfoExtended();
         fileInfoExt->set_dimensions(dims.size());
@@ -437,6 +433,11 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
                 // Carta::Data::ErrorManager* hr = Carta::State::Util::findSingletonObject<Carta::Data::ErrorManager>();
                 // hr->registerError( errorStr );
             }
+        }
+
+        // FileInfoExtended part 2: extract certain entries, such as NAXIS NAXIS1 NAXIS2 NAXIS3...etc, for showing in file browser
+        if (false == extractFitsInfo(fileInfoExt, image, respName)) {
+            qDebug() << "Extract FileInfoExtended part 2 error.";
         }
 
         // FileInfoResponse
@@ -499,7 +500,11 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         if (dims.size() >= 4) {
             fileInfoExt->set_stokes(dims[3]);
         }
-        // CARTA::HeaderEntry* headEntry = fileInfoExt->add_header_entries();
+
+        // FileInfoExtended: return all entries (MUST all) for frontend to render (AST)
+        if (false == extractFitsInfo(fileInfoExt, image, respName)) {
+            qDebug() << "Extract FileInfoExtended info error.";
+        }
 
         // we cannot handle the request so far, return a fake response.
         std::shared_ptr<CARTA::OpenFileAck> ack(new CARTA::OpenFileAck());
@@ -670,6 +675,69 @@ void NewServerConnector::sendSerializedMessage(char* message, QString respName, 
         qDebug() << "Send event:" << respName << QTime::currentTime().toString();
     }
 
+}
+
+// FileInfoExtended: extract Fits information and add to entries, including NAXIS NAXIS1 NAXIS2 NAXIS3...etc
+// The fits header structure is like:
+//  NAXIS1 = 1024
+//  CTYPE1 = 'RA---TAN'
+//  CDELT1 = -9.722222222222E-07
+//   ...etc
+bool NewServerConnector::extractFitsInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                         const std::shared_ptr<Carta::Lib::Image::ImageInterface> image, const QString respond) {
+    // validate parameters
+    if (nullptr == fileInfoExt || nullptr == image) {
+        return false;
+    }
+
+    // get fits header map using FitsHeaderExtractor
+    FitsHeaderExtractor fhExtractor;
+    fhExtractor.setInput(image);
+    std::map<QString, QString> headerMap = fhExtractor.getHeaderMap();
+
+    // extract necessary info from header, depending on the respond event
+    if ("FILE_INFO_RESPONSE" == respond) {
+        // extract only certain entries from fits header for showing in File browser
+        std::vector<QString> keys {"NAXIS", "NAXIS1", "NAXIS2", "NAXIS3",
+                                   "BMAJ", "BMIN", "BPA", "BUNIT",
+                                   "EQUINOX", "RADESYS", "SPECSYS", "VELREF",
+                                   "CTYPE1", "CRVAL1", "CDELT1", "CUNIT1",
+                                   "CTYPE2", "CRVAL2", "CDELT2", "CUNIT2",
+                                   "CTYPE3", "CRVAL3", "CDELT3", "CUNIT3",
+                                   "CTYPE4", "CRVAL4", "CDELT4", "CUNIT4"};
+        for (auto key = keys.begin(); key != keys.end(); key++) {
+            // find value corresponding to key
+            QString value = "";
+            auto found = headerMap.find(*key);
+            if (found != headerMap.end()) {
+                value = found->second;
+            }
+
+            // insert (key, value) to header entry
+            CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
+            if (nullptr == headerEntry) {
+                qDebug() << "Add header entry error in FILE_INFO_RESPONSE.";
+                return false;
+            }
+            headerEntry->set_name((*key).toLocal8Bit().constData());
+            headerEntry->set_value(value.toLocal8Bit().constData());
+        }
+    } else if ("OPEN_FILE_ACK" == respond) {
+        // traverse whole map to return all entries for frontend to render (AST)
+        for (auto iter = headerMap.begin(); iter != headerMap.end(); iter++) {
+            CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
+            if (nullptr == headerEntry) {
+                qDebug() << "Add header entry error in OPEN_FILE_ACK.";
+                return false;
+            }
+            headerEntry->set_name((iter->first).toLocal8Bit().constData());
+            headerEntry->set_value((iter->second).toLocal8Bit().constData());
+        }
+    } else {
+        return false;
+    }
+
+    return true;
 }
 
 // void NewServerConnector::stateChangedSlot(const QString & key, const QString & value)
