@@ -27,6 +27,9 @@ public:
     /// \note all entries are padded/truncated to 80 chars
     QStringList getHeader();
 
+    // get header info and return the info with a (key, value) map
+    std::map<QString, QString> getHeaderMap();
+
     /// \return list of errors (if any)
     QStringList getErrors();
 
