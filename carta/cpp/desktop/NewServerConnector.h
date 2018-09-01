@@ -12,6 +12,8 @@
 #include "core/Viewer.h"
 #include "CartaLib/IRemoteVGView.h"
 #include "CartaLib/IPercentileCalculator.h"
+#include "CartaLib/Proto/file_info.pb.h"
+#include "FitsHeaderExtractor.h"
 #include <QList>
 #include <QByteArray>
 
@@ -50,6 +52,10 @@ public:
 
     Viewer viewer;
     QThread *selfThread; //not really use now, may take effect later
+
+private:
+    // FileInfoExtended: extract Fits information and add to entries, including NAXIS NAXIS1 NAXIS2 NAXIS3...etc
+    bool extractFitsInfo(CARTA::FileInfoExtended* fileInfoExt, const std::shared_ptr<Carta::Lib::Image::ImageInterface> image, const QString respond);
 
 public slots:
 
