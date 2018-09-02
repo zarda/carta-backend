@@ -47,6 +47,7 @@
 #include "CartaLib/IImage.h"
 
 // File_Info implementation test
+#include "CartaLib/Hooks/LoadAstroImage.h"
 #include "CartaLib/Hooks/ImageStatisticsHook.h"
 #include "Globals.h"
 
@@ -348,19 +349,32 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
     } else if (eventName == "FILE_INFO_REQUEST") {
         respName = "FILE_INFO_RESPONSE";
 
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
-        bool success;
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+        //Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+        //QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+        //bool success;
+        //Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
         CARTA::FileInfoRequest openFile;
         openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-        int fileId = 0;
-        qDebug() << "*********** fileId=" << fileId;
-        controller->addData(QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file()), &success, fileId);
+        //int fileId = 0;
+        //qDebug() << "*********** fileId=" << fileId;
+        //controller->addData(QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file()), &success, fileId);
 
-        std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
+        //
+        QString fileName = QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file());
+        QString file = fileName.trimmed();
+        auto res = Globals::instance()-> pluginManager()
+                              -> prepare <Carta::Lib::Hooks::LoadAstroImage>( file )
+                              .first();
+        std::shared_ptr<Carta::Lib::Image::ImageInterface> m_image = res.val();
+
+        //
+
+        // todo: image = controller->getImage(QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file()), &success);
+        //std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
         std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
-        images.push_back(image);
+        //images.push_back(image);
+        images.push_back(m_image);
+        qDebug() << "********** images.size()=" << images.size();
 
         CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
 
@@ -368,7 +382,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         fileInfo->set_name(openFile.file());
 
         // FileInfo: type
-        if (image->getType() == "FITSImage") {
+        if (m_image->getType() == "FITSImage") {
             fileInfo->set_type(CARTA::FileType::FITS);
         } else {
             fileInfo->set_type(CARTA::FileType::CASA);
@@ -376,21 +390,27 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         // FileInfoExtended part 1: add extended information
         // [TODO] refactor part 1 to reduce code size
-        const std::vector<int> dims = image->dims();
+        const std::vector<int> dims = m_image->dims();
         CARTA::FileInfoExtended* fileInfoExt = new CARTA::FileInfoExtended();
         fileInfoExt->set_dimensions(dims.size());
         fileInfoExt->set_width(dims[0]);
         fileInfoExt->set_height(dims[1]);
+
+        // need to correct this part!!
         if (dims.size() >= 3) {
             fileInfoExt->set_depth(dims[2]);
         }
         if (dims.size() >= 4) {
             fileInfoExt->set_stokes(dims[3]);
         }
+        //
 
         // Prepare to use the ImageStats plugin.
         std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > regions;
-        std::vector<int> frameIndices = controller->getImageSlice();
+        int dim = m_image->dims().size();
+        std::vector<int> frameIndices(dim, -1); // get the whole image stat data
+        //std::vector<int> frameIndices = controller->getImageSlice();
+        qDebug() << "************ frameIndices=" << frameIndices; // usually is [-1, -1, 0, 0,..] dimension of the image file
 
         int sourceCount = images.size();
         if ( sourceCount > 0 ){
@@ -438,7 +458,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         }
 
         // FileInfoExtended part 2: extract certain entries, such as NAXIS NAXIS1 NAXIS2 NAXIS3...etc, for showing in file browser
-        if (false == extractFitsInfo(fileInfoExt, image, respName)) {
+        if (false == extractFitsInfo(fileInfoExt, m_image, respName)) {
             qDebug() << "Extract FileInfoExtended part 2 error.";
         }
 
@@ -676,6 +696,7 @@ void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int x
     respName = "RASTER_IMAGE_DATA";
 
     // get the down sampling raster image raw data
+    qDebug() << "***************** fileId=" << fileId;
     PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
     msg = raster;
 

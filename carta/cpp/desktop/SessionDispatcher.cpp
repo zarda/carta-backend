@@ -205,6 +205,7 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
             int yMax = viewSetting.image_bounds().y_max();
             qDebug() << "[SessionDispatcher] Set image bounds [x_min, x_max, y_min, y_max, mip]=["
                      << xMin << "," << xMax << "," << yMin << "," << yMax << "," << mip << "]";
+            qDebug() << "***********!!!!! fileId" << fileId;
             emit connector->setImageViewSignal(message, fileId, xMin, xMax, yMin, yMax, mip);
 
         } else if (eventName == "SET_IMAGE_CHANNELS") {
