@@ -338,7 +338,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         CARTA::CloseFile closeFile;
         closeFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
         int closeFileId = closeFile.file_id();
-        qDebug() << "[NewServerConnector] Close file id=" << closeFileId;
+        qDebug() << "[NewServerConnector] Close the file id=" << closeFileId;
 
     } else if (eventName == "OPEN_FILE") {
         respName = "OPEN_FILE_ACK";
@@ -353,7 +353,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
 
         QString fileDir = QString::fromStdString(openFile.directory());
         if (!QDir(fileDir).exists()) {
-            qWarning() << "File directory doesn't exist! (" << fileDir << ")";
+            qWarning() << "[NewServerConnector] File directory doesn't exist! (" << fileDir << ")";
             return;
         }
 
@@ -409,7 +409,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         Carta::State::ObjectManager* objMan2 = Carta::State::ObjectManager::objectManager();
         Carta::Data::DataLoader *dataLoader = objMan2->createObject<Carta::Data::DataLoader>();
         if (false == dataLoader->extractFitsInfo(fileInfoExt, image, respName)) {
-            qDebug() << "Extract FileInfoExtended info error.";
+            qDebug() << "[NewServerConnector] Extract FileInfoExtended info error!";
         }
 
         // we cannot handle the request so far, return a fake response.
@@ -480,7 +480,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         // Insert non-global object id
         // QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0");
         // QString cmd = controllerID + ":" + eventName;
-        qCritical() << "There is no event handler:" << eventName;
+        qCritical() << "[NewServerConnector] There is no event handler:" << eventName;
 
 //        auto & allCallbacks = m_messageCallbackMap[eventName];
 //
