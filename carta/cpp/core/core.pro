@@ -125,6 +125,7 @@ HEADERS += \
     Data/Util.h \
     Data/ViewManager.h \
     Data/ViewPlugins.h \
+    Data/FitsHeaderExtractor.h \
     GrayColormap.h \
     ImageRenderService.h \
 #    Plot2D/Plot.h \
@@ -281,6 +282,7 @@ SOURCES += \
     Data/Util.cpp \
     Data/ViewManager.cpp \
     Data/ViewPlugins.cpp \
+    Data/FitsHeaderExtractor.cpp \
     GrayColormap.cpp \
 #    Plot2D/Plot.cpp \
 #    Plot2D/Plot2DGenerator.cpp \
@@ -348,6 +350,15 @@ QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib\''
 
 #QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
 #INCLUDEPATH += $$QWT_ROOT/include
+
+# Add Casacore Libs
+casacoreLIBS += -L$${CASACOREDIR}/lib
+casacoreLIBS += -lcasa_lattices -lcasa_tables -lcasa_scimath -lcasa_scimath_f -lcasa_mirlib
+casacoreLIBS += -lcasa_casa -llapack -lblas -ldl
+casacoreLIBS += -lcasa_images -lcasa_coordinates -lcasa_fits -lcasa_measures
+INCLUDEPATH += $${CASACOREDIR}/include
+LIBS += $${casacoreLIBS}
+
 unix:macx {
 #	QMAKE_LFLAGS += '-F$$QWT_ROOT/lib'
 #	LIBS +=-L../CartaLib -lCartaLib -framework qwt

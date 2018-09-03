@@ -2,20 +2,32 @@
  *
  **/
 
-
 #ifndef NEW_SERVER_CONNECTOR_H
 #define NEW_SERVER_CONNECTOR_H
 
 #include <QObject>
+#include <QList>
+#include <QByteArray>
+
 #include "core/IConnector.h"
 #include "core/CallbackList.h"
 #include "core/Viewer.h"
 #include "CartaLib/IRemoteVGView.h"
 #include "CartaLib/IPercentileCalculator.h"
-#include "CartaLib/Proto/file_info.pb.h"
-#include "FitsHeaderExtractor.h"
-#include <QList>
-#include <QByteArray>
+
+#include "CartaLib/Proto/open_file.pb.h"
+#include "CartaLib/Proto/set_image_view.pb.h"
+#include "CartaLib/Proto/spectral_profile.pb.h"
+#include "CartaLib/Proto/spatial_profile.pb.h"
+#include "CartaLib/Proto/set_cursor.pb.h"
+#include "CartaLib/Proto/region_stats.pb.h"
+#include "CartaLib/Proto/region_requirements.pb.h"
+#include "CartaLib/Proto/region.pb.h"
+#include "CartaLib/Proto/error.pb.h"
+#include "CartaLib/Proto/contour_image.pb.h"
+#include "CartaLib/Proto/contour.pb.h"
+#include "CartaLib/Proto/close_file.pb.h"
+#include "CartaLib/Proto/animation.pb.h"
 
 class IView;
 
@@ -52,10 +64,6 @@ public:
 
     Viewer viewer;
     QThread *selfThread; //not really use now, may take effect later
-
-private:
-    // FileInfoExtended: extract Fits information and add to entries, including NAXIS NAXIS1 NAXIS2 NAXIS3...etc
-    bool extractFitsInfo(CARTA::FileInfoExtended* fileInfoExt, const std::shared_ptr<Carta::Lib::Image::ImageInterface> image, const QString respond);
 
 public slots:
 

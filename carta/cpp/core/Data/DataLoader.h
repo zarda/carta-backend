@@ -9,12 +9,19 @@
 
 #include <QDir>
 #include <QJsonArray>
-
 #include <memory>
 
+#include "FitsHeaderExtractor.h"
+
+#include "CartaLib/Proto/file_info.pb.h"
 #include "CartaLib/Proto/file_list.pb.h"
 #include "CartaLib/Proto/defs.pb.h"
 #include "CartaLib/Proto/enums.pb.h"
+
+// File_Info implementation needs
+#include "CartaLib/Hooks/LoadAstroImage.h"
+#include "CartaLib/Hooks/ImageStatisticsHook.h"
+#include "Globals.h"
 
 namespace Carta {
 
@@ -26,6 +33,13 @@ public:
 
     // QString getFileList(const QString & params);
     PBMSharedPtr getFileList( CARTA::FileListRequest fileListRequest);
+
+    PBMSharedPtr getFileInfo(CARTA::FileInfoRequest openFile);
+
+    // FileInfoExtended: extract Fits information and add to entries, including NAXIS NAXIS1 NAXIS2 NAXIS3...etc
+    bool extractFitsInfo(CARTA::FileInfoExtended* fileInfoExt,
+                         const std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
+                         const QString respond);
 
     /**
      * Returns a QString containing a hierarchical listing of data files that can

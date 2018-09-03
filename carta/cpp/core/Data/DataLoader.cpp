@@ -231,6 +231,182 @@ DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileLis
     return fileListResponse;
 }
 
+DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest openFile) {
+
+    QString fileDir = QString::fromStdString(openFile.directory());
+    if (!QDir(fileDir).exists()) {
+        qWarning() << "[File Info] File directory doesn't exist! (" << fileDir << ")";
+        return nullptr;
+    }
+
+    QString fileName = QString::fromStdString(openFile.file());
+    QString fileFullName = fileDir + "/" + fileName;
+
+    QString file = fileFullName.trimmed();
+    auto res = Globals::instance()->pluginManager()->prepare <Carta::Lib::Hooks::LoadAstroImage>(file).first();
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> image;
+    if (!res.isNull()) {
+        image = res.val();
+    } else {
+        qWarning() << "[File Info] Can not open the image file! (" << file << ")";
+        return nullptr;
+    }
+
+    // Since the statistical plugin requires a vector of ImageInterface
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
+    images.push_back(image);
+
+    CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
+
+    // FileInfo: name
+    fileInfo->set_name(openFile.file());
+
+    // FileInfo: type
+    if (image->getType() == "FITSImage") {
+        fileInfo->set_type(CARTA::FileType::FITS);
+    } else {
+        fileInfo->set_type(CARTA::FileType::CASA);
+    }
+    // fileInfo->add_hdu_list(openFile.hdu());
+
+    // FileInfoExtended part 1: add extended information
+    const std::vector<int> dims = image->dims();
+    CARTA::FileInfoExtended* fileInfoExt = new CARTA::FileInfoExtended();
+    fileInfoExt->set_dimensions(dims.size());
+    fileInfoExt->set_width(dims[0]);
+    fileInfoExt->set_height(dims[1]);
+
+    // it may be not really the spectral axis, but we can regardless of it so far.
+    if (dims.size() >= 3) {
+        fileInfoExt->set_depth(dims[2]);
+    }
+
+    // it may be not really the stoke axis, but we can regardless of it so far.
+    if (dims.size() >= 4) {
+        fileInfoExt->set_stokes(dims[3]);
+    }
+
+    // Prepare to use the ImageStats plugin.
+    std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > regions; // regions is an empty setting so far
+    int dimSize = image->dims().size(); // get the dimension of the image
+    std::vector<int> frameIndices(dimSize, -1); // get the statistical data of the whole image
+
+    int sourceCount = images.size();
+    if (sourceCount > 0) {
+        auto result = Globals::instance()->pluginManager()
+                -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
+
+        auto lam = [=] (const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data) {
+            //An array for each image
+            int dataCount = data.size();
+
+            for ( int i = 0; i < dataCount; i++ ) {
+                // Each element of the image array contains an array of statistics.
+                int statCount = data[i].size();
+
+                // Go through each set of statistics for the image.
+                for (int k = 0; k < statCount; k++) {
+                    int keyCount = data[i][k].size();
+
+                    for (int j = 0; j < keyCount; j++) {
+                        QString label = data[i][k][j].getLabel();
+                        QString value = data[i][k][j].getValue();
+                        CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
+                        headerEntry->set_name(label.toLocal8Bit().constData());
+                        headerEntry->set_value(value.toLocal8Bit().constData());
+                    }
+                }
+            }
+        };
+
+        try {
+            result.forEach( lam );
+        } catch (char*& error) {
+            QString errorStr(error);
+            qDebug() << "[File Info] There is an error message: " << errorStr;
+        }
+    }
+
+    QString respName = "FILE_INFO_RESPONSE";
+
+    // FileInfoExtended part 2: extract certain entries, such as NAXIS NAXIS1 NAXIS2 NAXIS3...etc, for showing in file browser
+    if (false == extractFitsInfo(fileInfoExt, image, respName)) {
+        qDebug() << "[File Info] Extract FileInfoExtended part 2 error.";
+    }
+
+    // FileInfoResponse
+    std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
+    fileInfoResponse->set_success(true);
+    fileInfoResponse->set_allocated_file_info(fileInfo);
+    fileInfoResponse->set_allocated_file_info_extended(fileInfoExt);
+
+    return fileInfoResponse;
+}
+
+// FileInfoExtended: extract Fits information and add to entries, including NAXIS NAXIS1 NAXIS2 NAXIS3...etc
+// The fits header structure is like:
+//  NAXIS1 = 1024
+//  CTYPE1 = 'RA---TAN'
+//  CDELT1 = -9.722222222222E-07
+//   ...etc
+bool DataLoader::extractFitsInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                 const std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
+                                 const QString respond) {
+    // validate parameters
+    if (nullptr == fileInfoExt || nullptr == image) {
+        return false;
+    }
+
+    // get fits header map using FitsHeaderExtractor
+    FitsHeaderExtractor fhExtractor;
+    fhExtractor.setInput(image);
+    std::map<QString, QString> headerMap = fhExtractor.getHeaderMap();
+
+    // extract necessary info from header, depending on the respond event
+    if ("FILE_INFO_RESPONSE" == respond) {
+        // extract only certain entries from fits header for showing in File browser
+        std::vector<QString> keys {"NAXIS", "NAXIS1", "NAXIS2", "NAXIS3",
+                                   "BMAJ", "BMIN", "BPA", "BUNIT",
+                                   "EQUINOX", "RADESYS", "SPECSYS", "VELREF",
+                                   "CTYPE1", "CRVAL1", "CDELT1", "CUNIT1",
+                                   "CTYPE2", "CRVAL2", "CDELT2", "CUNIT2",
+                                   "CTYPE3", "CRVAL3", "CDELT3", "CUNIT3",
+                                   "CTYPE4", "CRVAL4", "CDELT4", "CUNIT4"};
+        for (auto key = keys.begin(); key != keys.end(); key++) {
+            // find value corresponding to key
+            QString value = "";
+            auto found = headerMap.find(*key);
+            if (found != headerMap.end()) {
+                value = found->second;
+            }
+
+            // insert (key, value) to header entry
+            CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
+            if (nullptr == headerEntry) {
+                qDebug() << "Add header entry error in FILE_INFO_RESPONSE.";
+                return false;
+            }
+            headerEntry->set_name((*key).toLocal8Bit().constData());
+            headerEntry->set_value(value.toLocal8Bit().constData());
+        }
+    } else if ("OPEN_FILE_ACK" == respond) {
+        // traverse whole map to return all entries for frontend to render (AST)
+        for (auto iter = headerMap.begin(); iter != headerMap.end(); iter++) {
+            CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
+            if (nullptr == headerEntry) {
+                qDebug() << "Add header entry error in OPEN_FILE_ACK.";
+                return false;
+            }
+            headerEntry->set_name((iter->first).toLocal8Bit().constData());
+            headerEntry->set_value((iter->second).toLocal8Bit().constData());
+        }
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
 void DataLoader::_initCallbacks(){
 
     //Callback for returning a list of data files that can be loaded.
