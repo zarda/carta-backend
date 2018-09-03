@@ -137,6 +137,8 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
                     connector, SLOT(imageChannelUpdateSignalSlot(char*, int, int, int)));
             connect(connector, SIGNAL(setImageViewSignal(char*, int , int, int, int, int, int)),
                     connector, SLOT(setImageViewSignalSlot(char*, int , int, int, int, int, int)));
+            connect(connector, SIGNAL(openFileSignal(char*, QString, QString, int, int)),
+                    connector, SLOT(openFileSignalSlot(char*, QString, QString, int, int)));
 
 //            connect(connector, SIGNAL(jsTextMessageResultSignal(QString)), this, SLOT(forwardTextMessageResult(QString)) );
             connect(connector, SIGNAL(jsBinaryMessageResultSignal(char*, size_t)), this, SLOT(forwardBinaryMessageResult(char*, size_t)) );
@@ -193,7 +195,19 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
     }
 
     if (connector != nullptr) {
-        if (eventName == "SET_IMAGE_VIEW") {
+        if (eventName == "OPEN_FILE") {
+
+            CARTA::OpenFile openFile;
+            openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+            QString fileDir = QString::fromStdString(openFile.directory());
+            QString fileName = QString::fromStdString(openFile.file());
+            int fileId = openFile.file_id();
+            // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
+            int regionId = -1;
+            qDebug() << "[SessionDispatcher] Open the image file" << fileDir + "/" + fileName << "(fileId=" << fileId << ")";
+            emit connector->openFileSignal(message, fileDir, fileName, fileId, regionId);
+
+        } else if (eventName == "SET_IMAGE_VIEW") {
 
             CARTA::SetImageView viewSetting;
             viewSetting.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
@@ -204,7 +218,7 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
             int yMin = viewSetting.image_bounds().y_min();
             int yMax = viewSetting.image_bounds().y_max();
             qDebug() << "[SessionDispatcher] Set image bounds [x_min, x_max, y_min, y_max, mip]=["
-                     << xMin << "," << xMax << "," << yMin << "," << yMax << "," << mip << "]";
+                     << xMin << "," << xMax << "," << yMin << "," << yMax << "," << mip << "], fileId=" << fileId;
             emit connector->setImageViewSignal(message, fileId, xMin, xMax, yMin, yMax, mip);
 
         } else if (eventName == "SET_IMAGE_CHANNELS") {

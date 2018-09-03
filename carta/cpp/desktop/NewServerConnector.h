@@ -74,6 +74,7 @@ public slots:
 
     void imageChannelUpdateSignalSlot(char* message, int fileId, int channel, int stoke);
     void setImageViewSignalSlot(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip);
+    void openFileSignalSlot(char* message, QString fileDir, QString fileName, int fileId, int regionId);
 
 signals:
 
@@ -89,6 +90,7 @@ signals:
 
     void imageChannelUpdateSignal(char* message, int fileId, int channel, int stoke);
     void setImageViewSignal(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip);
+    void openFileSignal(char* message, QString fileDir, QString fileName, int fileId, int regionId);
 
     // /// we emit this signal when state is changed (either by c++ or by javascript)
     // /// we listen to this signal, and so does javascript
