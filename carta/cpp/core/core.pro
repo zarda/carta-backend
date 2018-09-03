@@ -356,8 +356,20 @@ casacoreLIBS += -L$${CASACOREDIR}/lib
 casacoreLIBS += -lcasa_lattices -lcasa_tables -lcasa_scimath -lcasa_scimath_f -lcasa_mirlib
 casacoreLIBS += -lcasa_casa -llapack -lblas -ldl
 casacoreLIBS += -lcasa_images -lcasa_coordinates -lcasa_fits -lcasa_measures
-INCLUDEPATH += $${CASACOREDIR}/include
+
 LIBS += $${casacoreLIBS}
+LIBS += -L$${WCSLIBDIR}/lib -lwcs
+LIBS += -L$${CFITSIODIR}/lib -lcfitsio
+
+INCLUDEPATH += $${CASACOREDIR}/include
+INCLUDEPATH += $${WCSLIBDIR}/include
+INCLUDEPATH += $${CFITSIODIR}/include
+
+INCLUDEPATH += ../../../ThirdParty/wcslib/include
+LIBS += -L../../../ThirdParty/wcslib/lib -lwcs
+
+INCLUDEPATH += ../../../ThirdParty/cfitsio/include
+LIBS += -L../../../ThirdParty/cfitsio/lib
 
 unix:macx {
 #	QMAKE_LFLAGS += '-F$$QWT_ROOT/lib'
