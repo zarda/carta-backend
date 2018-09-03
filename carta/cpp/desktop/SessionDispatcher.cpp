@@ -26,20 +26,30 @@
 #include <QThread>
 
 #include "NewServerConnector.h"
+
 #include "CartaLib/Proto/register_viewer.pb.h"
 #include "CartaLib/Proto/set_image_channels.pb.h"
 #include "CartaLib/Proto/set_image_view.pb.h"
 
+#include "Globals.h"
+#include "core/CmdLine.h"
+
 void SessionDispatcher::startWebSocket(){
 
-    int port = 3002;
+    int port = Globals::instance()->cmdLineInfo()-> port();
+
+    if ( port < 0 ) {
+        port = 3002;
+        qDebug() << "Using default SessionDispatcher port" << port;
+       }
+    else {
+        qDebug() << "SessionDispatcher listening on port" << port;
+    }
 
     if (!m_hub.listen(port)){
         qFatal("Failed to open web socket server.");
         return;
     }
-
-    qDebug() << "SessionDispatcher listening on port" << port;
 
     m_hub.onConnection([this](uWS::WebSocket<uWS::SERVER> *ws, uWS::HttpRequest req){
         onNewConnection(ws);
