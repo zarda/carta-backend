@@ -231,15 +231,15 @@ DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileLis
     return fileListResponse;
 }
 
-DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest openFile) {
+DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfoRequest) {
 
-    QString fileDir = QString::fromStdString(openFile.directory());
+    QString fileDir = QString::fromStdString(fileInfoRequest.directory());
     if (!QDir(fileDir).exists()) {
         qWarning() << "[File Info] File directory doesn't exist! (" << fileDir << ")";
         return nullptr;
     }
 
-    QString fileName = QString::fromStdString(openFile.file());
+    QString fileName = QString::fromStdString(fileInfoRequest.file());
     QString fileFullName = fileDir + "/" + fileName;
 
     QString file = fileFullName.trimmed();
@@ -259,7 +259,7 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest openFile
     CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
 
     // FileInfo: name
-    fileInfo->set_name(openFile.file());
+    fileInfo->set_name(fileInfoRequest.file());
 
     // FileInfo: type
     if (image->getType() == "FITSImage") {

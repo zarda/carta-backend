@@ -34,7 +34,7 @@ public:
     // QString getFileList(const QString & params);
     PBMSharedPtr getFileList( CARTA::FileListRequest fileListRequest);
 
-    PBMSharedPtr getFileInfo(CARTA::FileInfoRequest openFile);
+    PBMSharedPtr getFileInfo(CARTA::FileInfoRequest fileInfoRequest);
 
     // FileInfoExtended: extract Fits information and add to entries, including NAXIS NAXIS1 NAXIS2 NAXIS3...etc
     bool extractFitsInfo(CARTA::FileInfoExtended* fileInfoExt,

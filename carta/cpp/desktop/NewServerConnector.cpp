@@ -325,9 +325,9 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
 
-        CARTA::FileInfoRequest openFile;
-        openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-        msg = dataLoader->getFileInfo(openFile);
+        CARTA::FileInfoRequest fileInfoRequest;
+        fileInfoRequest.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+        msg = dataLoader->getFileInfo(fileInfoRequest);
 
         // send the serialized message to the frontend
         sendSerializedMessage(message, respName, msg);
