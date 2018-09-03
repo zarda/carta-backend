@@ -347,34 +347,34 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         return;
 
     } else if (eventName == "FILE_INFO_REQUEST") {
+
         respName = "FILE_INFO_RESPONSE";
 
-        //Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        //QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
-        //bool success;
-        //Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
         CARTA::FileInfoRequest openFile;
         openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-        //int fileId = 0;
-        //qDebug() << "*********** fileId=" << fileId;
-        //controller->addData(QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file()), &success, fileId);
 
-        //
-        QString fileName = QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file());
-        QString file = fileName.trimmed();
-        auto res = Globals::instance()-> pluginManager()
-                              -> prepare <Carta::Lib::Hooks::LoadAstroImage>( file )
-                              .first();
-        std::shared_ptr<Carta::Lib::Image::ImageInterface> m_image = res.val();
+        QString fileDir = QString::fromStdString(openFile.directory());
+        if (!QDir(fileDir).exists()) {
+            qWarning() << "[File Info] File directory doesn't exist! (" << fileDir << ")";
+            return;
+        }
 
-        //
+        QString fileName = QString::fromStdString(openFile.file());
+        QString fileFullName = fileDir + "/" + fileName;
 
-        // todo: image = controller->getImage(QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file()), &success);
-        //std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
-        std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
-        //images.push_back(image);
-        images.push_back(m_image);
-        qDebug() << "********** images.size()=" << images.size();
+        QString file = fileFullName.trimmed();
+        auto res = Globals::instance()->pluginManager()->prepare <Carta::Lib::Hooks::LoadAstroImage>(file).first();
+        std::shared_ptr<Carta::Lib::Image::ImageInterface> image;
+        if (!res.isNull()) {
+            image = res.val();
+        } else {
+            qWarning() << "[File Info] Can not open the image file! (" << file << ")";
+            return;
+        }
+
+        // Since the statistical plugin requires a vector of ImageInterface
+        std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
+        images.push_back(image);
 
         CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
 
@@ -382,84 +382,74 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         fileInfo->set_name(openFile.file());
 
         // FileInfo: type
-        if (m_image->getType() == "FITSImage") {
+        if (image->getType() == "FITSImage") {
             fileInfo->set_type(CARTA::FileType::FITS);
         } else {
             fileInfo->set_type(CARTA::FileType::CASA);
         }
+        // fileInfo->add_hdu_list(openFile.hdu());
 
         // FileInfoExtended part 1: add extended information
-        // [TODO] refactor part 1 to reduce code size
-        const std::vector<int> dims = m_image->dims();
+        const std::vector<int> dims = image->dims();
         CARTA::FileInfoExtended* fileInfoExt = new CARTA::FileInfoExtended();
         fileInfoExt->set_dimensions(dims.size());
         fileInfoExt->set_width(dims[0]);
         fileInfoExt->set_height(dims[1]);
 
-        // need to correct this part!!
+        // it may be not really the spectral axis, but we can regardless of it so far.
         if (dims.size() >= 3) {
             fileInfoExt->set_depth(dims[2]);
         }
+
+        // it may be not really the stoke axis, but we can regardless of it so far.
         if (dims.size() >= 4) {
             fileInfoExt->set_stokes(dims[3]);
         }
-        //
 
         // Prepare to use the ImageStats plugin.
-        std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > regions;
-        int dim = m_image->dims().size();
-        std::vector<int> frameIndices(dim, -1); // get the whole image stat data
-        //std::vector<int> frameIndices = controller->getImageSlice();
-        qDebug() << "************ frameIndices=" << frameIndices; // usually is [-1, -1, 0, 0,..] dimension of the image file
+        std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > regions; // regions is an empty setting so far
+        int dimSize = image->dims().size(); // get the dimension of the image
+        std::vector<int> frameIndices(dimSize, -1); // get the statistical data of the whole image
 
         int sourceCount = images.size();
-        if ( sourceCount > 0 ){
-            auto result = Globals::instance()-> pluginManager()
-                         -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
-            auto lam = [=] ( const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data ) {
-              //An array for each image
-              int dataCount = data.size();
-              // m_stateData.resizeArray( STATS, dataCount );
-              for ( int i = 0; i < dataCount; i++ ){
-                  //Each element of the image array contains an array of statistics.
-                  // QString arrayLookup = Carta::State::UtilState::getLookup( "stats", i );
-                  int statCount = data[i].size();
-                  // m_stateData.setArray( arrayLookup, statCount );
+        if (sourceCount > 0) {
+            auto result = Globals::instance()->pluginManager()
+                    -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
 
-                  //Go through each set of statistics for the image.
-                  for ( int k = 0; k < statCount; k++ ){
-                      // QString objLookup = Carta::State::UtilState::getLookup( arrayLookup, k );
+            auto lam = [=] (const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data) {
+                //An array for each image
+                int dataCount = data.size();
 
-                      // QList<QString> existingKeys = m_stateData.getMemberNames( objLookup );
-                      int keyCount = data[i][k].size();
-                      for ( int j = 0; j < keyCount; j++ ){
-                          QString label = data[i][k][j].getLabel();
-                          QString value = data[i][k][j].getValue();
-                          // QString lookup = Carta::State::UtilState::getLookup( objLookup, label );
-                          CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
-                          headerEntry->set_name(label.toLocal8Bit().constData());
-                          headerEntry->set_value(value.toLocal8Bit().constData());
-                          // qDebug() << "label:" << label << "lookup" << lookup << "Value: " << data[i][k][j].getValue();
-                          // m_stateData.insertValue<QString>( lookup, data[i][k][j].getValue() );
-                      }
-                  }
-              }
-              // m_stateData.flushState();
+                for ( int i = 0; i < dataCount; i++ ) {
+                    // Each element of the image array contains an array of statistics.
+                    int statCount = data[i].size();
+
+                    // Go through each set of statistics for the image.
+                    for (int k = 0; k < statCount; k++) {
+                        int keyCount = data[i][k].size();
+
+                        for (int j = 0; j < keyCount; j++) {
+                            QString label = data[i][k][j].getLabel();
+                            QString value = data[i][k][j].getValue();
+                            CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
+                            headerEntry->set_name(label.toLocal8Bit().constData());
+                            headerEntry->set_value(value.toLocal8Bit().constData());
+                        }
+                    }
+                }
             };
+
             try {
                 result.forEach( lam );
-            }
-            catch( char*& error ){
-                QString errorStr( error );
-                qDebug() << "There is an error message: " << error;
-                // Carta::Data::ErrorManager* hr = Carta::State::Util::findSingletonObject<Carta::Data::ErrorManager>();
-                // hr->registerError( errorStr );
+            } catch (char*& error) {
+                QString errorStr(error);
+                qDebug() << "[File Info] There is an error message: " << errorStr;
             }
         }
 
         // FileInfoExtended part 2: extract certain entries, such as NAXIS NAXIS1 NAXIS2 NAXIS3...etc, for showing in file browser
-        if (false == extractFitsInfo(fileInfoExt, m_image, respName)) {
-            qDebug() << "Extract FileInfoExtended part 2 error.";
+        if (false == extractFitsInfo(fileInfoExt, image, respName)) {
+            qDebug() << "[File Info] Extract FileInfoExtended part 2 error.";
         }
 
         // FileInfoResponse
@@ -696,7 +686,6 @@ void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int x
     respName = "RASTER_IMAGE_DATA";
 
     // get the down sampling raster image raw data
-    qDebug() << "***************** fileId=" << fileId;
     PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
     msg = raster;
 
