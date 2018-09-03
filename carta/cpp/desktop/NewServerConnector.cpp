@@ -20,35 +20,9 @@
 #include <QTimer>
 #include <QCoreApplication>
 #include <functional>
-
 #include <QStringList>
 #include <QBuffer>
-
 #include <QThread>
-
-#include "CartaLib/Proto/file_list.pb.h"
-#include "CartaLib/Proto/open_file.pb.h"
-#include "CartaLib/Proto/set_image_view.pb.h"
-#include "CartaLib/Proto/raster_image.pb.h"
-#include "CartaLib/Proto/spectral_profile.pb.h"
-#include "CartaLib/Proto/spatial_profile.pb.h"
-#include "CartaLib/Proto/set_image_channels.pb.h"
-#include "CartaLib/Proto/set_cursor.pb.h"
-#include "CartaLib/Proto/region_stats.pb.h"
-#include "CartaLib/Proto/region_requirements.pb.h"
-#include "CartaLib/Proto/region_histogram.pb.h"
-#include "CartaLib/Proto/region.pb.h"
-#include "CartaLib/Proto/error.pb.h"
-#include "CartaLib/Proto/contour_image.pb.h"
-#include "CartaLib/Proto/contour.pb.h"
-#include "CartaLib/Proto/close_file.pb.h"
-#include "CartaLib/Proto/animation.pb.h"
-
-#include "CartaLib/IImage.h"
-
-// File_Info implementation test
-#include "CartaLib/Hooks/ImageStatisticsHook.h"
-#include "Globals.h"
 
 /// \brief internal class of NewServerConnector, containing extra information we like
 ///  to remember with each view
@@ -321,7 +295,7 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
     }
 
     QString eventName = QString::fromStdString(std::string(message, nullIndex));
-    qDebug() << "Event received: " << eventName << QTime::currentTime().toString();
+    qDebug() << "[NewServerConnector] Event received: " << eventName << QTime::currentTime().toString();
 
     QString respName;
     PBMSharedPtr msg;
@@ -349,103 +323,11 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         respName = "FILE_INFO_RESPONSE";
 
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
-        bool success;
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
-        CARTA::FileInfoRequest openFile;
-        openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-        controller->addData(QString::fromStdString(openFile.directory()) + "/" + QString::fromStdString(openFile.file()), &success);
+        Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
 
-        std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
-        std::vector< std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
-        images.push_back(image);
-
-        CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
-
-        // FileInfo: name
-        fileInfo->set_name(openFile.file());
-
-        // FileInfo: type
-        if (image->getType() == "FITSImage") {
-            fileInfo->set_type(CARTA::FileType::FITS);
-        } else {
-            fileInfo->set_type(CARTA::FileType::CASA);
-        }
-
-        // FileInfoExtended part 1: add extended information
-        // [TODO] refactor part 1 to reduce code size
-        const std::vector<int> dims = image->dims();
-        CARTA::FileInfoExtended* fileInfoExt = new CARTA::FileInfoExtended();
-        fileInfoExt->set_dimensions(dims.size());
-        fileInfoExt->set_width(dims[0]);
-        fileInfoExt->set_height(dims[1]);
-        if (dims.size() >= 3) {
-            fileInfoExt->set_depth(dims[2]);
-        }
-        if (dims.size() >= 4) {
-            fileInfoExt->set_stokes(dims[3]);
-        }
-
-        // Prepare to use the ImageStats plugin.
-        std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > regions;
-        std::vector<int> frameIndices = controller->getImageSlice();
-
-        int sourceCount = images.size();
-        if ( sourceCount > 0 ){
-            auto result = Globals::instance()-> pluginManager()
-                         -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
-            auto lam = [=] ( const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data ) {
-              //An array for each image
-              int dataCount = data.size();
-              // m_stateData.resizeArray( STATS, dataCount );
-              for ( int i = 0; i < dataCount; i++ ){
-                  //Each element of the image array contains an array of statistics.
-                  // QString arrayLookup = Carta::State::UtilState::getLookup( "stats", i );
-                  int statCount = data[i].size();
-                  // m_stateData.setArray( arrayLookup, statCount );
-
-                  //Go through each set of statistics for the image.
-                  for ( int k = 0; k < statCount; k++ ){
-                      // QString objLookup = Carta::State::UtilState::getLookup( arrayLookup, k );
-
-                      // QList<QString> existingKeys = m_stateData.getMemberNames( objLookup );
-                      int keyCount = data[i][k].size();
-                      for ( int j = 0; j < keyCount; j++ ){
-                          QString label = data[i][k][j].getLabel();
-                          QString value = data[i][k][j].getValue();
-                          // QString lookup = Carta::State::UtilState::getLookup( objLookup, label );
-                          CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
-                          headerEntry->set_name(label.toLocal8Bit().constData());
-                          headerEntry->set_value(value.toLocal8Bit().constData());
-                          // qDebug() << "label:" << label << "lookup" << lookup << "Value: " << data[i][k][j].getValue();
-                          // m_stateData.insertValue<QString>( lookup, data[i][k][j].getValue() );
-                      }
-                  }
-              }
-              // m_stateData.flushState();
-            };
-            try {
-                result.forEach( lam );
-            }
-            catch( char*& error ){
-                QString errorStr( error );
-                qDebug() << "There is an error message: " << error;
-                // Carta::Data::ErrorManager* hr = Carta::State::Util::findSingletonObject<Carta::Data::ErrorManager>();
-                // hr->registerError( errorStr );
-            }
-        }
-
-        // FileInfoExtended part 2: extract certain entries, such as NAXIS NAXIS1 NAXIS2 NAXIS3...etc, for showing in file browser
-        if (false == extractFitsInfo(fileInfoExt, image, respName)) {
-            qDebug() << "Extract FileInfoExtended part 2 error.";
-        }
-
-        // FileInfoResponse
-        std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
-        fileInfoResponse->set_success(true);
-        fileInfoResponse->set_allocated_file_info(fileInfo);
-        fileInfoResponse->set_allocated_file_info_extended(fileInfoExt);
-        msg = fileInfoResponse;
+        CARTA::FileInfoRequest fileInfoRequest;
+        fileInfoRequest.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+        msg = dataLoader->getFileInfo(fileInfoRequest);
 
         // send the serialized message to the frontend
         sendSerializedMessage(message, respName, msg);
@@ -456,225 +338,47 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
         CARTA::CloseFile closeFile;
         closeFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
         int closeFileId = closeFile.file_id();
-        qDebug() << "[NewServerConnector] Close file id=" << closeFileId;
+        qDebug() << "[NewServerConnector] Close the file id=" << closeFileId;
 
-    } else if (eventName == "OPEN_FILE") {
-        respName = "OPEN_FILE_ACK";
+    } else if (eventName == "START_ANIMATION") {
 
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
-        qDebug() << "[NewServerConnector] controllerID=" << controllerID;
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
-
-        CARTA::OpenFile openFile;
-        // openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length);
-        openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-
-        QString fileDir = QString::fromStdString(openFile.directory());
-        if (!QDir(fileDir).exists()) {
-            qWarning() << "File directory doesn't exist! (" << fileDir << ")";
-            return;
-        }
-
-        bool success;
-        QString fileName = QString::fromStdString(openFile.file());
-
-        int fileId = openFile.file_id();
-        qDebug() << "[NewServerConnector] Open the file ID:" << fileId;
-
-        controller->addData(fileDir + "/" + fileName, &success, fileId);
-
-        std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
-
-        CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
-        fileInfo->set_name(openFile.file());
-
-        if (image->getType() == "FITSImage") {
-            fileInfo->set_type(CARTA::FileType::FITS);
-        } else {
-            fileInfo->set_type(CARTA::FileType::CASA);
-        }
-        // fileInfo->add_hdu_list(openFile.hdu());
-
-        const std::vector<int> dims = image->dims();
-        CARTA::FileInfoExtended* fileInfoExt = new CARTA::FileInfoExtended();
-        fileInfoExt->set_dimensions(dims.size());
-        fileInfoExt->set_width(dims[0]);
-        fileInfoExt->set_height(dims[1]);
-        if (dims.size() >= 3) {
-            fileInfoExt->set_depth(dims[2]);
-        }
-        if (dims.size() >= 4) {
-            fileInfoExt->set_stokes(dims[3]);
-        }
-
-        // FileInfoExtended: return all entries (MUST all) for frontend to render (AST)
-        if (false == extractFitsInfo(fileInfoExt, image, respName)) {
-            qDebug() << "Extract FileInfoExtended info error.";
-        }
-
-        // we cannot handle the request so far, return a fake response.
-        std::shared_ptr<CARTA::OpenFileAck> ack(new CARTA::OpenFileAck());
-        ack->set_success(true);
-        ack->set_file_id(openFile.file_id());
-        ack->set_allocated_file_info(fileInfo);
-        ack->set_allocated_file_info_extended(fileInfoExt);
-        msg = ack;
-
-        // send the serialized message to the frontend
-        sendSerializedMessage(message, respName, msg);
-
-        /////////////////////////////////////////////////////////////////////
-        qDebug() << "Calculating the regional histogram data....................................";
-
-        respName = "REGION_HISTOGRAM_DATA";
-
-        int frameLow = 0;
-        int frameHigh = frameLow;
-        int stokeFrame = 0;
-
-        // calculate pixels to histogram data
-        int numberOfBins = 10000;
-        Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-        RegionHistogramData regionHisotgramData = controller->getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
-        std::vector<uint32_t> pixels2histogram = regionHisotgramData.bins;
-        //qDebug() << "pixels2histogram=" << pixels2histogram;
-
-        // add RegionHistogramData message
-        std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
-        region_histogram_data->set_file_id(openFile.file_id());
-
-        // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
-        region_histogram_data->set_region_id(-1);
-
-        region_histogram_data->set_stokes(stokeFrame);
-
-        CARTA::Histogram* histogram = region_histogram_data->add_histograms();
-        histogram->set_channel(frameLow);
-        histogram->set_num_bins(regionHisotgramData.num_bins);
-        histogram->set_bin_width(regionHisotgramData.bin_width);
-
-        // the minimum value of pixels is the first bin center
-        histogram->set_first_bin_center(regionHisotgramData.first_bin_center);
-
-        for (auto intensity : pixels2histogram) {
-            histogram->add_bins(intensity);
-        }
-
-        msg = region_histogram_data;
-
-        qDebug() << ".......................................................................Done";
-
-        // mark the image file is changed
-        m_changeImage = true;
-
-        // Sleep for 1 millisecond. It is applied trying to solve the empty of histogram sent to the frontend.
-        //QThread::msleep(1);
-
-        // send the serialized message to the frontend
-        sendSerializedMessage(message, respName, msg);
-        /////////////////////////////////////////////////////////////////////
-
+        CARTA::StartAnimation startAnimation;
+        startAnimation.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+        int fileId = startAnimation.file_id();
+        CARTA::AnimationFrame startFrame = startAnimation.start_frame();
+        int startChannel = startFrame.channel();
+        int startStoke = startFrame.stokes();
+        CARTA::AnimationFrame endFrame = startAnimation.end_frame();
+        int endChannel = endFrame.channel();
+        int endStoke = endFrame.stokes();
+        CARTA::AnimationFrame deltaFrame = startAnimation.delta_frame();
+        int deltaChannel = deltaFrame.channel();
+        int deltaStoke = deltaFrame.stokes();
+        int frameInterval = startAnimation.frame_interval();
+        bool looping = startAnimation.looping();
+        bool reverse = startAnimation.reverse();
+        qDebug() << "START_ANIMATION:" << "fileId=" << fileId << "startChannel=" << startChannel
+                 << "startStoke=" << startStoke << "endChannel=" << endChannel << "endStoke=" << endStoke
+                 << "deltaChannel=" << deltaChannel << "deltaStoke=" << deltaStoke << "frameInterval="
+                 << frameInterval << "looping" << looping << "reverse" << reverse;
         return;
-
-    } else if (eventName == "SET_IMAGE_VIEW") {
-        CARTA::SetImageView viewSetting;
-        viewSetting.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-
-        // get the controller
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
-        qDebug() << "[NewServerConnector] controllerID=" << controllerID;
-        Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
-
-        int fileId = viewSetting.file_id();
-        qDebug() << "[NewServerConnector] File ID requested by frontend:" << fileId;
-
-        // set the file id as the private parameter in the Stack object
-        controller->setFileId(fileId);
-
-        int frameLow = 0;
-        int frameHigh = frameLow;
-        int stokeFrame = 0;
-
-        int mip = viewSetting.mip();
-        int x_min = viewSetting.image_bounds().x_min();
-        int x_max = viewSetting.image_bounds().x_max();
-        int y_min = viewSetting.image_bounds().y_min();
-        int y_max = viewSetting.image_bounds().y_max();
-
-        if (mip == m_mip && x_min == m_xMin && x_max == m_xMax && y_min == m_yMin && y_max == m_yMax && !m_changeImage) {
-            // if the required region of image viewer from frontend is the same with the previous requirement, ignore it.
-            qDebug() << "Image boundary settings are repeated.";
-            return;
-        } else {
-            qDebug() << "Cache the new image boundary settings.";
-            m_mip = mip;
-            m_xMin = x_min;
-            m_xMax = x_max;
-            m_yMin = y_min;
-            m_yMax = y_max;
-            m_changeImage = false;
-        }
-
-        /////////////////////////////////////////////////////////////////////
-        qDebug() << "Down sampling the raster image data........................................";
-
-        respName = "RASTER_IMAGE_DATA";
-
-        qDebug() << "Dawn sampling factor mip:" << mip;
-
-        int W = (x_max - x_min) / mip;
-        int H = (y_max - y_min) / mip;
-        qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << x_min << "," << x_max << "]"
-                 << "--> W=" << W;
-        qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << y_min << "," << y_max << "]"
-                 << "--> H=" << H;
-
-        // get the down sampling raster image raw data
-        std::vector<float> imageData = controller->getRasterImageData(x_min, x_max, y_min, y_max, mip,
-            frameLow, frameHigh, stokeFrame);
-        qDebug() << "number of the raw data sent L=" << imageData.size() << ", WxH=" << W * H
-                 << ", Difference:" << (W * H - imageData.size());
-
-        // add the RasterImageData message
-        CARTA::ImageBounds* imgBounds = new CARTA::ImageBounds();
-        imgBounds->CopyFrom(viewSetting.image_bounds());
-
-        std::shared_ptr<CARTA::RasterImageData> raster(new CARTA::RasterImageData());
-        raster->set_file_id(viewSetting.file_id());
-        raster->set_allocated_image_bounds(imgBounds);
-        raster->set_channel(frameLow);
-        raster->set_stokes(stokeFrame);
-        raster->set_mip(viewSetting.mip());
-        // raster->set_compression_type(viewSetting.compression_type());
-        raster->set_compression_type(CARTA::CompressionType::NONE);
-        raster->set_compression_quality(viewSetting.compression_quality());
-        raster->add_image_data(imageData.data(), imageData.size() * sizeof(float));
-
-        msg = raster;
-
-        qDebug() << ".......................................................................Done";
-
-        // send the serialized message to the frontend
-        sendSerializedMessage(message, respName, msg);
-        return;
-        /////////////////////////////////////////////////////////////////////
 
     } else {
         // Insert non-global object id
         // QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0");
         // QString cmd = controllerID + ":" + eventName;
-        auto & allCallbacks = m_messageCallbackMap[eventName];
+        qCritical() << "[NewServerConnector] There is no event handler:" << eventName;
 
-        if (allCallbacks.size() == 0) {
-            qCritical() << "There is no event handler:" << eventName;
-            return;
-        }
-
-        for( auto & cb : allCallbacks ) {
-            msg = cb( eventName, "", "1");
-        }
+//        auto & allCallbacks = m_messageCallbackMap[eventName];
+//
+//        if (allCallbacks.size() == 0) {
+//            qCritical() << "There is no event handler:" << eventName;
+//            return;
+//        }
+//
+//        for (auto & cb : allCallbacks) {
+//            msg = cb(eventName, "", "1");
+//        }
 
         return;
     }
@@ -684,78 +388,251 @@ void NewServerConnector::onBinaryMessage(char* message, size_t length){
     return;
 }
 
+void NewServerConnector::openFileSignalSlot(char* message, QString fileDir, QString fileName, int fileId, int regionId) {
+    QString respName;
+    PBMSharedPtr msg;
+
+    respName = "OPEN_FILE_ACK";
+
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+    qDebug() << "[NewServerConnector] controllerID=" << controllerID;
+    Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+
+    if (!QDir(fileDir).exists()) {
+        qWarning() << "[NewServerConnector] File directory doesn't exist! (" << fileDir << ")";
+        return;
+    }
+
+    qDebug() << "[NewServerConnector] Open the file ID:" << fileId;
+
+    bool success;
+    controller->addData(fileDir + "/" + fileName, &success, fileId);
+
+    std::shared_ptr<Carta::Lib::Image::ImageInterface> image = controller->getImage();
+
+    CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
+    fileInfo->set_name(fileName.toStdString());
+
+    if (image->getType() == "FITSImage") {
+        fileInfo->set_type(CARTA::FileType::FITS);
+    } else {
+        fileInfo->set_type(CARTA::FileType::CASA);
+    }
+    // fileInfo->add_hdu_list(openFile.hdu());
+
+    const std::vector<int> dims = image->dims();
+    CARTA::FileInfoExtended* fileInfoExt = new CARTA::FileInfoExtended();
+    fileInfoExt->set_dimensions(dims.size());
+    fileInfoExt->set_width(dims[0]);
+    fileInfoExt->set_height(dims[1]);
+
+    int stokeIndicator = controller->getStokeIndicator();
+    // set the stoke axis if it exists
+    if (stokeIndicator > 0) { // if stoke axis exists
+        if (dims[stokeIndicator] > 0) { // if stoke dimension > 0
+            fileInfoExt->set_stokes(dims[stokeIndicator]);
+        }
+    }
+
+    // for the dims[k] that is not the stoke frame nor the x- or y-axis,
+    // we assume it is a depth (it is the Spectral axis or the other unmarked axis)
+    int lastFrame = 0;
+    if (dims.size() > 2) {
+        for (int i = 2; i < dims.size(); i++) {
+            if (i != stokeIndicator && dims[i] > 0) {
+                fileInfoExt->set_depth(dims[i]);
+                lastFrame = dims[i] - 1;
+                break;
+            }
+        }
+    }
+    m_lastFrame[fileId] = lastFrame;
+
+    // FileInfoExtended: return all entries (MUST all) for frontend to render (AST)
+    Carta::State::ObjectManager* objMan2 = Carta::State::ObjectManager::objectManager();
+    Carta::Data::DataLoader *dataLoader = objMan2->createObject<Carta::Data::DataLoader>();
+    if (false == dataLoader->extractFitsInfo(fileInfoExt, image, respName)) {
+        qDebug() << "[NewServerConnector] Extract FileInfoExtended info error!";
+    }
+
+    // we cannot handle the request so far, return a fake response.
+    std::shared_ptr<CARTA::OpenFileAck> ack(new CARTA::OpenFileAck());
+    ack->set_success(true);
+    ack->set_file_id(fileId);
+    ack->set_allocated_file_info(fileInfo);
+    ack->set_allocated_file_info_extended(fileInfoExt);
+    msg = ack;
+
+    // send the serialized message to the frontend
+    sendSerializedMessage(message, respName, msg);
+
+    // set the initial image bounds
+    m_imageBounds[fileId] = {0, 0, 0, 0, 0}; // {x_min, x_max, y_min, y_max, mip}
+
+    // set the initial channel for spectral and stoke frames
+    m_currentChannel[fileId] = {0, 0}; // {frameLow, stokeFrame}
+
+    // set spectral and stoke frame ranges to calculate the pixel to histogram data
+    //m_calHistRange[fileId] = {0, m_lastFrame[fileId], 0}; // {frameLow, frameHigh, stokeFrame}
+    m_calHistRange[fileId] = {0, 0, 0}; // {frameLow, frameHigh, stokeFrame}
+
+    m_changeFrame[fileId] = false;
+
+    /////////////////////////////////////////////////////////////////////
+    respName = "REGION_HISTOGRAM_DATA";
+
+    // calculate pixels to histogram data
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
+    PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
+
+    msg = region_histogram_data;
+
+    // send the serialized message to the frontend
+    sendSerializedMessage(message, respName, msg);
+    /////////////////////////////////////////////////////////////////////
+}
+
+void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip) {
+
+    if (xMin != m_imageBounds[fileId][0] || xMax != m_imageBounds[fileId][1] ||
+        yMin != m_imageBounds[fileId][2] || yMax != m_imageBounds[fileId][3] ||
+        mip != m_imageBounds[fileId][4]) {
+        // update image viewer bounds with respect to the fileId
+        m_imageBounds[fileId] = {xMin, xMax, yMin, yMax, mip};
+    } else {
+        qDebug() << "[NewServerConnector] Frontend image viewer signal is repeated, just ignore the signal!!";
+        return;
+    }
+
+    QString respName;
+    PBMSharedPtr msg;
+
+    // get the controller
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+    qDebug() << "[NewServerConnector] controllerID=" << controllerID;
+    Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+
+    // set the file id as the private parameter in the Stack object
+    controller->setFileId(fileId);
+
+    int frameLow = m_currentChannel[fileId][0];
+    int frameHigh = frameLow;
+    int stokeFrame = m_currentChannel[fileId][1];
+
+    // check if need to re-calculate the histogram!!
+    if (m_changeFrame[fileId]) {
+        qDebug() << "Re-calculate the pixel histogram!!";
+        /////////////////////////////////////////////////////////////////////
+        respName = "REGION_HISTOGRAM_DATA";
+
+        // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
+        int regionId = -1;
+
+        // calculate pixels to histogram data
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
+        PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
+
+        msg = region_histogram_data;
+
+        // send the serialized message to the frontend
+        sendSerializedMessage(message, respName, msg);
+
+        m_changeFrame[fileId] = false;
+        /////////////////////////////////////////////////////////////////////
+    }
+
+    /////////////////////////////////////////////////////////////////////
+    respName = "RASTER_IMAGE_DATA";
+
+    // get the down sampling raster image raw data
+    PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
+    msg = raster;
+
+    // send the serialized message to the frontend
+    sendSerializedMessage(message, respName, msg);
+    /////////////////////////////////////////////////////////////////////
+}
+
+void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId, int channel, int stoke) {
+    qDebug() << "[NewServerConnector] Set image channel=" << channel << ", fileId=" << fileId << ", stoke=" << stoke;
+
+    QString respName;
+    PBMSharedPtr msg;
+
+    if (m_currentChannel[fileId][0] != channel || m_currentChannel[fileId][1] != stoke) {
+        // update the current channel and stoke
+        m_currentChannel[fileId][0] = channel;
+        m_currentChannel[fileId][1] = stoke;
+    } else {
+        qDebug() << "[NewServerConnector] Internal signal is repeated!! Don't know the reason yet, just ignore the signal!!";
+        return;
+    }
+
+    // set spectral and stoke frame ranges to calculate the pixel to histogram data
+    //m_calHistRange[fileId] = {0, m_lastFrame[fileId], 0};
+    m_calHistRange[fileId] = {channel, channel, stoke};
+
+    m_changeFrame[fileId] = true;
+
+    // get the controller
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+    qDebug() << "[NewServerConnector] controllerID=" << controllerID;
+    Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+
+    // set the file id as the private parameter in the Stack object
+    controller->setFileId(fileId);
+
+    /////////////////////////////////////////////////////////////////////
+    respName = "REGION_HISTOGRAM_DATA";
+
+    // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
+    int regionId = -1;
+
+    // calculate pixels to histogram data
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
+    PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
+
+    msg = region_histogram_data;
+
+    // send the serialized message to the frontend
+    sendSerializedMessage(message, respName, msg);
+    /////////////////////////////////////////////////////////////////////
+
+    /////////////////////////////////////////////////////////////////////
+    respName = "RASTER_IMAGE_DATA";
+
+    int frameLow = m_currentChannel[fileId][0];
+    int frameHigh = frameLow;
+    int stokeFrame = m_currentChannel[fileId][1];
+
+    // get image viewer bounds with respect to the fileId
+    int x_min = m_imageBounds[fileId][0];
+    int x_max = m_imageBounds[fileId][1];
+    int y_min = m_imageBounds[fileId][2];
+    int y_max = m_imageBounds[fileId][3];
+    int mip = m_imageBounds[fileId][4];
+
+    // use image bounds with respect to the fileID and get the down sampling raster image raw data
+    PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame);
+    msg = raster;
+
+    // send the serialized message to the frontend
+    sendSerializedMessage(message, respName, msg);
+    /////////////////////////////////////////////////////////////////////
+}
+
 void NewServerConnector::sendSerializedMessage(char* message, QString respName, PBMSharedPtr msg) {
     bool success = false;
     size_t requiredSize = 0;
     std::vector<char> result = serializeToArray(message, respName, msg, success, requiredSize);
     if (success) {
         emit jsBinaryMessageResultSignal(result.data(), requiredSize);
-        qDebug() << "Send event:" << respName << QTime::currentTime().toString();
+        // this part will affect the sensitivity of the file browser or file info clipping, should investigated in detail !!
+        qDebug() << "[NewServerConnector] Send event:" << respName << QTime::currentTime().toString();
     }
-
-}
-
-// FileInfoExtended: extract Fits information and add to entries, including NAXIS NAXIS1 NAXIS2 NAXIS3...etc
-// The fits header structure is like:
-//  NAXIS1 = 1024
-//  CTYPE1 = 'RA---TAN'
-//  CDELT1 = -9.722222222222E-07
-//   ...etc
-bool NewServerConnector::extractFitsInfo(CARTA::FileInfoExtended* fileInfoExt,
-                                         const std::shared_ptr<Carta::Lib::Image::ImageInterface> image, const QString respond) {
-    // validate parameters
-    if (nullptr == fileInfoExt || nullptr == image) {
-        return false;
-    }
-
-    // get fits header map using FitsHeaderExtractor
-    FitsHeaderExtractor fhExtractor;
-    fhExtractor.setInput(image);
-    std::map<QString, QString> headerMap = fhExtractor.getHeaderMap();
-
-    // extract necessary info from header, depending on the respond event
-    if ("FILE_INFO_RESPONSE" == respond) {
-        // extract only certain entries from fits header for showing in File browser
-        std::vector<QString> keys {"NAXIS", "NAXIS1", "NAXIS2", "NAXIS3",
-                                   "BMAJ", "BMIN", "BPA", "BUNIT",
-                                   "EQUINOX", "RADESYS", "SPECSYS", "VELREF",
-                                   "CTYPE1", "CRVAL1", "CDELT1", "CUNIT1",
-                                   "CTYPE2", "CRVAL2", "CDELT2", "CUNIT2",
-                                   "CTYPE3", "CRVAL3", "CDELT3", "CUNIT3",
-                                   "CTYPE4", "CRVAL4", "CDELT4", "CUNIT4"};
-        for (auto key = keys.begin(); key != keys.end(); key++) {
-            // find value corresponding to key
-            QString value = "";
-            auto found = headerMap.find(*key);
-            if (found != headerMap.end()) {
-                value = found->second;
-            }
-
-            // insert (key, value) to header entry
-            CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
-            if (nullptr == headerEntry) {
-                qDebug() << "Add header entry error in FILE_INFO_RESPONSE.";
-                return false;
-            }
-            headerEntry->set_name((*key).toLocal8Bit().constData());
-            headerEntry->set_value(value.toLocal8Bit().constData());
-        }
-    } else if ("OPEN_FILE_ACK" == respond) {
-        // traverse whole map to return all entries for frontend to render (AST)
-        for (auto iter = headerMap.begin(); iter != headerMap.end(); iter++) {
-            CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
-            if (nullptr == headerEntry) {
-                qDebug() << "Add header entry error in OPEN_FILE_ACK.";
-                return false;
-            }
-            headerEntry->set_name((iter->first).toLocal8Bit().constData());
-            headerEntry->set_value((iter->second).toLocal8Bit().constData());
-        }
-    } else {
-        return false;
-    }
-
-    return true;
 }
 
 // void NewServerConnector::stateChangedSlot(const QString & key, const QString & value)
