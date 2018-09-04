@@ -283,6 +283,9 @@ private:
     PBMSharedPtr _getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
             int mip, int frameLow, int frameHigh, int stokeFrame) const;
 
+    int _compress(std::vector<float>& array, size_t offset, std::vector<char>& compressionBuffer,
+            size_t& compressedSize, uint32_t nx, uint32_t ny, uint32_t precision);
+
     /**
      * Returns the color used to draw nan pixels.
      * @return - the color used to draw nan pixels.

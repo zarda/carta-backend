@@ -21,6 +21,9 @@
 #include <QElapsedTimer>
 #include "CartaLib/UtilCASA.h"
 
+#include <zfp.h>
+#include <cmath>
+
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
 
@@ -839,6 +842,47 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     return raster;
 }
 
+int DataSource::_compress(std::vector<float> &array, size_t offset, std::vector<char> &compressionBuffer,
+    size_t &compressedSize, uint32_t nx, uint32_t ny, uint32_t precision) {
+
+    int status = 0;    /* return value: 0 = success */
+    zfp_type type;     /* array scalar type */
+    zfp_field* field;  /* array meta data */
+    zfp_stream* zfp;   /* compressed stream */
+    size_t bufsize;    /* byte size of compressed buffer */
+    bitstream* stream; /* bit stream to write to or read from */
+
+    type = zfp_type_float;
+    field = zfp_field_2d(array.data() + offset, type, nx, ny);
+
+    /* allocate meta data for a compressed stream */
+    zfp = zfp_stream_open(nullptr);
+
+    /* set compression mode and parameters via one of three functions */
+    zfp_stream_set_precision(zfp, precision);
+
+    /* allocate buffer for compressed data */
+    bufsize = zfp_stream_maximum_size(zfp, field);
+    if (compressionBuffer.size() < bufsize) {
+        compressionBuffer.resize(bufsize);
+    }
+    stream = stream_open(compressionBuffer.data(), bufsize);
+    zfp_stream_set_bit_stream(zfp, stream);
+    zfp_stream_rewind(zfp);
+
+    compressedSize = zfp_compress(zfp, field);
+    if (!compressedSize) {
+        status = 1;
+    }
+
+    /* clean up */
+    zfp_field_free(field);
+    zfp_stream_close(zfp);
+    stream_close(stream);
+
+    return status;
+}
+
 QColor DataSource::_getNanColor() const {
     QColor nanColor = m_renderService->getNanColor();
     return nanColor;
@@ -1329,7 +1373,7 @@ QString DataSource::_setFileName( const QString& fileName, bool* success ){
                     _resetPan();
 
                     m_fileName = file;
-                    qDebug() << "[DataSource] m_fileName=" << m_fileName;
+                    //qDebug() << "[DataSource] m_fileName=" << m_fileName;
                 }
                 else {
                     result = "Could not find any plugin to load image";
