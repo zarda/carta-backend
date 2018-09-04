@@ -253,6 +253,7 @@ QStringList Stack::_getOpenedFileList() {
     return nameList;
 }
 
+// need to check its correctness before applying this function!!
 std::vector<int> Stack::_getImageSlice() const {
     std::vector<int> result;
     int dataIndex = _getIndexCurrent();

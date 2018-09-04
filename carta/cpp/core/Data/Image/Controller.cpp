@@ -389,14 +389,24 @@ std::vector<double> Controller::getIntensity( int frameLow, int frameHigh, const
     return intensities;
 }
 
-RegionHistogramData Controller::getPixels2Histogram(int frameLow, int frameHigh, int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
-    RegionHistogramData result = m_stack->_getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+int Controller::getStokeIndicator() const {
+    int result = m_stack->_getStokeIndicator();
     return result;
 }
 
-std::vector<float> Controller::getRasterImageData(int x_min, int x_max, int y_min, int y_max,
+int Controller::getSpectralIndicator() const {
+    int result = m_stack->_getSpectralIndicator();
+    return result;
+}
+
+PBMSharedPtr Controller::getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
+    PBMSharedPtr result = m_stack->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+    return result;
+}
+
+PBMSharedPtr Controller::getRasterImageData(int fileId, int x_min, int x_max, int y_min, int y_max,
     int mip, int frameLow, int frameHigh, int stokeFrame) const {
-    std::vector<float> result = m_stack->_getRasterImageData(x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame);
+    PBMSharedPtr result = m_stack->_getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame);
     return result;
 }
 

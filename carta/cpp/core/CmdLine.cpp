@@ -35,6 +35,9 @@ ParsedInfo parse(const QStringList & argv)
     QCommandLineOption scriptPortOption(
                 "scriptPort", "port on which to listen for scripted commands", "scriptPort");
     parser.addOption( scriptPortOption);
+    QCommandLineOption sessiondispatcherPortOption(
+                "port", "listening port for the Session Dispatcher", "port");
+    parser.addOption( sessiondispatcherPortOption);
 
     // Process the actual command line arguments given by the user, exit if
     // command line arguments have a syntax error, or the user asks for -h or -v
@@ -87,6 +90,19 @@ ParsedInfo parse(const QStringList & argv)
     }
     qDebug() << "script port=" << info.scriptPort();
 
+
+    // get session dispatcher port
+    if( parser.isSet( sessiondispatcherPortOption)) {
+        QString dispatchString = parser.value( sessiondispatcherPortOption);
+        bool ok;
+        info.m_port = dispatchString.toInt( & ok);
+        if( ! ok || info.m_port < 0 || info.m_port > 65535) {
+            parser.showHelp( -1);
+        }
+
+    }
+    qDebug() << "sessionDispatcher port=" << info.port();
+
     // get a list of files to open
     info.m_fileList = parser.positionalArguments();
     qDebug() << "list of files to open:" << info.m_fileList;
@@ -112,6 +128,11 @@ const QStringList &ParsedInfo::fileList() const
 int ParsedInfo::scriptPort() const
 {
     return m_scriptPort;
+}
+
+int ParsedInfo::port() const
+{
+    return m_port;
 }
 
 } // namespace CmdLine

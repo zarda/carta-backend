@@ -385,21 +385,37 @@ std::vector<double> LayerData::_getIntensity( int frameLow, int frameHigh,
     return intensities;
 }
 
-RegionHistogramData LayerData::_getPixels2Histogram(int frameLow, int frameHigh,
+int LayerData::_getStokeIndicator() const {
+    int result;
+    if ( m_dataSource ){
+        result = m_dataSource->_getStokeIndicator();
+    }
+    return result;
+}
+
+int LayerData::_getSpectralIndicator() const {
+    int result;
+    if ( m_dataSource ){
+        result = m_dataSource->_getSpectralIndicator();
+    }
+    return result;
+}
+
+PBMSharedPtr LayerData::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
     int numberOfBins, int stokeFrame,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
-    RegionHistogramData results;
+    PBMSharedPtr results;
     if ( m_dataSource ){
-        results = m_dataSource->_getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+        results = m_dataSource->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
     }
     return results;
 }
 
-std::vector<float> LayerData::_getRasterImageData(int xMin, int xMax, int yMin, int yMax,
+PBMSharedPtr LayerData::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
     int mip, int frameLow, int frameHigh, int stokeFrame) const {
-    std::vector<float> results;
+    PBMSharedPtr results;
     if (m_dataSource) {
-        results = m_dataSource->_getRasterImageData(xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
+        results = m_dataSource->_getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
     }
     return results;
 }

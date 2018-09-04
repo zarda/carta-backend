@@ -15,8 +15,6 @@
 #include <memory>
 #include <set>
 
-typedef Carta::Lib::RegionHistogramData RegionHistogramData;
-
 class CoordinateFormatterInterface;
 
 namespace Carta {
@@ -382,9 +380,12 @@ protected:
      * @param converter - used to convert the pixel values for different unit
      * @return - a struct RegionHistogramData
      */
-    virtual RegionHistogramData _getPixels2Histogram(int frameLow, int frameHigh,
+    virtual PBMSharedPtr _getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const Q_DECL_OVERRIDE;
+
+    virtual int _getStokeIndicator() const Q_DECL_OVERRIDE;
+    virtual int _getSpectralIndicator() const Q_DECL_OVERRIDE;
 
     /**
      * Returns a vector of pixels.
@@ -399,7 +400,7 @@ protected:
      * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
      * @return - vector of pixels.
      */
-    virtual std::vector<float> _getRasterImageData(int xMin, int xMax, int yMin, int yMax,
+    virtual PBMSharedPtr _getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
             int mip, int frameLow, int frameHigh, int stokeFrame) const Q_DECL_OVERRIDE;
 
     /**

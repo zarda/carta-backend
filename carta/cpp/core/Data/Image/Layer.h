@@ -18,7 +18,7 @@
 #include <set>
 #include "CartaLib/IPercentileCalculator.h"
 
-typedef Carta::Lib::RegionHistogramData RegionHistogramData;
+typedef std::shared_ptr<google::protobuf::MessageLite> PBMSharedPtr;
 
 class CoordinateFormatterInterface;
 
@@ -293,9 +293,12 @@ protected:
      * @param converter - used to convert the pixel values for different unit
      * @return - a struct RegionHistogramData
      */
-    virtual RegionHistogramData _getPixels2Histogram(int frameLow, int frameHigh,
+    virtual PBMSharedPtr _getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const = 0;
+
+    virtual int _getStokeIndicator() const = 0;
+    virtual int _getSpectralIndicator() const = 0;
 
     /**
      * Returns a vector of pixels.
@@ -310,7 +313,7 @@ protected:
      * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
      * @return - vector of pixels.
      */
-    virtual std::vector<float> _getRasterImageData(int xMin, int xMax, int yMin, int yMax,
+    virtual PBMSharedPtr _getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
             int mip, int frameLow, int frameHigh, int stokeFrame) const = 0;
 
     /**
