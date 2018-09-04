@@ -244,12 +244,12 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
 
             int numSubsets = viewSetting.num_subsets();
             int precision = lround(viewSetting.compression_quality());
-            qDebug() << "[SessionDispatcher] *********** numSubsets=" << numSubsets << ", precision=" << precision;
-            if (viewSetting.compression_type() == CARTA::CompressionType::NONE) {
-                qDebug() << "[SessionDispatcher] *********** CompressionType::NONE";
-            } else if (viewSetting.compression_type() == CARTA::CompressionType::ZFP) {
-                qDebug() << "[SessionDispatcher] *********** CompressionType::ZFP";
-            }
+            //qDebug() << "[SessionDispatcher] *********** numSubsets=" << numSubsets << ", precision=" << precision;
+            //if (viewSetting.compression_type() == CARTA::CompressionType::NONE) {
+            //    qDebug() << "[SessionDispatcher] *********** CompressionType::NONE";
+            //} else if (viewSetting.compression_type() == CARTA::CompressionType::ZFP) {
+            //    qDebug() << "[SessionDispatcher] *********** CompressionType::ZFP";
+            //}
             bool isZFP = (viewSetting.compression_type() == CARTA::CompressionType::ZFP) ? true : false;
 
             emit connector->setImageViewSignal(message, fileId, xMin, xMax, yMin, yMax, mip, isZFP, precision, numSubsets);

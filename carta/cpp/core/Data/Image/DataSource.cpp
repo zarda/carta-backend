@@ -719,12 +719,12 @@ PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int fram
 PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
     int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const {
 
-    qDebug() << "[DataSource] *********** numSubsets=" << numSubsets << ", precision=" << precision;
-    if (isZFP) {
-        qDebug() << "[DataSource] *********** CompressionType::ZFP";
-    } else {
-        qDebug() << "[DataSource] *********** CompressionType::NONE";
-    }
+    //qDebug() << "[DataSource] *********** numSubsets=" << numSubsets << ", precision=" << precision;
+    //if (isZFP) {
+    //    qDebug() << "[DataSource] *********** CompressionType::ZFP";
+    //} else {
+    //    qDebug() << "[DataSource] *********** CompressionType::NONE";
+    //}
 
     std::vector<float> imageData; // the image raw data with downsampling
 
@@ -830,7 +830,37 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     raster->set_channel(frameLow);
     raster->set_stokes(stokeFrame);
     raster->set_mip(mip);
-    raster->add_image_data(imageData.data(), imageData.size() * sizeof(float));
+
+    if (isZFP) {
+
+        // use ZFP compression
+        raster->set_compression_type(CARTA::CompressionType::ZFP);
+        raster->set_compression_quality(precision);
+        //raster->set_num_subsets(1); // use "numSubsets" for multi-thread calculations
+
+        // apply ZFP function
+        std::vector<char> compressionBuffer;
+        size_t compressedSize;
+        std::vector<int32_t> nanEncodings; // Since I just replace the NaN type of the pixel value with
+                                           // the minimum of finite pixel value. The vector of the NaN
+                                           // type pixel index is empty.
+        _compress(imageData, 0, compressionBuffer, compressedSize, nx, ny, precision);
+        raster->add_image_data(compressionBuffer.data(), compressedSize);
+        raster->add_nan_encodings((char*) nanEncodings.data(), nanEncodings.size() * sizeof(int));
+
+        qDebug() << "[DataSource] Apply ZFP compression (precision=" << precision << ", number of subsets= 1) !!";
+
+    } else {
+
+        // without compression
+        raster->set_compression_type(CARTA::CompressionType::NONE);
+        raster->set_compression_quality(0);
+        //raster->set_num_subsets(1);
+        raster->add_image_data(imageData.data(), imageData.size() * sizeof(float));
+
+        qDebug() << "[DataSource] w/o ZFP compression!";
+    }
+
 
     //
     // leave empty in the following two messages
@@ -850,7 +880,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
 }
 
 int DataSource::_compress(std::vector<float> &array, size_t offset, std::vector<char> &compressionBuffer,
-    size_t &compressedSize, uint32_t nx, uint32_t ny, uint32_t precision) {
+    size_t &compressedSize, uint32_t nx, uint32_t ny, uint32_t precision) const {
 
     int status = 0;    /* return value: 0 = success */
     zfp_type type;     /* array scalar type */
