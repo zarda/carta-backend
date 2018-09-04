@@ -261,7 +261,7 @@ public:
      * @return - vector of pixels.
      */
     PBMSharedPtr getRasterImageData(int fileId, int x_min, int x_max, int y_min, int y_max,
-            int mip, int frameLow, int frameHigh, int stokeFrame) const;
+            int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const;
 
     /**
      * Return the layer with the given name, if a name is specified; otherwise, return the current

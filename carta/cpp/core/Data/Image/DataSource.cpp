@@ -717,9 +717,16 @@ PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int fram
 }
 
 PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
-    int mip, int frameLow, int frameHigh, int stokeFrame) const {
+    int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const {
 
-    std::vector<float> results; // the image raw data with downsampling
+    qDebug() << "[DataSource] *********** numSubsets=" << numSubsets << ", precision=" << precision;
+    if (isZFP) {
+        qDebug() << "[DataSource] *********** CompressionType::ZFP";
+    } else {
+        qDebug() << "[DataSource] *********** CompressionType::NONE";
+    }
+
+    std::vector<float> imageData; // the image raw data with downsampling
 
     // check if the minimum of the pixel value is valid
     if (m_minIntensity == std::numeric_limits<double>::min()) {
@@ -742,10 +749,10 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
 
     qDebug() << "Down sampling the raster image data.......................................>";
     qDebug() << "Dawn sampling factor mip:" << mip;
-    int W = (xMax - xMin) / mip;
-    int H = (yMax - yMin) / mip;
-    qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << xMin << "," << xMax << "]" << "--> W=" << W;
-    qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << yMin << "," << yMax << "]" << "--> H=" << H;
+    int nx = (xMax - xMin) / mip;
+    int ny = (yMax - yMin) / mip;
+    qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << xMin << "," << xMax << "]" << "--> W=" << nx;
+    qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << yMin << "," << yMax << "]" << "--> H=" << ny;
 
     int prepareCols = view->dims()[0]; // get the full width length
     int prepareRows = mip;
@@ -800,7 +807,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
             }
             // set the NaN type of the pixel as the minimum of the other finite pixel values
             rawData = (denominator < 1 ? m_minIntensity : rawData / denominator);
-            results.push_back(rawData);
+            imageData.push_back(rawData);
         }
         nextRowToReadIn += prepareRows;
     };
@@ -823,7 +830,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     raster->set_channel(frameLow);
     raster->set_stokes(stokeFrame);
     raster->set_mip(mip);
-    raster->add_image_data(results.data(), results.size() * sizeof(float));
+    raster->add_image_data(imageData.data(), imageData.size() * sizeof(float));
 
     //
     // leave empty in the following two messages
@@ -836,7 +843,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     //
     //raster->set_compression_quality(viewSetting.compression_quality());
 
-    qDebug() << "number of the raw data sent L=" << results.size() << ", WxH=" << W * H << ", Difference:" << (W * H - results.size());
+    qDebug() << "number of the raw data sent L=" << imageData.size() << ", WxH=" << nx * ny << ", Difference:" << (nx * ny - imageData.size());
     qDebug() << ".......................................................................Done";
 
     return raster;

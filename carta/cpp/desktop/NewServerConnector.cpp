@@ -470,6 +470,10 @@ void NewServerConnector::openFileSignalSlot(char* message, QString fileDir, QStr
     // set the initial image bounds
     m_imageBounds[fileId] = {0, 0, 0, 0, 0}; // {x_min, x_max, y_min, y_max, mip}
 
+    // set the initial zfp
+    m_isZFP[fileId] = false;
+    m_ZFPSet[fileId] = {0, 0};
+
     // set the initial channel for spectral and stoke frames
     m_currentChannel[fileId] = {0, 0}; // {frameLow, stokeFrame}
 
@@ -493,8 +497,10 @@ void NewServerConnector::openFileSignalSlot(char* message, QString fileDir, QStr
     /////////////////////////////////////////////////////////////////////
 }
 
-void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip) {
+void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
+    bool isZFP, int precision, int numSubsets) {
 
+    // check if need to reset image bounds
     if (xMin != m_imageBounds[fileId][0] || xMax != m_imageBounds[fileId][1] ||
         yMin != m_imageBounds[fileId][2] || yMax != m_imageBounds[fileId][3] ||
         mip != m_imageBounds[fileId][4]) {
@@ -503,6 +509,12 @@ void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int x
     } else {
         qDebug() << "[NewServerConnector] Frontend image viewer signal is repeated, just ignore the signal!!";
         return;
+    }
+
+    // check if need to reset ZFP parameters
+    if (isZFP != m_isZFP[fileId]) {
+        m_isZFP[fileId] = isZFP;
+        m_ZFPSet[fileId] = {precision, numSubsets};
     }
 
     QString respName;
@@ -547,7 +559,7 @@ void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int x
     respName = "RASTER_IMAGE_DATA";
 
     // get the down sampling raster image raw data
-    PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
+    PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
     msg = raster;
 
     // send the serialized message to the frontend
@@ -615,8 +627,12 @@ void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId,
     int y_max = m_imageBounds[fileId][3];
     int mip = m_imageBounds[fileId][4];
 
+    bool isZFP = m_isZFP[fileId];
+    int precision = m_ZFPSet[fileId][0];
+    int numSubsets = m_ZFPSet[fileId][1];
+
     // use image bounds with respect to the fileID and get the down sampling raster image raw data
-    PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame);
+    PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
     msg = raster;
 
     // send the serialized message to the frontend

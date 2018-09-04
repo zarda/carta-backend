@@ -567,11 +567,11 @@ PBMSharedPtr LayerGroup::_getPixels2Histogram(int fileId, int regionId, int fram
 }
 
 PBMSharedPtr LayerGroup::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
-    int mip, int frameLow, int frameHigh, int stokeFrame) const {
+    int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const {
     PBMSharedPtr results;
     int dataIndex = _getIndexCurrent();
     if (dataIndex >= 0) {
-        results = m_children[dataIndex]->_getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
+        results = m_children[dataIndex]->_getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
     }
     return results;
 }
