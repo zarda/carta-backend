@@ -846,7 +846,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
                                            // type pixel index is empty.
         _compress(imageData, 0, compressionBuffer, compressedSize, nx, ny, precision);
         raster->add_image_data(compressionBuffer.data(), compressedSize);
-        raster->add_nan_encodings((char*) nanEncodings.data(), nanEncodings.size() * sizeof(int));
+        raster->add_nan_encodings((char*) nanEncodings.data(), nanEncodings.size() * sizeof(int)); // This item is necessary !!
 
         qDebug() << "[DataSource] Apply ZFP compression (precision=" << precision << ", number of subsets= 1) !!";
 
