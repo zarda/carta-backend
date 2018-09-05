@@ -719,13 +719,6 @@ PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int fram
 PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
     int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const {
 
-    //qDebug() << "[DataSource] *********** numSubsets=" << numSubsets << ", precision=" << precision;
-    //if (isZFP) {
-    //    qDebug() << "[DataSource] *********** CompressionType::ZFP";
-    //} else {
-    //    qDebug() << "[DataSource] *********** CompressionType::NONE";
-    //}
-
     std::vector<float> imageData; // the image raw data with downsampling
 
     // check if the minimum of the pixel value is valid
@@ -845,10 +838,11 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
                                            // the minimum of finite pixel value. The vector of the NaN
                                            // type pixel index is empty.
         _compress(imageData, 0, compressionBuffer, compressedSize, nx, ny, precision);
+
         raster->add_image_data(compressionBuffer.data(), compressedSize);
         raster->add_nan_encodings((char*) nanEncodings.data(), nanEncodings.size() * sizeof(int)); // This item is necessary !!
 
-        qDebug() << "[DataSource] Apply ZFP compression (precision=" << precision << ", number of subsets= 1) !!";
+        qDebug() << "[DataSource] Apply ZFP compression (precision=" << precision << ", number of subsets= 1) !!"; // not "numSubsets"
 
     } else {
 
@@ -860,18 +854,6 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
 
         qDebug() << "[DataSource] w/o ZFP compression!";
     }
-
-
-    //
-    // leave empty in the following two messages
-    //
-    // use the compression type from the "viewSetting" will cause problems on the frontend
-    //raster->set_compression_type(viewSetting.compression_type());
-    //
-    // use the following type is OK
-    //raster->set_compression_type(CARTA::CompressionType::NONE);
-    //
-    //raster->set_compression_quality(viewSetting.compression_quality());
 
     qDebug() << "number of the raw data sent L=" << imageData.size() << ", WxH=" << nx * ny << ", Difference:" << (nx * ny - imageData.size());
     qDebug() << ".......................................................................Done";

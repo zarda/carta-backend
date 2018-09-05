@@ -437,7 +437,7 @@ RegionHistogramData MinMaxPercentiles<Scalar>::pixels2histogram(
     // end of timer for loading the raw data
     int elapsedTime = timer.elapsed();
     if (CARTA_RUNTIME_CHECKS) {
-        qCritical() << "<> Time to get the approximate value:" << elapsedTime << "ms";
+        qCritical() << "<> Time to get pixels to histogram data:" << elapsedTime << "ms";
     }
 
     RegionHistogramData result;
