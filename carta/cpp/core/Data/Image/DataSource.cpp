@@ -727,6 +727,10 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
         return nullptr;
     }
 
+    // start timer for computing approximate percentiles
+    QElapsedTimer timer;
+    timer.start();
+
     // get the raw data
     Carta::Lib::NdArray::RawViewInterface* view = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
 
@@ -808,6 +812,12 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     // scan the raw data for with rows for down sampling
     for (int j = 0; j < nRows; j++) {
         updateRows();
+    }
+
+    // end of timer for loading the raw data
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to down sample data the raster image data:" << elapsedTime << "ms";
     }
 
     // add the RasterImageData message
