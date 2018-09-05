@@ -3,14 +3,7 @@
  **/
 
 #include "NewServerConnector.h"
-#include "CartaLib/LinearMap.h"
-#include "core/MyQApp.h"
-#include "core/SimpleRemoteVGView.h"
-#include "core/State/ObjectManager.h"
-#include "core/Data/DataLoader.h"
-#include "core/Data/ViewManager.h"
-#include "core/Data/Image/Controller.h"
-#include "core/Data/Image/DataSource.h"
+
 #include <iostream>
 #include <QImage>
 #include <QPainter>
@@ -394,10 +387,7 @@ void NewServerConnector::openFileSignalSlot(char* message, QString fileDir, QStr
 
     respName = "OPEN_FILE_ACK";
 
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
-    qDebug() << "[NewServerConnector] controllerID=" << controllerID;
-    Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+    Carta::Data::Controller* controller = _getController();
 
     if (!QDir(fileDir).exists()) {
         qWarning() << "[NewServerConnector] File directory doesn't exist! (" << fileDir << ")";
@@ -521,10 +511,7 @@ void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int x
     PBMSharedPtr msg;
 
     // get the controller
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
-    qDebug() << "[NewServerConnector] controllerID=" << controllerID;
-    Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+    Carta::Data::Controller* controller = _getController();
 
     // set the file id as the private parameter in the Stack object
     controller->setFileId(fileId);
@@ -589,10 +576,7 @@ void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId,
     m_changeFrame[fileId] = true;
 
     // get the controller
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
-    qDebug() << "[NewServerConnector] controllerID=" << controllerID;
-    Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+    Carta::Data::Controller* controller = _getController();
 
     // set the file id as the private parameter in the Stack object
     controller->setFileId(fileId);
@@ -649,6 +633,15 @@ void NewServerConnector::sendSerializedMessage(char* message, QString respName, 
         // this part will affect the sensitivity of the file browser or file info clipping, should investigated in detail !!
         qDebug() << "[NewServerConnector] Send event:" << respName << QTime::currentTime().toString();
     }
+}
+
+Carta::Data::Controller* NewServerConnector::_getController() {
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+    qDebug() << "[NewServerConnector] controllerID=" << controllerID;
+    Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+
+    return controller;
 }
 
 // void NewServerConnector::stateChangedSlot(const QString & key, const QString & value)

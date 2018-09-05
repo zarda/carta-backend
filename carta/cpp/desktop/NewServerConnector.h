@@ -9,11 +9,20 @@
 #include <QList>
 #include <QByteArray>
 
+#include "CartaLib/IRemoteVGView.h"
+#include "CartaLib/IPercentileCalculator.h"
+#include "CartaLib/LinearMap.h"
+
 #include "core/IConnector.h"
 #include "core/CallbackList.h"
 #include "core/Viewer.h"
-#include "CartaLib/IRemoteVGView.h"
-#include "CartaLib/IPercentileCalculator.h"
+#include "core/MyQApp.h"
+#include "core/SimpleRemoteVGView.h"
+#include "core/State/ObjectManager.h"
+#include "core/Data/DataLoader.h"
+#include "core/Data/ViewManager.h"
+#include "core/Data/Image/Controller.h"
+#include "core/Data/Image/DataSource.h"
 
 #include "CartaLib/Proto/open_file.pb.h"
 #include "CartaLib/Proto/set_image_view.pb.h"
@@ -145,10 +154,12 @@ protected:
     InitializeCallback m_initializeCallback;
     std::map< QString, QString > m_state;
 
+    Carta::Data::Controller* _getController();
+
 private:
 
     std::map<int, std::vector<int> > m_imageBounds; // m_imageBounds[fileId] = {x_min, x_max, y_min, y_max, mip}
-    std::map<int, bool> m_isZFP;
+    std::map<int, bool> m_isZFP; // whether if ZFP compression is required by the frontend
     std::map<int, std::vector<int> > m_ZFPSet; // m_ZFPSet[fileId] = {precision, numSubsets}
     std::map<int, std::vector<int> > m_currentChannel; // m_currentChannel[fileId] = {spectralFrame, stokeFrame}
     std::map<int, std::vector<int> > m_calHistRange; // m_calHistRange[fileId] = {frameLow, frameHigh, stokeFrame}
