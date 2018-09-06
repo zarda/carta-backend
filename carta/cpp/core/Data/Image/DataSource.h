@@ -286,6 +286,8 @@ private:
     int _compress(std::vector<float>& array, size_t offset, std::vector<char>& compressionBuffer,
             size_t& compressedSize, uint32_t nx, uint32_t ny, uint32_t precision) const;
 
+    std::vector<int32_t> _getNanEncodingsBlock(std::vector<float>& array, int offset, int w, int h) const;
+
     /**
      * Returns the color used to draw nan pixels.
      * @return - the color used to draw nan pixels.

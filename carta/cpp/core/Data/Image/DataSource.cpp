@@ -871,6 +871,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     return raster;
 }
 
+// This function is provided by Angus
 int DataSource::_compress(std::vector<float> &array, size_t offset, std::vector<char> &compressionBuffer,
     size_t &compressedSize, uint32_t nx, uint32_t ny, uint32_t precision) const {
 
@@ -910,6 +911,63 @@ int DataSource::_compress(std::vector<float> &array, size_t offset, std::vector<
     stream_close(stream);
 
     return status;
+}
+
+// This function is provided by Angus
+std::vector<int32_t> DataSource::_getNanEncodingsBlock(std::vector<float>& array, int offset, int w, int h) const {
+    // Generate RLE NaN list
+    int length = w * h;
+    int32_t prevIndex = offset;
+    bool prev = false;
+    std::vector<int32_t> encodedArray;
+
+    for (auto i = offset; i < offset + length; i++) {
+        bool current = isnan(array[i]);
+        if (current != prev) {
+            encodedArray.push_back(i - prevIndex);
+            prevIndex = i;
+            prev = current;
+        }
+    }
+    encodedArray.push_back(offset + length - prevIndex);
+
+    // Skip all-NaN images and NaN-free images
+    if (encodedArray.size() > 1) {
+        // Calculate average of 4x4 blocks (matching blocks used in ZFP), and replace NaNs with block average
+        for (auto i = 0; i < w; i += 4) {
+            for (auto j = 0; j < h; j += 4) {
+                int blockStart = offset + j * w + i;
+                int validCount = 0;
+                float sum = 0;
+                // Limit the block size when at the edges of the image
+                int blockWidth = std::min(4, w - i);
+                int blockHeight = std::min(4, h - j);
+                for (int x = 0; x < blockWidth; x++) {
+                    for (int y = 0; y < blockHeight; y++) {
+                        float v = array[blockStart + (y * w) + x];
+                        if (!isnan(v)) {
+                            validCount++;
+                            sum += v;
+                        }
+                    } // end of blockHeight loop
+                } // end of blockWidth loop
+
+                // Only process blocks which have at least one valid value AND at least one NaN. All-NaN blocks won't affect ZFP compression
+                if (validCount && validCount != blockWidth * blockHeight) {
+                    float average = sum / validCount;
+                    for (int x = 0; x < blockWidth; x++) {
+                        for (int y = 0; y < blockHeight; y++) {
+                            float v = array[blockStart + (y * w) + x];
+                            if (isnan(v)) {
+                                array[blockStart + (y * w) + x] = average;
+                            }
+                        } // end of blockHeight loop
+                    } // end of blockWidth loop
+                } // check whether if validCount > 0 && validCount != blockWidth * blockHeight
+            } // end of j loop
+        } // end of i loop
+    }
+    return encodedArray;
 }
 
 QColor DataSource::_getNanColor() const {
