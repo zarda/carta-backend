@@ -163,12 +163,6 @@ PercentilesToPixels<Scalar>::percentile2pixels(
         });
     }
 
-    // end of timer for loading the raw data
-    int elapsedTime = timer.elapsed();
-    if (CARTA_RUNTIME_CHECKS) {
-        qCritical() << "<> Time to scan the raw data:" << elapsedTime << "ms";
-    }
-
     // indicate bad clip if no finite numbers were found
     if ( allValues.size() == 0 ) {
         qFatal( "The size of raw data is zero !!" );
@@ -187,6 +181,12 @@ PercentilesToPixels<Scalar>::percentile2pixels(
     }   
 
     CARTA_ASSERT( result.size() == percentiles.size());
+
+    // end of timer for loading the raw data
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to calculate the precise percentile:" << elapsedTime << "ms";
+    }
 
     return result;
 } // percentile2pixels
@@ -343,12 +343,6 @@ MinMaxPercentiles<Scalar>::percentile2pixels(
         });
     }
 
-    // end of timer for loading the raw data
-    int elapsedTime = timer.elapsed();
-    if (CARTA_RUNTIME_CHECKS) {
-        qCritical() << "<> Time to scan the raw data:" << elapsedTime << "ms";
-    }
-
     //// is there a sufficiently good reason to count the values?
     //// We may be able to use currentPos() to check if we iterated over anything.
     //if (index == 0) {
@@ -358,6 +352,12 @@ MinMaxPercentiles<Scalar>::percentile2pixels(
     for ( double q : percentiles ) {
         if (q==0) result[q] = minPixel;
         if (q==1) result[q] = maxPixel;
+    }
+
+    // end of timer for loading the raw data
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to get the min/max pixel values:" << elapsedTime << "ms";
     }
 
     return result;
