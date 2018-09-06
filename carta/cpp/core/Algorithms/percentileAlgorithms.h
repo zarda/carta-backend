@@ -64,13 +64,17 @@ public:
         const std::vector<double> hertzValues
     ) override;
     RegionHistogramData pixels2histogram(
+        const int fileId,
+        const int regionId,
         Carta::Lib::NdArray::TypedView < Scalar > & view,
         double minIntensity,
         double maxIntensity,
         const int numberOfBins,
         const int spectralIndex,
         const Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-        const std::vector<double> hertzValues
+        const std::vector<double> hertzValues,
+        const int frameLow,
+        const int stokeFrame
     ) override;
 };
 
@@ -361,13 +365,17 @@ MinMaxPercentiles<Scalar>::percentile2pixels(
 
 template <typename Scalar>
 RegionHistogramData MinMaxPercentiles<Scalar>::pixels2histogram(
+    int fileId,
+    int regionId,
     Carta::Lib::NdArray::TypedView <Scalar> & view,
     double minIntensity,
     double maxIntensity,
     int numberOfBins,
     int spectralIndex,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter,
-    std::vector<double> hertzValues
+    std::vector<double> hertzValues,
+    int frameLow,
+    int stokeFrame
 ) {
     // if we have a frame-dependent converter and no spectral axis,
     // we can't do anything because we don't know the channel units
@@ -433,10 +441,14 @@ RegionHistogramData MinMaxPercentiles<Scalar>::pixels2histogram(
     }
 
     RegionHistogramData result;
+    result.fileId = fileId;
+    result.regionId = regionId;
     result.num_bins = numberOfBins + 1;
     result.bin_width = intensityRange / numberOfBins;
     result.first_bin_center = minIntensity;
     result.bins = bins;
+    result.frameLow = frameLow;
+    result.stokeFrame = stokeFrame;
 
     return result;
 }

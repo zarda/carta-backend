@@ -57,16 +57,20 @@ Stack::Stack(const QString& path, const QString& id) :
     _initializeSelections();
 }
 
-QString Stack::_addDataImage(const QString& fileName, bool* success ) {
+QString Stack::_addDataImage(const QString& fileName, bool* success, int fileId) {
     int stackIndex = -1;
-    QString result = _addData( fileName, success, &stackIndex);
+    // add fileId here
+    QString result = _addData( fileName, success, &stackIndex, fileId);
     if ( *success && stackIndex >= 0 ){
-        _resetFrames( stackIndex );
+//        _resetFrames( stackIndex );
+//        qDebug() << "[Stack] stackIndex=" << stackIndex;
+        // set the file id on the image viewer
+        _setFileId(fileId);
         // NOTE: If the gridcontrol is removed in the future, I think
         // this part should emit a viewload signal.
-        _saveState();
+        //_saveState();
     }
-    emit viewLoad();
+    //emit viewLoad();
     return result;
 }
 
@@ -79,35 +83,36 @@ bool Stack::_addGroup( ){
 }
 
 bool Stack::_closeData( const QString& id ){
+    // remove the fileId
     bool dataClosed = LayerGroup::_closeData( id );
-    if ( dataClosed ){
-        int selectedImage = m_selectImage->getIndex();
-        int visibleImageCount = _getStackSizeVisible();
-        m_selectImage->setUpperBound( visibleImageCount );
-        if ( selectedImage >= visibleImageCount ){
-            m_selectImage->setIndex(visibleImageCount - 1);
-        }
-        //Update the channel upper bound and index if necessary
-        int targetData = _getIndexCurrent();
-        int selectCount = m_selects.size();
-        for ( int i = 0; i < selectCount; i++ ){
-            int frameCount = 1;
-            AxisInfo::KnownType axisType= static_cast<AxisInfo::KnownType>( i );
-            if ( targetData >= 0 ){
-                frameCount = m_children[targetData]->_getFrameCount( axisType );
-            }
-            int oldIndex = m_selects[i]->getIndex();
-            if ( oldIndex >= frameCount && frameCount > 0){
-                _setFrameAxis( frameCount - 1, axisType );
-            }
-            else {
-                _setFrameAxis( 0, axisType );
-            }
-            m_selects[i]->setUpperBound( frameCount );
-        }
-        emit viewLoad( );
-        _saveState();
-    }
+//    if ( dataClosed ){
+//        int selectedImage = m_selectImage->getIndex();
+//        int visibleImageCount = _getStackSizeVisible();
+//        m_selectImage->setUpperBound( visibleImageCount );
+//        if ( selectedImage >= visibleImageCount ){
+//            m_selectImage->setIndex(visibleImageCount - 1);
+//        }
+//        //Update the channel upper bound and index if necessary
+//        int targetData = _getIndexCurrent();
+//        int selectCount = m_selects.size();
+//        for ( int i = 0; i < selectCount; i++ ){
+//            int frameCount = 1;
+//            AxisInfo::KnownType axisType= static_cast<AxisInfo::KnownType>( i );
+//            if ( targetData >= 0 ){
+//                frameCount = m_children[targetData]->_getFrameCount( axisType );
+//            }
+//            int oldIndex = m_selects[i]->getIndex();
+//            if ( oldIndex >= frameCount && frameCount > 0){
+//                _setFrameAxis( frameCount - 1, axisType );
+//            }
+//            else {
+//                _setFrameAxis( 0, axisType );
+//            }
+//            m_selects[i]->setUpperBound( frameCount );
+//        }
+//        emit viewLoad( );
+//        _saveState();
+//    }
     return dataClosed;
 }
 
@@ -248,6 +253,7 @@ QStringList Stack::_getOpenedFileList() {
     return nameList;
 }
 
+// need to check its correctness before applying this function!!
 std::vector<int> Stack::_getImageSlice() const {
     std::vector<int> result;
     int dataIndex = _getIndexCurrent();
@@ -283,21 +289,30 @@ int Stack::_getIndex( const QString& layerId) const {
 }
 
 int Stack::_getIndexCurrent( ) const {
-    int dataIndex = -1;
-    if ( m_selectImage ){
-        int index = m_selectImage->getIndex();
-        int visibleIndex = -1;
-        int dataCount = m_children.size();
-        for ( int i = 0; i < dataCount; i++ ){
-            if ( m_children[i]->_isVisible() && !m_children[i]->_isEmpty()){
-                visibleIndex++;
-                if ( visibleIndex == index ){
-                    dataIndex = i;
-                    break;
-                }
-            }
-        }
+    int dataIndex = 0;
+//    if ( m_selectImage ){
+//        int index = m_selectImage->getIndex();
+//        int visibleIndex = -1;
+//        int dataCount = m_children.size();
+//        for ( int i = 0; i < dataCount; i++ ){
+//            if ( m_children[i]->_isVisible() && !m_children[i]->_isEmpty()){
+//                visibleIndex++;
+//                if ( visibleIndex == index ){
+//                    dataIndex = i;
+//                    break;
+//                }
+//            }
+//        }
+//    }
+    // get the private parameter of fileId here
+    if (m_fileId >= 0 && m_fileId < m_children.size()) {
+        dataIndex = m_fileId;
+    } else {
+        qFatal("Image index requested by the frontend is not matched with the backend status!");
     }
+
+    qDebug() << "[Stack] dataIndex (current index)=" << dataIndex;
+//    qDebug() << "[Stack] m_fileId=" << m_fileId;
     return dataIndex;
 }
 
@@ -527,26 +542,26 @@ QString Stack::_resetFrames( int val ){
 	QString layerId;
 	if ( 0 <= val && val < m_children.size()){
 		//Update the data selectors upper bound based on the data.
-		int visibleCount = _getStackSizeVisible();
-		m_selectImage->setUpperBound( visibleCount );
-		m_selectImage->setIndex(val);
-                QString ImageUnit = m_children[val]->_getPixelUnits();
-                bool spectralAxis = m_children[val]->_isSpectralAxis();
-                std::shared_ptr<Carta::Lib::Image::ImageInterface> image = m_children[val]->_getImage();
-                bool hasbeam = image->hasBeam();
-		UnitsIntensity* uIntensity = Util::findSingletonObject<UnitsIntensity>();
-                uIntensity->setDefaultUnit(ImageUnit, hasbeam, spectralAxis);
+        int visibleCount = _getStackSizeVisible();
+        m_selectImage->setUpperBound( visibleCount );
+        m_selectImage->setIndex(val);
+//                QString ImageUnit = m_children[val]->_getPixelUnits();
+//                bool spectralAxis = m_children[val]->_isSpectralAxis();
+//                std::shared_ptr<Carta::Lib::Image::ImageInterface> image = m_children[val]->_getImage();
+//                bool hasbeam = image->hasBeam();
+//		UnitsIntensity* uIntensity = Util::findSingletonObject<UnitsIntensity>();
+//                uIntensity->setDefaultUnit(ImageUnit, hasbeam, spectralAxis);
 		layerId = m_children[val]->_getLayerId();
-		int selectCount = m_selects.size();
-		for ( int i = 0; i < selectCount; i++ ){
-			AxisInfo::KnownType type = static_cast<AxisInfo::KnownType>(i);
-			int upperBound = _getFrameCount( type );
-			m_selects[i]->setUpperBound( upperBound );
-			if ( m_selects[i]->getIndex() > m_selects[i]->getUpperBound()){
-				m_selects[i]->setIndex( 0 );
-				emit frameChanged( type );
-			}
-		}
+//		int selectCount = m_selects.size();
+//		for ( int i = 0; i < selectCount; i++ ){
+//			AxisInfo::KnownType type = static_cast<AxisInfo::KnownType>(i);
+//			int upperBound = _getFrameCount( type );
+//			m_selects[i]->setUpperBound( upperBound );
+//			if ( m_selects[i]->getIndex() > m_selects[i]->getUpperBound()){
+//				m_selects[i]->setIndex( 0 );
+//				emit frameChanged( type );
+//			}
+//		}
 	}
 	return layerId;
 }
@@ -1025,6 +1040,9 @@ void Stack::_viewResize(){
     emit viewLoad();
 }
 
+void Stack::_setFileId(int fileId) {
+    m_fileId = fileId;
+}
 
 Stack::~Stack() {
 	if ( m_selectImage != nullptr ){

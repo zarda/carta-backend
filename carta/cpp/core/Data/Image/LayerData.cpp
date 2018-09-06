@@ -385,21 +385,37 @@ std::vector<double> LayerData::_getIntensity( int frameLow, int frameHigh,
     return intensities;
 }
 
-RegionHistogramData LayerData::_getPixels2Histogram(int frameLow, int frameHigh,
+int LayerData::_getStokeIndicator() const {
+    int result;
+    if ( m_dataSource ){
+        result = m_dataSource->_getStokeIndicator();
+    }
+    return result;
+}
+
+int LayerData::_getSpectralIndicator() const {
+    int result;
+    if ( m_dataSource ){
+        result = m_dataSource->_getSpectralIndicator();
+    }
+    return result;
+}
+
+PBMSharedPtr LayerData::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
     int numberOfBins, int stokeFrame,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
-    RegionHistogramData results;
+    PBMSharedPtr results;
     if ( m_dataSource ){
-        results = m_dataSource->_getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+        results = m_dataSource->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
     }
     return results;
 }
 
-std::vector<float> LayerData::_getRasterImageData(double xMin, double xMax, double yMin, double yMax,
-    int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
-    std::vector<float> results;
+PBMSharedPtr LayerData::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
+    int mip, int frameLow, int frameHigh, int stokeFrame) const {
+    PBMSharedPtr results;
     if (m_dataSource) {
-        results = m_dataSource->_getRasterImageData(xMin, xMax, yMin, yMax, mip, minIntensity, frameLow, frameHigh, stokeFrame);
+        results = m_dataSource->_getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
     }
     return results;
 }
@@ -997,29 +1013,30 @@ QString LayerData::_getFileName() {
 
 QString LayerData::_setFileName( const QString& fileName, bool * success ){
     QString result = m_dataSource->_setFileName( fileName, success );
-    if ( *success){
-
-        CoordinateSystems* coordSys = Util::findSingletonObject<CoordinateSystems>();
-        _setCoordinateSystem( coordSys->getDefault() );
-
-        //Reset the pan and zoom when the image is loaded.
-        _resetPan();
-        _resetZoom();
-
-        //Default is to have the layer name match the file name, unless
-        //the user has explicitly set it.
-        //DataLoader* dLoader = Util::findSingletonObject<DataLoader
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        DataLoader* dLoader = objMan->createObject<DataLoader>();
-
-        QString shortName = dLoader->getShortName( fileName );
-        QString layerName = m_state.getValue<QString>( Util::NAME );
-        if ( layerName.isEmpty() || layerName.length() == 0 ){
-            m_state.setValue<QString>( Util::NAME, shortName );
-            m_state.flushState();
-        }
-        result = m_state.getValue<QString>( Util::ID );
-    }
+//    if ( *success){
+//
+//        CoordinateSystems* coordSys = Util::findSingletonObject<CoordinateSystems>();
+//        _setCoordinateSystem( coordSys->getDefault() );
+//
+//        //Reset the pan and zoom when the image is loaded.
+//        _resetPan();
+//        _resetZoom();
+//
+//        //Default is to have the layer name match the file name, unless
+//        //the user has explicitly set it.
+//        //DataLoader* dLoader = Util::findSingletonObject<DataLoader
+//        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+//        DataLoader* dLoader = objMan->createObject<DataLoader>();
+//
+//        QString shortName = dLoader->getShortName( fileName );
+//        QString layerName = m_state.getValue<QString>( Util::NAME );
+//        qDebug() << "[LayerData] shortName=" << shortName;
+//        if ( layerName.isEmpty() || layerName.length() == 0 ){
+//            m_state.setValue<QString>( Util::NAME, shortName );
+//            m_state.flushState();
+//        }
+//        result = m_state.getValue<QString>( Util::ID );
+//    }
     return result;
 }
 

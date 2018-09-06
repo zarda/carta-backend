@@ -124,21 +124,27 @@ void Controller::addContourSet( std::shared_ptr<DataContours> contourSet){
 	m_stack->_addContourSet( contourSet );
 }
 
-QString Controller::addData(const QString& fileName, bool* success) {
+QString Controller::addData(const QString& fileName, bool* success, int fileId) {
 	*success = false;
-	QString result = DataFactory::addData( this, fileName, success );
+    QString result = DataFactory::addData( this, fileName, success, fileId);
     return result;
 }
 
-QString Controller::_addDataImage(const QString& fileName, bool* success ) {
-    QString result = m_stack->_addDataImage( fileName, success );
+void Controller::setFileId(int fileId) {
+    // set the file id as the private parameter in the Stack object
+    m_stack->_setFileId(fileId);
+}
+
+QString Controller::_addDataImage(const QString& fileName, bool* success, int fileId) {
+    // assign the fileId as a private parameter in the m_stack
+    QString result = m_stack->_addDataImage(fileName, success, fileId);
     if ( *success ){
-        if ( isStackSelectAuto() ){
-            QStringList selectedLayers;
-            QString stackId= m_stack->_getCurrentId();
-            selectedLayers.append( stackId );
-            _setLayersSelected( selectedLayers );
-        }
+//        if ( isStackSelectAuto() ){
+//            QStringList selectedLayers;
+//            QString stackId= m_stack->_getCurrentId();
+//            selectedLayers.append( stackId );
+//            _setLayersSelected( selectedLayers );
+//        }
         // _setSkyCSName();
         // _updateDisplayAxes();
         //emit dataChanged( this );
@@ -383,14 +389,24 @@ std::vector<double> Controller::getIntensity( int frameLow, int frameHigh, const
     return intensities;
 }
 
-RegionHistogramData Controller::getPixels2Histogram(int frameLow, int frameHigh, int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
-    RegionHistogramData result = m_stack->_getPixels2Histogram(frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+int Controller::getStokeIndicator() const {
+    int result = m_stack->_getStokeIndicator();
     return result;
 }
 
-std::vector<float> Controller::getRasterImageData(double x_min, double x_max, double y_min, double y_max,
-    int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const {
-    std::vector<float> result = m_stack->_getRasterImageData(x_min, x_max, y_min, y_max, mip, minIntensity, frameLow, frameHigh, stokeFrame);
+int Controller::getSpectralIndicator() const {
+    int result = m_stack->_getSpectralIndicator();
+    return result;
+}
+
+PBMSharedPtr Controller::getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
+    PBMSharedPtr result = m_stack->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+    return result;
+}
+
+PBMSharedPtr Controller::getRasterImageData(int fileId, int x_min, int x_max, int y_min, int y_max,
+    int mip, int frameLow, int frameHigh, int stokeFrame) const {
+    PBMSharedPtr result = m_stack->_getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame);
     return result;
 }
 
@@ -1632,10 +1648,10 @@ void Controller::setFrameImage( int val) {
             _setLayersSelected( names );
         }
 
-        Carta::State::StateInterface gridState = m_stack->_getGridState();
-        // m_gridControls->_resetState( gridState );
-        _updateCursorText( true );
-        emit dataChanged( this );
+//        Carta::State::StateInterface gridState = m_stack->_getGridState();
+//        m_gridControls->_resetState( gridState );
+//        _updateCursorText( true );
+//        emit dataChanged( this );
     }
 }
 
@@ -1723,7 +1739,7 @@ QString Controller::_setLayersSelected( QStringList names ){
             }
         }
         // refresh the map of axes immediately after read data
-        _setAxisMap();
+//        _setAxisMap();
         //emit colorChanged( this );
         // The signal below causes the duplicate behaviors
         // Use setLayersSelected() to replace the original callback

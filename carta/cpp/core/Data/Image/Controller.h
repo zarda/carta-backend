@@ -17,7 +17,7 @@
 #include <QObject>
 #include <set>
 
-typedef Carta::Lib::RegionHistogramData RegionHistogramData;
+typedef std::shared_ptr<google::protobuf::MessageLite> PBMSharedPtr;
 
 class CoordinateFormatterInterface;
 
@@ -87,7 +87,12 @@ public:
      * @return - the identifier for the data that was added, if it was added successfully;
      *      otherwise, an error message.
      */
-    QString addData(const QString& fileName, bool* success);
+    QString addData(const QString& fileName, bool* success, int fileId);
+
+
+    // set the file id as the private parameter in the Stack object,
+    // which represents the current image shown on the frontend image viewer
+    void setFileId(int fileId);
 
     /**
      * Apply the indicated clips to managed images.
@@ -235,9 +240,12 @@ public:
      * @param converter - used to convert the pixel values for different unit
      * @return - a struct RegionHistogramData
      */
-    RegionHistogramData getPixels2Histogram(int frameLow, int frameHigh,
+    PBMSharedPtr getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
             int numberOfBins, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
+
+    int getStokeIndicator() const;
+    int getSpectralIndicator() const;
 
     /**
      * Returns a vector of pixels.
@@ -252,8 +260,8 @@ public:
      * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
      * @return - vector of pixels.
      */
-    std::vector<float> getRasterImageData(double x_min, double x_max, double y_min, double y_max,
-            int mip, double minIntensity, int frameLow, int frameHigh, int stokeFrame) const;
+    PBMSharedPtr getRasterImageData(int fileId, int x_min, int x_max, int y_min, int y_max,
+            int mip, int frameLow, int frameHigh, int stokeFrame) const;
 
     /**
      * Return the layer with the given name, if a name is specified; otherwise, return the current
@@ -699,7 +707,7 @@ private:
 	class Factory;
 
 	/// Add an image to the stack from a file.
-	QString _addDataImage( const QString& fileName, bool* success );
+    QString _addDataImage(const QString& fileName, bool* success, int fileId);
 
 	//Clear the color map.
 	void _clearColorMap();
