@@ -36,10 +36,9 @@ public:
 
     PBMSharedPtr getFileInfo(CARTA::FileInfoRequest fileInfoRequest);
 
-    // FileInfoExtended: extract Fits information and add to entries, including NAXIS NAXIS1 NAXIS2 NAXIS3...etc
-    bool extractFitsInfo(CARTA::FileInfoExtended* fileInfoExt,
-                         const std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
-                         const QString respond);
+    // Get all fits headers and insert to entry
+    bool getFitsHeaders(CARTA::FileInfoExtended* fileInfoExt,
+                         const std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
 
     /**
      * Returns a QString containing a hierarchical listing of data files that can
@@ -132,6 +131,13 @@ private:
     DataLoader( const QString& path, const QString& id);
     DataLoader( const DataLoader& other);
     DataLoader& operator=( const DataLoader& other );
+
+    // Generate customized file information for human readiblity using some fits headers
+    bool _genCustomizedInfo(CARTA::FileInfoExtended* fileInfoExt,
+                         const std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
+
+    // Insert (key, value) to header entry
+    bool _insertHeaderEntry(CARTA::FileInfoExtended* fileInfoExt, const QString key, const QString value);
 };
 }
 }
