@@ -1,4 +1,4 @@
-#include "PCacheSqlite3.h"
+﻿#include "PCacheSqlite3.h"
 #include "CartaLib/Hooks/GetPersistentCache.h"
 #include <QDebug>
 #include <QtSql>
@@ -110,6 +110,116 @@ public:
         sql_mutex.unlock();
 
     } // setEntry
+
+    virtual void
+    setEntry( const std::string & table, const std::vector<double> & value) override {
+        sql_mutex.lock();
+
+        if ( ! m_db.isOpen() ) {
+            sql_mutex.unlock();
+            return;
+        }
+
+        QSqlQuery query( m_db );
+
+        SqLitePCache::deleteTable(table);
+
+        SqLitePCache::createTable(table);
+
+        query.prepare(
+                    QString::fromStdString("INSERT INTO " + table + "(Value) VALUES (?);"));
+
+        /// www.sqlite.org/faq.html#q19
+        /// (19) INSERT is really slow - I can only do few dozen INSERTs per second
+        qDebug()<<"can start a transaction:"<<QSqlDatabase::database().transaction();
+        for(auto item : value){
+            query.bindValue(0, item);
+            query.exec();
+        }
+        qDebug()<<"end transaction:"<<QSqlDatabase::database().commit();
+
+        sql_mutex.unlock();
+
+    } // setEntry for array
+
+    virtual bool
+    readEntry( const std::string & table, std::vector<double> & Value) override {
+        sql_mutex.lock();
+        if ( ! m_db.isOpen() ) {
+             sql_mutex.unlock();
+            return false;
+        }
+
+        QSqlQuery query( m_db );
+        Value.clear();
+
+        int index = 0;
+        if(query.exec( QString::fromStdString("SELECT * FROM " + table +";") )){
+            while (query.next()) {
+                Value.push_back( query.value( query.record().indexOf("Value") ).toDouble() );
+                index++;
+            }
+        }
+        query.exec("PRAGMA synchronous = OFF;");
+        if ( index > 0) {
+            sql_mutex.unlock();
+            return true;
+        }
+        query.exec("PRAGMA synchronous = NORMAL;");
+        sql_mutex.unlock();
+        return false;
+    } // readEntry for array
+
+    virtual bool
+    createTable( const std::string & table) override {
+        if ( ! m_db.isOpen() ) {
+            return false;
+        }
+        QSqlQuery query( m_db );
+
+        query.prepare(
+                    QString::fromStdString("CREATE TABLE IF NOT EXISTS " + table + " (Id integer PRIMARY KEY, Value);"));
+
+        if ( ! query.exec() ) {
+            qWarning() << "Create table failed:" << query.lastError().text();
+            return false;
+        }
+        return true;
+    } // create table for array
+
+    virtual bool
+    deleteTable( const std::string & table) override {
+        if ( ! m_db.isOpen() ) {
+            return false;
+        }
+        QSqlQuery query( m_db );
+
+        /// delete the table
+        if ( ! query.exec(QString::fromStdString("DROP TABLE IF EXISTS " + table +";")) ) {
+            qWarning() << "Drop table failed.";
+            return false;
+        }
+        /// reduce disk usage
+        if ( ! query.exec("VACUUM;") ) {
+            qWarning() << "Vacuum failed.";
+            return false;
+        }
+        return true;
+    } // delete table for array
+
+    virtual void
+    listTable(std::vector<std::string> & Tables) override {
+
+        if ( ! m_db.isOpen() ) {
+            return;
+        }
+
+        Tables.clear();
+        for(auto item : m_db.tables()){
+            Tables.push_back(item.toStdString());
+        }
+
+    } // list table name of array
 
     static
     Carta::Lib::IPCache::SharedPtr
