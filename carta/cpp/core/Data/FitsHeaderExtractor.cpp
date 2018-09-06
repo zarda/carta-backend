@@ -50,7 +50,7 @@ void FitsLine::_parse(QString &key, QString &value, QString &comment) {
     value = _raw.mid( vStart, vEnd - vStart + 1).trimmed();
 
     // if this was a string value, get rid of the double single-quotes permanently, and remove the surrounding quotes too
-    //if( value[0] == '\'') value = value.mid( 1, value.length()-2).replace( "''", "'");
+    if( value[0] == '\'') value = value.mid( 1, value.length()-2).replace( "''", "'").trimmed();
 
     // is there a comment?
     comment = _raw.mid( vEnd + 1).trimmed();

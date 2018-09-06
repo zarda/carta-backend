@@ -266,7 +266,7 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     }
 
     // Since the statistical plugin requires a vector of ImageInterface
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> images;
     images.push_back(image);
 
     CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
@@ -313,8 +313,7 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     int dimSize = image->dims().size(); // get the dimension of the image
     std::vector<int> frameIndices(dimSize, -1); // get the statistical data of the whole image
 
-    int sourceCount = images.size();
-    if (sourceCount > 0) {
+    if (images.size() > 0) {
         auto result = Globals::instance()->pluginManager()
                 -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
 
@@ -331,11 +330,10 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
                     int keyCount = data[i][k].size();
 
                     for (int j = 0; j < keyCount; j++) {
-                        QString label = data[i][k][j].getLabel();
+                        QString label = "- " + data[i][k][j].getLabel();
                         QString value = data[i][k][j].getValue();
-                        CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
-                        headerEntry->set_name(label.toLocal8Bit().constData());
-                        headerEntry->set_value(value.toLocal8Bit().constData());
+                        if (false == _insertHeaderEntry(fileInfoExt, label, value))
+                            qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
                     }
                 }
             }
@@ -349,11 +347,9 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
         }
     }
 
-    QString respName = "FILE_INFO_RESPONSE";
-
-    // FileInfoExtended part 2: extract certain entries, such as NAXIS NAXIS1 NAXIS2 NAXIS3...etc, for showing in file browser
-    if (false == extractFitsInfo(fileInfoExt, image, respName)) {
-        qDebug() << "[File Info] Extract FileInfoExtended part 2 error.";
+    // FileInfoExtended part 2: generate some customized information
+    if (false == _genCustomizedInfo(fileInfoExt, image)) {
+        qDebug() << "[File Info] Generate file information error.";
     }
 
     // FileInfoResponse
@@ -365,15 +361,33 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     return fileInfoResponse;
 }
 
-// FileInfoExtended: extract Fits information and add to entries, including NAXIS NAXIS1 NAXIS2 NAXIS3...etc
-// The fits header structure is like:
-//  NAXIS1 = 1024
-//  CTYPE1 = 'RA---TAN'
-//  CDELT1 = -9.722222222222E-07
-//   ...etc
-bool DataLoader::extractFitsInfo(CARTA::FileInfoExtended* fileInfoExt,
-                                 const std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
-                                 const QString respond) {
+// Get all fits headers and insert to header entry
+bool DataLoader::getFitsHeaders(CARTA::FileInfoExtended* fileInfoExt,
+                                 const std::shared_ptr<Carta::Lib::Image::ImageInterface> image) {
+    // validate parameters
+    if (nullptr == fileInfoExt || nullptr == image) {
+        return false;
+    }
+
+    // get fits header map using FitsHeaderExtractor
+    FitsHeaderExtractor fhExtractor;
+    fhExtractor.setInput(image);
+    std::map<QString, QString> headerMap = fhExtractor.getHeaderMap();
+    
+    // traverse whole map to return all entries for frontend to render (AST)
+    for (auto iter = headerMap.begin(); iter != headerMap.end(); iter++) {
+        if (false == _insertHeaderEntry(fileInfoExt, iter->first, iter->second)) {
+            qDebug() << "Insert (" << iter->first << ", " << iter->second << ") to header entry error.";
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// Generate customized file information for human readiblity using some fits headers
+bool DataLoader::_genCustomizedInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                 const std::shared_ptr<Carta::Lib::Image::ImageInterface> image) {
     // validate parameters
     if (nullptr == fileInfoExt || nullptr == image) {
         return false;
@@ -385,46 +399,49 @@ bool DataLoader::extractFitsInfo(CARTA::FileInfoExtended* fileInfoExt,
     std::map<QString, QString> headerMap = fhExtractor.getHeaderMap();
 
     // extract necessary info from header, depending on the respond event
-    if ("FILE_INFO_RESPONSE" == respond) {
-        // extract only certain entries from fits header for showing in File browser
-        std::vector<QString> keys {"NAXIS", "NAXIS1", "NAXIS2", "NAXIS3",
+    std::vector<QString> keys {"NAXIS", "NAXIS1", "NAXIS2", "NAXIS3",
                                    "BMAJ", "BMIN", "BPA", "BUNIT",
                                    "EQUINOX", "RADESYS", "SPECSYS", "VELREF",
                                    "CTYPE1", "CRVAL1", "CDELT1", "CUNIT1",
                                    "CTYPE2", "CRVAL2", "CDELT2", "CUNIT2",
                                    "CTYPE3", "CRVAL3", "CDELT3", "CUNIT3",
                                    "CTYPE4", "CRVAL4", "CDELT4", "CUNIT4"};
-        for (auto key = keys.begin(); key != keys.end(); key++) {
-            // find value corresponding to key
-            QString value = "";
-            auto found = headerMap.find(*key);
-            if (found != headerMap.end()) {
-                value = found->second;
-            }
+    for (auto key = keys.begin(); key != keys.end(); key++) {
+        // find value corresponding to key
+        QString value = "";
+        auto found = headerMap.find(*key);
+        if (found != headerMap.end()) {
+            value = found->second;
+        }
 
-            // insert (key, value) to header entry
-            CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
-            if (nullptr == headerEntry) {
-                qDebug() << "Add header entry error in FILE_INFO_RESPONSE.";
-                return false;
-            }
-            headerEntry->set_name((*key).toLocal8Bit().constData());
-            headerEntry->set_value(value.toLocal8Bit().constData());
+        // insert (key, value) to header entry
+        if (false == _insertHeaderEntry(fileInfoExt, *key, value)) {
+            qDebug() << "Insert (" << *key << ", " << value << ") to header entry error.";
+            return false;
         }
-    } else if ("OPEN_FILE_ACK" == respond) {
-        // traverse whole map to return all entries for frontend to render (AST)
-        for (auto iter = headerMap.begin(); iter != headerMap.end(); iter++) {
-            CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
-            if (nullptr == headerEntry) {
-                qDebug() << "Add header entry error in OPEN_FILE_ACK.";
-                return false;
-            }
-            headerEntry->set_name((iter->first).toLocal8Bit().constData());
-            headerEntry->set_value((iter->second).toLocal8Bit().constData());
-        }
-    } else {
+    }
+
+    return true;
+}
+
+//  Insert fits header to header entry, the fits structure is like:
+//  NAXIS1 = 1024
+//  CTYPE1 = 'RA---TAN'
+//  CDELT1 = -9.722222222222E-07
+//   ...etc
+bool DataLoader::_insertHeaderEntry(CARTA::FileInfoExtended* fileInfoExt, const QString key, const QString value) {
+    // validate parameters
+    if (nullptr == fileInfoExt) {
         return false;
     }
+
+    // insert (key, value) to header entry
+    CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
+    if (nullptr == headerEntry) {
+        return false;
+    }
+    headerEntry->set_name(key.toLocal8Bit().constData());
+    headerEntry->set_value(value.toLocal8Bit().constData());
 
     return true;
 }
