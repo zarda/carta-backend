@@ -176,6 +176,7 @@ DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileLis
         return nullptr;
     }
 
+    // get the carta root path
     QString cartaRootPath = QDir::homePath() + "/CARTA";
 
     QDir rootDirCdUp(rootDirName);

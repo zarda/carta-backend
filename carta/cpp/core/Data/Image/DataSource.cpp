@@ -832,7 +832,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
 
         // so far I only use one thread, use "numSubsets" for multi-thread calculations
         std::vector<char> compressionBuffer;
-        size_t compressedSize;
+        size_t compressedSize; // use "vector<size_t> compressedSizes(numSubsets);" for multi-thread calculations
 
         // get NaN type pixel distances of indices
         std::vector<int32_t> nanEncodings = _getNanEncodingsBlock(imageData, 0, nx, ny);
@@ -840,6 +840,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
         // apply ZFP function
         _compress(imageData, 0, compressionBuffer, compressedSize, nx, ny, precision);
 
+        // use "raster->add_image_data(compressionBuffers[i].data(), compressedSizes[i])" for multi-thread calculations
         raster->add_image_data(compressionBuffer.data(), compressedSize);
         raster->add_nan_encodings((char*) nanEncodings.data(), nanEncodings.size() * sizeof(int)); // This item is necessary !!
 
