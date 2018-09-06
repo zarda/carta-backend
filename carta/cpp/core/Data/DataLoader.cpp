@@ -45,7 +45,6 @@ DataLoader::DataLoader( const QString& path, const QString& id ):
     CartaObject( CLASS_NAME, path, id ){
 }
 
-
 QString DataLoader::getData(const QString& dirName, const QString& sessionId) {
     QString rootDirName = dirName;
     bool securityRestricted = isSecurityRestricted();
@@ -121,7 +120,6 @@ QStringList DataLoader::getShortNames( const QStringList& longNames ) const {
     }
     return shortNames;
 }
-
 
 QString DataLoader::getLongName( const QString& shortName, const QString& sessionId ) const {
     QString longName = shortName;
@@ -347,17 +345,13 @@ bool DataLoader::_getStatisticInfo(CARTA::FileInfoExtended* fileInfoExt,
         // lamda function for traverse
         auto lam = [=] (const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data) {
             //An array for each image
-            for ( int i = 0; i < data.size(); i++ ) {
+            for (int i = 0; i < data.size(); i++) {
                 // Each element of the image array contains an array of statistics.
-                int statCount = data[i].size();
-
                 // Go through each set of statistics for the image.
-                for (int k = 0; k < statCount; k++) {
-                    int keyCount = data[i][k].size();
-
-                    for (int j = 0; j < keyCount; j++) {
-                        QString label = "- " + data[i][k][j].getLabel();
-                        QString value = data[i][k][j].getValue();
+                for (int j = 0; j < data[i].size(); j++) {
+                    for (int k = 0; k < data[i][j].size(); k++) {
+                        QString label = "- " + data[i][j][k].getLabel();
+                        QString value = data[i][j][k].getValue();
                         if (false == _insertHeaderEntry(fileInfoExt, label, value))
                             qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
                     }
@@ -585,8 +579,6 @@ void DataLoader::_makeFolderNode( QJsonArray& parentArray, const QString& fileNa
     obj.insert(DIR, arry);
     parentArray.append(obj);
 }
-
-
 
 DataLoader::~DataLoader(){
 }
