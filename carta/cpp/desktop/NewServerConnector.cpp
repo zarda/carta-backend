@@ -273,7 +273,7 @@ void NewServerConnector::onTextMessage(QString message){
     emit jsTextMessageResultSignal(result);
 }
 
-void NewServerConnector::onBinaryMessage(char* message, size_t length){
+void NewServerConnector::onBinaryMessageSignalSlot(char* message, size_t length){
     if (length < EVENT_NAME_LENGTH + EVENT_ID_LENGTH){
         qFatal("Illegal message.");
         return;

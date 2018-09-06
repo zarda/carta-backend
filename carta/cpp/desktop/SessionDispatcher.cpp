@@ -145,7 +145,7 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
             connect(connector, SIGNAL(startViewerSignal(const QString &)), connector, SLOT(startViewerSlot(const QString &)));
 
             // general commands
-            connect(connector, SIGNAL(onBinaryMessageSignal(char*, size_t)), connector, SLOT(onBinaryMessage(char*, size_t)));
+            connect(connector, SIGNAL(onBinaryMessageSignal(char*, size_t)), connector, SLOT(onBinaryMessageSignalSlot(char*, size_t)));
 
             // set image channel
             connect(connector, SIGNAL(imageChannelUpdateSignal(char*, int, int, int)),
@@ -160,7 +160,7 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
                     connector, SLOT(openFileSignalSlot(char*, QString, QString, int, int)));
 
             // send binary signal to the frontend
-            connect(connector, SIGNAL(jsBinaryMessageResultSignal(char*, size_t)), this, SLOT(forwardBinaryMessageResult(char*, size_t)) );
+            connect(connector, SIGNAL(jsBinaryMessageResultSignal(char*, size_t)), this, SLOT(forwardBinaryMessageResult(char*, size_t)));
 
             //connect(connector, SIGNAL(onTextMessageSignal(QString)), connector, SLOT(onTextMessage(QString)));
             //connect(connector, SIGNAL(jsTextMessageResultSignal(QString)), this, SLOT(forwardTextMessageResult(QString)) );
@@ -294,6 +294,7 @@ void SessionDispatcher::forwardBinaryMessageResult(char* message, size_t length)
     }
     if (ws) {
         ws->send(message, length, uWS::OpCode::BINARY);
+        qDebug() << "[SessionDispatcher] Send event:" << QTime::currentTime().toString();
     } else {
         qDebug() << "[SessionDispatcher] ERROR! Cannot find the corresponding websocket!";
     }
