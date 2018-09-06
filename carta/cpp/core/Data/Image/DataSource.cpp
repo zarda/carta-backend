@@ -829,8 +829,8 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
         // use ZFP compression
         raster->set_compression_type(CARTA::CompressionType::ZFP);
         raster->set_compression_quality(precision);
-        //raster->set_num_subsets(1); // use "numSubsets" for multi-thread calculations
 
+        // so far I only use one thread, use "numSubsets" for multi-thread calculations
         std::vector<char> compressionBuffer;
         size_t compressedSize;
 
@@ -851,7 +851,6 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
         // without compression
         raster->set_compression_type(CARTA::CompressionType::NONE);
         raster->set_compression_quality(0);
-        //raster->set_num_subsets(1);
         raster->add_image_data(imageData.data(), imageData.size() * sizeof(float));
 
         qDebug() << "[DataSource] w/o ZFP compression!";
