@@ -47,6 +47,28 @@ public:
               const QByteArray & val,
               const QByteArray & error ) = 0;
 
+    /// for array IO
+        /// read array
+        virtual void
+        setEntry( const std::string & table, const std::vector<double> & value) = 0;
+
+        /// write array
+        virtual bool
+        readEntry( const std::string & table, std::vector<double> & Value) = 0;
+
+        /// create empty array
+        virtual bool
+        createTable( const std::string & table) = 0;
+
+        /// delete array
+        virtual bool
+        deleteTable( const std::string & table) = 0;
+
+        /// list name of arraies
+        virtual void
+        listTable(std::vector<std::string> & Tables) = 0;
+
+
     /// Release the shared_ptr before the program quits.
     /// There may be a better way to prevent the segementation fault
     /// comes from the ~SqLitePCache when CARTA shuts down.
