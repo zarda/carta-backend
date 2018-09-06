@@ -109,7 +109,7 @@ readCache()
 } // readCache
 
 static void
-testCache()
+testCacheKeyValue()
 {
 
     {
@@ -137,8 +137,60 @@ testCache()
     else {
         qDebug() << "db did not have value";
     }
-    pcache-> setEntry( key, "hola", 0 );
-} // testCache
+
+} // testCacheKeyValue
+
+static void
+testCacheKeyArray(std::string key, int testNum){
+
+    if(key.empty()){ return; }
+    if(!testNum){ return; }
+
+    double step = 1.0/testNum;
+    /// Generate float array
+    qDebug() << "Generating double array...";
+    std::vector<double> testArray1;
+    for(int x=0;x<testNum;++x){
+        testArray1.push_back(static_cast<double>(x)*step);
+    }
+
+    /// test insert array
+    qDebug() << "Writing double array...";
+    std::string tableName = key;
+    QTime t;
+    t.restart();
+    pcache-> setEntry(tableName, testArray1);
+    qDebug() << "  Writing rate = " << testNum*1000.0 / t.elapsed() << "iops";
+
+    /// test read array
+    qDebug() << "Reading double array...";
+    std::vector<double> testArray2;
+    t.restart();
+    if ( pcache-> readEntry( tableName, testArray2 ) ) {
+        qDebug() << "db already had array" << testArray2[0] << testArray2[testArray2.size()-1] ;
+    }
+    else {
+        qDebug() << "db did not have array";
+    }
+    qDebug() << "  Reading rate = " << testNum*1000.0 / t.elapsed() << "iops";
+
+    /// Show names of array
+    std::vector<std::string> tableList;
+    pcache->listTable(tableList);
+    std::vector<QString> tableListQStr;
+    for(auto item : tableList){
+        tableListQStr.push_back(QString::fromStdString(item));
+    }
+    qDebug() << "tables name: " << tableListQStr;
+}
+
+void
+doTest(){
+    testCacheKeyValue();
+    for(auto i=0; i<20; ++i){
+        testCacheKeyArray("array"+std::to_string(i), 10100);
+    }
+}
 
 static int
 coreMainCPP( QString platformString, int argc, char * * argv )
@@ -214,7 +266,7 @@ coreMainCPP( QString platformString, int argc, char * * argv )
     auto lam = [=] ( const Carta::Lib::Hooks::GetPersistentCache::ResultType &res ) {
         pcache = res;
         pcache->deleteAll();
-        testCache();
+        doTest();
     };
     
     // call the lambda on every pcache plugin
