@@ -2,7 +2,7 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT      +=  network widgets xml
+QT      +=  widgets
 
 HEADERS +=
 
@@ -18,7 +18,6 @@ DEPENDPATH += $$PROJECT_ROOT/CartaLib
 
 QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib:\$$ORIGIN/../core\''
 
-#QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
 unix:macx {
 #    QMAKE_LFLAGS += '-F$$QWT_ROOT/lib'
 #    LIBS +=-framework qwt
