@@ -252,24 +252,16 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
         return nullptr;
     }
 
-    // Since the statistical plugin requires a vector of ImageInterface
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> images;
-    images.push_back(image);
-
+    // FileInfo: set name & type
     CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
-
-    // FileInfo: name
     fileInfo->set_name(fileInfoRequest.file());
-
-    // FileInfo: type
     if (image->getType() == "FITSImage") {
         fileInfo->set_type(CARTA::FileType::FITS);
     } else {
         fileInfo->set_type(CARTA::FileType::CASA);
     }
-    // fileInfo->add_hdu_list(openFile.hdu());
 
-    // FileInfoExtended part 1: add extended information
+    // FileInfoExtended init: set dimensions, width, height
     const std::vector<int> dims = image->dims();
     CARTA::FileInfoExtended* fileInfoExt = new CARTA::FileInfoExtended();
     fileInfoExt->set_dimensions(dims.size());
@@ -286,43 +278,9 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
         fileInfoExt->set_stokes(dims[3]);
     }
 
-    // Prepare to use the ImageStats plugin.
-    std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > regions; // regions is an empty setting so far
-    int dimSize = image->dims().size(); // get the dimension of the image
-    std::vector<int> frameIndices(dimSize, -1); // get the statistical data of the whole image
-
-    if (images.size() > 0) {
-        auto result = Globals::instance()->pluginManager()
-                -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
-
-        auto lam = [=] (const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data) {
-            //An array for each image
-            int dataCount = data.size();
-
-            for ( int i = 0; i < dataCount; i++ ) {
-                // Each element of the image array contains an array of statistics.
-                int statCount = data[i].size();
-
-                // Go through each set of statistics for the image.
-                for (int k = 0; k < statCount; k++) {
-                    int keyCount = data[i][k].size();
-
-                    for (int j = 0; j < keyCount; j++) {
-                        QString label = "- " + data[i][k][j].getLabel();
-                        QString value = data[i][k][j].getValue();
-                        if (false == _insertHeaderEntry(fileInfoExt, label, value))
-                            qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
-                    }
-                }
-            }
-        };
-
-        try {
-            result.forEach( lam );
-        } catch (char*& error) {
-            QString errorStr(error);
-            qDebug() << "[File Info] There is an error message: " << errorStr;
-        }
+    // FileInfoExtended part 1: get statistic informtion using ImageStats plugin
+    if (false == _getStatisticInfo(fileInfoExt, image)) {
+        qDebug() << "[File Info] Get statistic informtion error.";
     }
 
     // FileInfoExtended part 2: generate some customized information
@@ -356,6 +314,62 @@ bool DataLoader::getFitsHeaders(CARTA::FileInfoExtended* fileInfoExt,
     for (auto iter = headerMap.begin(); iter != headerMap.end(); iter++) {
         if (false == _insertHeaderEntry(fileInfoExt, iter->first, iter->second)) {
             qDebug() << "Insert (" << iter->first << ", " << iter->second << ") to header entry error.";
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// Get statistic informtion using ImageStats plugin
+bool DataLoader::_getStatisticInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                 const std::shared_ptr<Carta::Lib::Image::ImageInterface> image) {
+    // validate parameters
+    if (nullptr == fileInfoExt || nullptr == image) {
+        return false;
+    }
+
+    // the statistical plugin requires a vector of ImageInterface
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> images;
+    images.push_back(image);
+    
+    // regions is an empty setting so far
+    std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase>> regions;
+    
+    // get the statistical data of the whole image
+    std::vector<int> frameIndices(image->dims().size(), -1);
+
+    if (images.size() > 0) { // [TODO]: do we really need this if statement?
+        // Prepare to use the ImageStats plugin.
+        auto result = Globals::instance()->pluginManager()
+                -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
+
+        // lamda function for traverse
+        auto lam = [=] (const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data) {
+            //An array for each image
+            for ( int i = 0; i < data.size(); i++ ) {
+                // Each element of the image array contains an array of statistics.
+                int statCount = data[i].size();
+
+                // Go through each set of statistics for the image.
+                for (int k = 0; k < statCount; k++) {
+                    int keyCount = data[i][k].size();
+
+                    for (int j = 0; j < keyCount; j++) {
+                        QString label = "- " + data[i][k][j].getLabel();
+                        QString value = data[i][k][j].getValue();
+                        if (false == _insertHeaderEntry(fileInfoExt, label, value))
+                            qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+                    }
+                }
+            }
+        };
+
+        try {
+            result.forEach(lam);
+        } catch (char*& error) {
+            QString errorStr(error);
+            qDebug() << "[File Info] There is an error message: " << errorStr;
             return false;
         }
     }
