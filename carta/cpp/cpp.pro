@@ -10,18 +10,29 @@ SUBDIRS = \
     plugins \
     Tests \
     testCache \
-    testRegion \
-    testPercentile
+#    testRegion \
+#    testPercentile
+
+isEmpty(NOSERVER) {
+	SUBDIRS +=server
+}
 
 # explicit dependencies, to make sure parallel make works (i.e. make -j4...)
 core.depends = CartaLib
 desktop.depends = core
+server.depends = core
 testRegion.depends = core
 plugins.depends = core
 testRegion.depends = core
 testCache.depends = core
 testPercentile.depends = core
-Tests.depends = core desktop plugins
+
+isEmpty(NOSERVER) {
+        Tests.depends = core desktop server plugins
+}
+else{
+        Tests.depends = core desktop plugins
+}
 
 # ... or ...
 # build directories in order, or make sure to update dependencies manually, or make -j4 won't work
