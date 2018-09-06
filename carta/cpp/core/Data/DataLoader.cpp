@@ -171,9 +171,19 @@ DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileLis
     QDir rootDir(rootDirName);
 
     if (!rootDir.exists()) {
-        QString errorMsg = "Please check that "+rootDir.absolutePath()+" is a valid directory.";
+        QString errorMsg = "Please check that " + rootDir.absolutePath() + " is a valid directory.";
         Util::commandPostProcess( errorMsg );
         return nullptr;
+    }
+
+    QString cartaRootPath = QDir::homePath() + "/CARTA";
+
+    QDir rootDirCdUp(rootDirName);
+    bool exist = rootDirCdUp.cdUp();
+
+    // users can not access the directory upper to the carta root path
+    if (exist && rootDirCdUp.path() != cartaRootPath) {
+        fileListResponse->set_parent(rootDirCdUp.path().toStdString());
     }
 
     QString lastPart = rootDir.absolutePath();
