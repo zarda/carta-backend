@@ -773,11 +773,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
         int t = 0;
         fview.forEach( [&] ( const float & val ) {
             // To improve the performance, the prepareArea also update only one row by computing the module
-            if (std::isfinite(val)) {
-                prepareArea[(t++)] = val;
-            } else {
-                prepareArea[(t++)] = m_minIntensity;
-            }
+            prepareArea[(t++)] = val;
         });
 
         if (t != area) {
@@ -803,7 +799,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
                 }
             }
             // set the NaN type of the pixel as the minimum of the other finite pixel values
-            rawData = (denominator < 1 ? m_minIntensity : rawData / denominator);
+            rawData = (denominator < 1 ? NAN : rawData / denominator);
             imageData.push_back(rawData);
         }
         nextRowToReadIn += prepareRows;
@@ -812,12 +808,6 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     // scan the raw data for with rows for down sampling
     for (int j = 0; j < nRows; j++) {
         updateRows();
-    }
-
-    // end of timer for loading the raw data
-    int elapsedTime = timer.elapsed();
-    if (CARTA_RUNTIME_CHECKS) {
-        qCritical() << "<> Time to down sample data the raster image data:" << elapsedTime << "ms";
     }
 
     // add the RasterImageData message
@@ -841,18 +831,20 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
         raster->set_compression_quality(precision);
         //raster->set_num_subsets(1); // use "numSubsets" for multi-thread calculations
 
-        // apply ZFP function
         std::vector<char> compressionBuffer;
         size_t compressedSize;
-        std::vector<int32_t> nanEncodings; // Since I just replace the NaN type of the pixel value with
-                                           // the minimum of finite pixel value. The vector of the NaN
-                                           // type pixel index is empty.
+
+        // get NaN type pixel distances of indices
+        std::vector<int32_t> nanEncodings = _getNanEncodingsBlock(imageData, 0, nx, ny);
+
+        // apply ZFP function
         _compress(imageData, 0, compressionBuffer, compressedSize, nx, ny, precision);
 
         raster->add_image_data(compressionBuffer.data(), compressedSize);
         raster->add_nan_encodings((char*) nanEncodings.data(), nanEncodings.size() * sizeof(int)); // This item is necessary !!
 
-        qDebug() << "[DataSource] Apply ZFP compression (precision=" << precision << ", number of subsets= 1) !!"; // not "numSubsets"
+        qDebug() << "[DataSource] Apply ZFP compression (precision=" << precision << ", number of subsets= 1"
+                 << ", NaN encodings size=" << nanEncodings.size() << ")";
 
     } else {
 
@@ -866,6 +858,13 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     }
 
     qDebug() << "number of the raw data sent L=" << imageData.size() << ", WxH=" << nx * ny << ", Difference:" << (nx * ny - imageData.size());
+
+    // end of timer for loading the raw data
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to get raster image data:" << elapsedTime << "ms";
+    }
+
     qDebug() << ".......................................................................Done";
 
     return raster;
