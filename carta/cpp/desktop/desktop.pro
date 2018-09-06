@@ -6,30 +6,16 @@ QT      +=  network widgets xml websockets webchannel
 # QT      +=  webkitwidgets
 
 HEADERS += \
-#    CustomWebPage.h \
     DesktopPlatform.h \
     NewServerConnector.h \
     SessionDispatcher.h \
-    # NetworkReplyFileq.h \
-    # NetworkAccessManager.h
     NewServerConnector.h
 
 SOURCES += \
-#    CustomWebPage.cpp \
     DesktopPlatform.cpp \
     desktopMain.cpp \
     NewServerConnector.cpp \
-    SessionDispatcher.cpp \
-    # NetworkAccessManager.cpp \
-    # NetworkReplyFileq.cpp
-
-#SOURCES += \
-#    websockettransport.cpp \
-#    websocketclientwrapper.cpp
-
-#HEADERS += \
-#    websockettransport.h \
-#    websocketclientwrapper.h
+    SessionDispatcher.cpp
 
 RESOURCES = resources.qrc
 
@@ -82,12 +68,3 @@ preprocess.variable_out = RESOURCES
 QMAKE_EXTRA_COMPILERS += preprocess
 
 }
-
-# experimental websocket part, test on Mac
-#LIBS +=  -lssl -lz -luv -luWS
-#INCLUDEPATH += /usr/local/opt/openssl/include
-#INCLUDEPATH += /usr/local/opt/libuv/include
-#INCLUDEPATH += /usr/local/include
-#LIBS += -L/usr/local/opt/openssl/lib
-#LIBS += -L/usr/local/opt/libuv/lib
-#LIBS += -L/usr/local/lib

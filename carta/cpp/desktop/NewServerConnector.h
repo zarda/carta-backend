@@ -2,20 +2,32 @@
  *
  **/
 
-
 #ifndef NEW_SERVER_CONNECTOR_H
 #define NEW_SERVER_CONNECTOR_H
 
 #include <QObject>
+#include <QList>
+#include <QByteArray>
+
 #include "core/IConnector.h"
 #include "core/CallbackList.h"
 #include "core/Viewer.h"
 #include "CartaLib/IRemoteVGView.h"
 #include "CartaLib/IPercentileCalculator.h"
-#include <QList>
-#include <QByteArray>
 
-typedef Carta::Lib::RegionHistogramData RegionHistogramData;
+#include "CartaLib/Proto/open_file.pb.h"
+#include "CartaLib/Proto/set_image_view.pb.h"
+#include "CartaLib/Proto/spectral_profile.pb.h"
+#include "CartaLib/Proto/spatial_profile.pb.h"
+#include "CartaLib/Proto/set_cursor.pb.h"
+#include "CartaLib/Proto/region_stats.pb.h"
+#include "CartaLib/Proto/region_requirements.pb.h"
+#include "CartaLib/Proto/region.pb.h"
+#include "CartaLib/Proto/error.pb.h"
+#include "CartaLib/Proto/contour_image.pb.h"
+#include "CartaLib/Proto/contour.pb.h"
+#include "CartaLib/Proto/close_file.pb.h"
+#include "CartaLib/Proto/animation.pb.h"
 
 class IView;
 
@@ -60,6 +72,10 @@ public slots:
     void onBinaryMessage(char* message, size_t length);
     void sendSerializedMessage(char* message, QString respName, PBMSharedPtr msg);
 
+    void imageChannelUpdateSignalSlot(char* message, int fileId, int channel, int stoke);
+    void setImageViewSignalSlot(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip);
+    void openFileSignalSlot(char* message, QString fileDir, QString fileName, int fileId, int regionId);
+
 signals:
 
     //grimmer: newArch will not use stateChange mechanism anymore
@@ -71,6 +87,10 @@ signals:
 
     void jsTextMessageResultSignal(QString result);
     void jsBinaryMessageResultSignal(char* message, size_t length);
+
+    void imageChannelUpdateSignal(char* message, int fileId, int channel, int stoke);
+    void setImageViewSignal(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip);
+    void openFileSignal(char* message, QString fileDir, QString fileName, int fileId, int regionId);
 
     // /// we emit this signal when state is changed (either by c++ or by javascript)
     // /// we listen to this signal, and so does javascript
@@ -124,13 +144,13 @@ protected:
     std::map< QString, QString > m_state;
 
 private:
-    bool m_changeImage = false;
-    double m_minIntensity;
-    int m_xMin = 0;
-    int m_xMax = 0;
-    int m_yMin = 0;
-    int m_yMax = 0;
-    int m_mip = 0;
+
+    std::map<int, std::vector<int> > m_imageBounds; // m_imageBounds[fileId] = {x_min, x_max, y_min, y_max, mip}
+    std::map<int, std::vector<int> > m_currentChannel; // m_currentChannel[fileId] = {spectralFrame, stokeFrame}
+    std::map<int, std::vector<int> > m_calHistRange; // m_calHistRange[fileId] = {frameLow, frameHigh, stokeFrame}
+    std::map<int, int> m_lastFrame; // m_lastFrame[fileId] = lastFrame (for the spectral axis)
+    std::map<int, bool> m_changeFrame;
+    const int numberOfBins = 10000; // define number of bins for calculating pixels to histogram data
 };
 
 

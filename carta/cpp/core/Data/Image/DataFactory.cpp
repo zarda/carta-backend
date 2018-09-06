@@ -20,31 +20,31 @@ DataFactory::DataFactory(){
 }
 
 
-QString DataFactory::addData( Controller* controller, const QString& fileName, bool* success ){
+QString DataFactory::addData(Controller* controller, const QString& fileName, bool* success , int fileId){
     QString result;
     *success = false;
     if ( controller ){
-        QFileInfo fileInfo( fileName );
-        bool dataFile = fileInfo.isFile();
-        if ( dataFile ){
-            bool regionFile = _isRegion( fileName );
+//        QFileInfo fileInfo( fileName );
+//        bool dataFile = fileInfo.isFile();
+//        if ( dataFile ){
+//            bool regionFile = _isRegion( fileName );
             //If we think it is a region, see if any of the region parsing
             //plugins can handle it.
-            if ( regionFile ){
-                std::vector<std::shared_ptr<Region> > regions =
-                        _loadRegions( controller, fileName, success, result );
-                if ( regions.size() > 0 ){
-                	std::shared_ptr<RegionControls> regionController = controller->getRegionControls();
-                	if ( regionController ){
-                		regionController->_addDataRegions( regions );
-                	}
-                }
-            }
-        }
+//            if ( regionFile ){
+//                std::vector<std::shared_ptr<Region> > regions =
+//                        _loadRegions( controller, fileName, success, result );
+//                if ( regions.size() > 0 ){
+//                	std::shared_ptr<RegionControls> regionController = controller->getRegionControls();
+//                	if ( regionController ){
+//                		regionController->_addDataRegions( regions );
+//                	}
+//                }
+//            }
+//        }
         //Try loading it as an image.
-        if ( !(*success) ){
-            result = controller->_addDataImage( fileName, success );
-        }
+//        if ( !(*success) ){
+            result = controller->_addDataImage(fileName, success, fileId);
+//        }
     }
     else {
         result = "The data in "+fileName +" could not be added because no controller was specified.";
