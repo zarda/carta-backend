@@ -132,6 +132,10 @@ private:
     DataLoader( const DataLoader& other);
     DataLoader& operator=( const DataLoader& other );
 
+    // Get statistic informtion using ImageStats plugin
+    bool _getStatisticInfo(CARTA::FileInfoExtended* fileInfoExt,
+                         const std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
+
     // Generate customized file information for human readiblity using some fits headers
     bool _genCustomizedInfo(CARTA::FileInfoExtended* fileInfoExt,
                          const std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
