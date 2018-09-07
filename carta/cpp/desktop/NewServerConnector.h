@@ -96,7 +96,7 @@ signals:
     void onBinaryMessageSignal(char* message, size_t length);
 
     void jsTextMessageResultSignal(QString result);
-    void jsBinaryMessageResultSignal(char* message, size_t length);
+    void jsBinaryMessageResultSignal(char* message, QString respName, size_t length);
 
     void imageChannelUpdateSignal(char* message, int fileId, int channel, int stoke);
     void setImageViewSignal(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,

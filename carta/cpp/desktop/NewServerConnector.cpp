@@ -629,7 +629,7 @@ void NewServerConnector::sendSerializedMessage(char* message, QString respName, 
     size_t requiredSize = 0;
     std::vector<char> result = serializeToArray(message, respName, msg, success, requiredSize);
     if (success) {
-        emit jsBinaryMessageResultSignal(result.data(), requiredSize);
+        emit jsBinaryMessageResultSignal(result.data(), respName, requiredSize);
         // this part will affect the sensitivity of the file browser or file info clipping, should investigated in detail !!
         qDebug() << "[NewServerConnector] Send event:" << respName << QTime::currentTime().toString();
     }
