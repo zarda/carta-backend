@@ -281,7 +281,12 @@ private:
      * @return - vector of pixels.
      */
     PBMSharedPtr _getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
-            int mip, int frameLow, int frameHigh, int stokeFrame) const;
+            int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const;
+
+    int _compress(std::vector<float>& array, size_t offset, std::vector<char>& compressionBuffer,
+            size_t& compressedSize, uint32_t nx, uint32_t ny, uint32_t precision) const;
+
+    std::vector<int32_t> _getNanEncodingsBlock(std::vector<float>& array, int offset, int w, int h) const;
 
     /**
      * Returns the color used to draw nan pixels.

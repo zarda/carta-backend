@@ -9,11 +9,20 @@
 #include <QList>
 #include <QByteArray>
 
+#include "CartaLib/IRemoteVGView.h"
+#include "CartaLib/IPercentileCalculator.h"
+#include "CartaLib/LinearMap.h"
+
 #include "core/IConnector.h"
 #include "core/CallbackList.h"
 #include "core/Viewer.h"
-#include "CartaLib/IRemoteVGView.h"
-#include "CartaLib/IPercentileCalculator.h"
+#include "core/MyQApp.h"
+#include "core/SimpleRemoteVGView.h"
+#include "core/State/ObjectManager.h"
+#include "core/Data/DataLoader.h"
+#include "core/Data/ViewManager.h"
+#include "core/Data/Image/Controller.h"
+#include "core/Data/Image/DataSource.h"
 
 #include "CartaLib/Proto/open_file.pb.h"
 #include "CartaLib/Proto/set_image_view.pb.h"
@@ -69,11 +78,12 @@ public slots:
 
     void startViewerSlot(const QString & sessionID);
     void onTextMessage(QString message);
-    void onBinaryMessage(char* message, size_t length);
+    void onBinaryMessageSignalSlot(char* message, size_t length);
     void sendSerializedMessage(char* message, QString respName, PBMSharedPtr msg);
 
     void imageChannelUpdateSignalSlot(char* message, int fileId, int channel, int stoke);
-    void setImageViewSignalSlot(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip);
+    void setImageViewSignalSlot(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
+                                bool isZFP, int precision, int numSubsets);
     void openFileSignalSlot(char* message, QString fileDir, QString fileName, int fileId, int regionId);
 
 signals:
@@ -89,7 +99,8 @@ signals:
     void jsBinaryMessageResultSignal(char* message, size_t length);
 
     void imageChannelUpdateSignal(char* message, int fileId, int channel, int stoke);
-    void setImageViewSignal(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip);
+    void setImageViewSignal(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
+                            bool isZFP, int precision, int numSubsets);
     void openFileSignal(char* message, QString fileDir, QString fileName, int fileId, int regionId);
 
     // /// we emit this signal when state is changed (either by c++ or by javascript)
@@ -143,9 +154,13 @@ protected:
     InitializeCallback m_initializeCallback;
     std::map< QString, QString > m_state;
 
+    Carta::Data::Controller* _getController();
+
 private:
 
     std::map<int, std::vector<int> > m_imageBounds; // m_imageBounds[fileId] = {x_min, x_max, y_min, y_max, mip}
+    std::map<int, bool> m_isZFP; // whether if ZFP compression is required by the frontend
+    std::map<int, std::vector<int> > m_ZFPSet; // m_ZFPSet[fileId] = {precision, numSubsets}
     std::map<int, std::vector<int> > m_currentChannel; // m_currentChannel[fileId] = {spectralFrame, stokeFrame}
     std::map<int, std::vector<int> > m_calHistRange; // m_calHistRange[fileId] = {frameLow, frameHigh, stokeFrame}
     std::map<int, int> m_lastFrame; // m_lastFrame[fileId] = lastFrame (for the spectral axis)

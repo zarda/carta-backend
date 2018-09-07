@@ -314,7 +314,7 @@ protected:
      * @return - vector of pixels.
      */
     virtual PBMSharedPtr _getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
-            int mip, int frameLow, int frameHigh, int stokeFrame) const = 0;
+            int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const = 0;
 
     /**
      * Returns whether or not the layer can be loaded with the indicated frames.

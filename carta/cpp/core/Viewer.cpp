@@ -89,12 +89,10 @@ Viewer::Viewer() :
 void
 Viewer::start()
 {
-
     auto & globals = * Globals::instance();
 
-
     QString name = QThread::currentThread()->objectName();
-    qDebug() << "Viewer::start() starting:"<<name;
+    qDebug() << "Viewer::start() name of the current thread:" << name;
 
 
 	if ( m_viewManager == nullptr ){
@@ -111,7 +109,7 @@ Viewer::start()
     }
 
     // ask plugins to load the image
-    qDebug() << "======== trying to load image <- disable========";
+//    qDebug() << "======== trying to load image <- disable========";
 //    QString fname;
 //    if( ! Globals::instance()-> platform()-> initialFileList().isEmpty()) {
 //        fname = Globals::instance()-> platform()-> initialFileList() [0];
