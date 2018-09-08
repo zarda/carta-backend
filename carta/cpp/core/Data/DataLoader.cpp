@@ -14,6 +14,8 @@
 
 #include <set>
 
+using Carta::Lib::AxisInfo;
+
 namespace Carta {
 
 namespace Data {
@@ -171,9 +173,20 @@ DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileLis
     QDir rootDir(rootDirName);
 
     if (!rootDir.exists()) {
-        QString errorMsg = "Please check that "+rootDir.absolutePath()+" is a valid directory.";
+        QString errorMsg = "Please check that " + rootDir.absolutePath() + " is a valid directory.";
         Util::commandPostProcess( errorMsg );
         return nullptr;
+    }
+
+    // get the carta root path
+    QString cartaRootPath = QDir::homePath() + "/CARTA";
+
+    QDir rootDirCdUp(rootDirName);
+    bool exist = rootDirCdUp.cdUp();
+
+    // users can not access the directory upper to the carta root path
+    if (exist && rootDirCdUp.path() != cartaRootPath) {
+        fileListResponse->set_parent(rootDirCdUp.path().toStdString());
     }
 
     QString lastPart = rootDir.absolutePath();
@@ -276,14 +289,23 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     fileInfoExt->set_width(dims[0]);
     fileInfoExt->set_height(dims[1]);
 
-    // it may be not really the spectral axis, but we can regardless of it so far.
-    if (dims.size() >= 3) {
-        fileInfoExt->set_depth(dims[2]);
+    // set the stoke axis if it exists
+    int stokeIndicator = Util::getAxisIndex(image, AxisInfo::KnownType::STOKES);
+    if (stokeIndicator > 0) { // if stoke axis exists
+        if (dims[stokeIndicator] > 0) { // if stoke dimension > 0
+            fileInfoExt->set_stokes(dims[stokeIndicator]);
+        }
     }
 
-    // it may be not really the stoke axis, but we can regardless of it so far.
-    if (dims.size() >= 4) {
-        fileInfoExt->set_stokes(dims[3]);
+    // for the dims[k] that is not the stoke frame nor the x- or y-axis,
+    // we assume it is a depth (it is the Spectral axis or the other unmarked axis)
+    if (dims.size() > 2) {
+        for (int i = 2; i < dims.size(); i++) {
+            if (i != stokeIndicator && dims[i] > 0) {
+                fileInfoExt->set_depth(dims[i]);
+                break;
+            }
+        }
     }
 
     // Prepare to use the ImageStats plugin.

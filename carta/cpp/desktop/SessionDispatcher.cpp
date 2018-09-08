@@ -140,18 +140,30 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
 
         if (!sessionExisting) {
             qRegisterMetaType<size_t> ("size_t");
+
+            // start the image viewer
             connect(connector, SIGNAL(startViewerSignal(const QString &)), connector, SLOT(startViewerSlot(const QString &)));
-//            connect(connector, SIGNAL(onTextMessageSignal(QString)), connector, SLOT(onTextMessage(QString)));
-            connect(connector, SIGNAL(onBinaryMessageSignal(char*, size_t)), connector, SLOT(onBinaryMessage(char*, size_t)));
+
+            // general commands
+            connect(connector, SIGNAL(onBinaryMessageSignal(char*, size_t)), connector, SLOT(onBinaryMessageSignalSlot(char*, size_t)));
+
+            // set image channel
             connect(connector, SIGNAL(imageChannelUpdateSignal(char*, int, int, int)),
                     connector, SLOT(imageChannelUpdateSignalSlot(char*, int, int, int)));
-            connect(connector, SIGNAL(setImageViewSignal(char*, int , int, int, int, int, int)),
-                    connector, SLOT(setImageViewSignalSlot(char*, int , int, int, int, int, int)));
+
+            // set image view
+            connect(connector, SIGNAL(setImageViewSignal(char*, int , int, int, int, int, int, bool, int, int)),
+                    connector, SLOT(setImageViewSignalSlot(char*, int , int, int, int, int, int, bool, int, int)));
+
+            // open file
             connect(connector, SIGNAL(openFileSignal(char*, QString, QString, int, int)),
                     connector, SLOT(openFileSignalSlot(char*, QString, QString, int, int)));
 
-//            connect(connector, SIGNAL(jsTextMessageResultSignal(QString)), this, SLOT(forwardTextMessageResult(QString)) );
-            connect(connector, SIGNAL(jsBinaryMessageResultSignal(char*, size_t)), this, SLOT(forwardBinaryMessageResult(char*, size_t)) );
+            // send binary signal to the frontend
+            connect(connector, SIGNAL(jsBinaryMessageResultSignal(char*, size_t)), this, SLOT(forwardBinaryMessageResult(char*, size_t)));
+
+            //connect(connector, SIGNAL(onTextMessageSignal(QString)), connector, SLOT(onTextMessage(QString)));
+            //connect(connector, SIGNAL(jsTextMessageResultSignal(QString)), this, SLOT(forwardTextMessageResult(QString)) );
 
             // create a simple thread
             QThread* newThread = new QThread();
@@ -229,7 +241,12 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
             int yMax = viewSetting.image_bounds().y_max();
             qDebug() << "[SessionDispatcher] Set image bounds [x_min, x_max, y_min, y_max, mip]=["
                      << xMin << "," << xMax << "," << yMin << "," << yMax << "," << mip << "], fileId=" << fileId;
-            emit connector->setImageViewSignal(message, fileId, xMin, xMax, yMin, yMax, mip);
+
+            int numSubsets = viewSetting.num_subsets();
+            int precision = lround(viewSetting.compression_quality());
+            bool isZFP = (viewSetting.compression_type() == CARTA::CompressionType::ZFP) ? true : false;
+
+            emit connector->setImageViewSignal(message, fileId, xMin, xMax, yMin, yMax, mip, isZFP, precision, numSubsets);
 
         } else if (eventName == "SET_IMAGE_CHANNELS") {
 
@@ -277,6 +294,7 @@ void SessionDispatcher::forwardBinaryMessageResult(char* message, size_t length)
     }
     if (ws) {
         ws->send(message, length, uWS::OpCode::BINARY);
+        qDebug() << "[SessionDispatcher] Send event:" << QTime::currentTime().toString();
     } else {
         qDebug() << "[SessionDispatcher] ERROR! Cannot find the corresponding websocket!";
     }

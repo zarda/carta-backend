@@ -3,14 +3,7 @@
  **/
 
 #include "NewServerConnector.h"
-#include "CartaLib/LinearMap.h"
-#include "core/MyQApp.h"
-#include "core/SimpleRemoteVGView.h"
-#include "core/State/ObjectManager.h"
-#include "core/Data/DataLoader.h"
-#include "core/Data/ViewManager.h"
-#include "core/Data/Image/Controller.h"
-#include "core/Data/Image/DataSource.h"
+
 #include <iostream>
 #include <QImage>
 #include <QPainter>
@@ -280,7 +273,7 @@ void NewServerConnector::onTextMessage(QString message){
     emit jsTextMessageResultSignal(result);
 }
 
-void NewServerConnector::onBinaryMessage(char* message, size_t length){
+void NewServerConnector::onBinaryMessageSignalSlot(char* message, size_t length){
     if (length < EVENT_NAME_LENGTH + EVENT_ID_LENGTH){
         qFatal("Illegal message.");
         return;
@@ -394,10 +387,7 @@ void NewServerConnector::openFileSignalSlot(char* message, QString fileDir, QStr
 
     respName = "OPEN_FILE_ACK";
 
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
-    qDebug() << "[NewServerConnector] controllerID=" << controllerID;
-    Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+    Carta::Data::Controller* controller = _getController();
 
     if (!QDir(fileDir).exists()) {
         qWarning() << "[NewServerConnector] File directory doesn't exist! (" << fileDir << ")";
@@ -470,6 +460,10 @@ void NewServerConnector::openFileSignalSlot(char* message, QString fileDir, QStr
     // set the initial image bounds
     m_imageBounds[fileId] = {0, 0, 0, 0, 0}; // {x_min, x_max, y_min, y_max, mip}
 
+    // set the initial zfp
+    m_isZFP[fileId] = false;
+    m_ZFPSet[fileId] = {0, 0};
+
     // set the initial channel for spectral and stoke frames
     m_currentChannel[fileId] = {0, 0}; // {frameLow, stokeFrame}
 
@@ -493,8 +487,10 @@ void NewServerConnector::openFileSignalSlot(char* message, QString fileDir, QStr
     /////////////////////////////////////////////////////////////////////
 }
 
-void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip) {
+void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
+    bool isZFP, int precision, int numSubsets) {
 
+    // check if need to reset image bounds
     if (xMin != m_imageBounds[fileId][0] || xMax != m_imageBounds[fileId][1] ||
         yMin != m_imageBounds[fileId][2] || yMax != m_imageBounds[fileId][3] ||
         mip != m_imageBounds[fileId][4]) {
@@ -505,14 +501,17 @@ void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int x
         return;
     }
 
+    // check if need to reset ZFP parameters
+    if (isZFP != m_isZFP[fileId]) {
+        m_isZFP[fileId] = isZFP;
+        m_ZFPSet[fileId] = {precision, numSubsets};
+    }
+
     QString respName;
     PBMSharedPtr msg;
 
     // get the controller
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
-    qDebug() << "[NewServerConnector] controllerID=" << controllerID;
-    Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+    Carta::Data::Controller* controller = _getController();
 
     // set the file id as the private parameter in the Stack object
     controller->setFileId(fileId);
@@ -547,7 +546,7 @@ void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int x
     respName = "RASTER_IMAGE_DATA";
 
     // get the down sampling raster image raw data
-    PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame);
+    PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
     msg = raster;
 
     // send the serialized message to the frontend
@@ -577,10 +576,7 @@ void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId,
     m_changeFrame[fileId] = true;
 
     // get the controller
-    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-    QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
-    qDebug() << "[NewServerConnector] controllerID=" << controllerID;
-    Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+    Carta::Data::Controller* controller = _getController();
 
     // set the file id as the private parameter in the Stack object
     controller->setFileId(fileId);
@@ -615,8 +611,12 @@ void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId,
     int y_max = m_imageBounds[fileId][3];
     int mip = m_imageBounds[fileId][4];
 
+    bool isZFP = m_isZFP[fileId];
+    int precision = m_ZFPSet[fileId][0];
+    int numSubsets = m_ZFPSet[fileId][1];
+
     // use image bounds with respect to the fileID and get the down sampling raster image raw data
-    PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame);
+    PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
     msg = raster;
 
     // send the serialized message to the frontend
@@ -633,6 +633,15 @@ void NewServerConnector::sendSerializedMessage(char* message, QString respName, 
         // this part will affect the sensitivity of the file browser or file info clipping, should investigated in detail !!
         qDebug() << "[NewServerConnector] Send event:" << respName << QTime::currentTime().toString();
     }
+}
+
+Carta::Data::Controller* NewServerConnector::_getController() {
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0").split("/").last();
+    qDebug() << "[NewServerConnector] controllerID=" << controllerID;
+    Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>( objMan->getObject(controllerID) );
+
+    return controller;
 }
 
 // void NewServerConnector::stateChangedSlot(const QString & key, const QString & value)
