@@ -254,7 +254,7 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     QString fileFullName = fileDir + "/" + fileName;
 
     QString file = fileFullName.trimmed();
-    auto res = Globals::instance()->pluginManager()->prepare <Carta::Lib::Hooks::LoadAstroImage>(file).first();
+    auto res = Globals::instance()->pluginManager()->prepare<Carta::Lib::Hooks::LoadAstroImage>(file).first();
     std::shared_ptr<Carta::Lib::Image::ImageInterface> image;
     if (!res.isNull()) {
         image = res.val();
@@ -298,14 +298,19 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
         }
     }
 
-    // FileInfoExtended part 1: get statistic informtion using ImageStats plugin
+    // FileInfoExtended part 1: add statistic information to fileInfoExt using ImageStats plugin
     if (false == _getStatisticInfo(fileInfoExt, image)) {
         qDebug() << "[File Info] Get statistic informtion error.";
     }
 
-    // FileInfoExtended part 2: generate some customized information
+    // FileInfoExtended part 2: generate some customized information to fileInfoExt
     if (false == _genCustomizedInfo(fileInfoExt, image)) {
         qDebug() << "[File Info] Generate file information error.";
+    }
+
+    // FileInfoExtended part 3: add all fits headers to fileInfoExt
+    if (false == getFitsHeaders(fileInfoExt, image)) {
+        qDebug() << "[File Info] Get fits headers error!";
     }
 
     // FileInfoResponse
@@ -393,11 +398,12 @@ bool DataLoader::_getStatisticInfo(CARTA::FileInfoExtended* fileInfoExt,
     return true;
 }
 
-// Generate customized file information for human readiblity using some fits headers
+// Generate customized file information for human readiblity by using some fits headers
 bool DataLoader::_genCustomizedInfo(CARTA::FileInfoExtended* fileInfoExt,
                                  const std::shared_ptr<Carta::Lib::Image::ImageInterface> image) {
     // validate parameters
     if (nullptr == fileInfoExt || nullptr == image) {
+        qDebug() << "nullptr of fileInfoExt, image.";
         return false;
     }
 
@@ -406,27 +412,328 @@ bool DataLoader::_genCustomizedInfo(CARTA::FileInfoExtended* fileInfoExt,
     fhExtractor.setInput(image);
     std::map<QString, QString> headerMap = fhExtractor.getHeaderMap();
 
-    // extract necessary info from header, depending on the respond event
-    std::vector<QString> keys {"NAXIS", "NAXIS1", "NAXIS2", "NAXIS3",
-                                   "BMAJ", "BMIN", "BPA", "BUNIT",
-                                   "EQUINOX", "RADESYS", "SPECSYS", "VELREF",
-                                   "CTYPE1", "CRVAL1", "CDELT1", "CUNIT1",
-                                   "CTYPE2", "CRVAL2", "CDELT2", "CUNIT2",
-                                   "CTYPE3", "CRVAL3", "CDELT3", "CUNIT3",
-                                   "CTYPE4", "CRVAL4", "CDELT4", "CUNIT4"};
-    for (auto key = keys.begin(); key != keys.end(); key++) {
-        // find value corresponding to key
-        QString value = "";
-        auto found = headerMap.find(*key);
-        if (found != headerMap.end()) {
-            value = found->second;
+    // 1. Generate customized stokes + channels info & insert to header entry
+    if (false == _genStokesChannelsInfo(fileInfoExt, headerMap)) {
+        qDebug() << "Generate stokes + channels info & insert to header entry failed.";
+    }
+
+    // 2. Generate customized pixel unit info & insert to header entry
+    if (false == _genPixelUnitInfo(fileInfoExt, headerMap)) {
+        qDebug() << "Generate pixel unit info & insert to header entry failed.";
+    }
+
+    // 3. Generate customized pixel size info & insert to header entry
+    if (false == _genPixelSizeInfo(fileInfoExt, headerMap)) {
+        qDebug() << "Generate pixel size info & insert to header entry failed.";
+    }
+
+    // 4. Generate customized coordinate type info & insert to header entry
+    if (false == _genCoordTypeInfo(fileInfoExt, headerMap)) {
+        qDebug() << "Generate coordinate type info & insert to header entry failed.";
+    }
+
+    // 5. Generate customized image reference coordinate info & insert to header entry
+    if (false == _genImgRefCoordInfo(fileInfoExt, headerMap)) {
+        qDebug() << "Generate image reference coordinate info & insert to header entry failed.";
+    }
+
+    // 6. Generate customized celestial frame info & insert to header entry
+    if (false == _genCelestialFrameInfo(fileInfoExt, headerMap)) {
+        qDebug() << "Generate celestial frame info & insert to header entry failed.";
+    }
+
+    // 7. Generate customized spectral frame info & insert to header entry
+    if (false == _genSpectralFrameInfo(fileInfoExt, headerMap)) {
+        qDebug() << "Generate spectral frame info & insert to header entry failed.";
+    }
+
+    // 8. Generate customized velocity definition info & insert to header entry
+    if (false == _genVelocityDefInfo(fileInfoExt, headerMap)) {
+        qDebug() << "Generate velocity definition info & insert to header entry failed.";
+    }
+
+    return true;
+}
+
+// Generate customized stokes & channels info according to CTYPE3, CTYPE4, NAXIS3, NAXIS4
+bool DataLoader::_genStokesChannelsInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                   const std::map<QString, QString> headerMap) {
+    auto naxis = headerMap.find("NAXIS");
+    if (naxis == headerMap.end()) {
+        qDebug() << "Cannot find NAXIS.";
+        return false;
+    }
+
+    bool ok = false;
+    double n = (naxis->second).toDouble(&ok);
+    if (ok && n > 2) {
+        // find CTYPE3, CTYPE4
+        auto ctype3 = headerMap.find("CTYPE3");
+        auto ctype4 = headerMap.find("CTYPE4");
+        QString stokes = "NA", channels = "NA";
+
+        // check CTYPE3, CTYPE4 to determine stokes
+        if (ctype3 != headerMap.end() && (ctype3->second).contains("STOKES", Qt::CaseInsensitive)) {
+            auto naxis3 = headerMap.find("NAXIS3");
+            if (naxis3 == headerMap.end()) {
+                qDebug() << "Cannot find NAXIS3.";
+                return false;
+            }
+            stokes = naxis3->second;
+        } else if (ctype4 != headerMap.end() && (ctype4->second).contains("STOKES", Qt::CaseInsensitive)) {
+            auto naxis4 = headerMap.find("NAXIS4");
+            if (naxis4 == headerMap.end()) {
+                qDebug() << "Cannot find NAXIS4.";
+                return false;
+            }
+            stokes = naxis4->second;
         }
 
-        // insert (key, value) to header entry
-        if (false == _insertHeaderEntry(fileInfoExt, *key, value)) {
-            qDebug() << "Insert (" << *key << ", " << value << ") to header entry error.";
+        // check CTYPE3, CTYPE4 to determine channels
+        // [TODO]: regular expression should be case insensitive
+        if (ctype3 != headerMap.end() && (ctype3->second).contains(QRegExp("VOPT|FREQ"))) {
+            auto naxis3 = headerMap.find("NAXIS3");
+            if (naxis3 == headerMap.end()) {
+                qDebug() << "Cannot find NAXIS3.";
+                return false;
+            }
+            channels = naxis3->second;
+        } else if (ctype4 != headerMap.end() && (ctype4->second).contains(QRegExp("VOPT|FREQ"))) {
+            auto naxis4 = headerMap.find("NAXIS4");
+            if (naxis4 == headerMap.end()) {
+                qDebug() << "Cannot find NAXIS4.";
+                return false;
+            }
+            channels = naxis4->second;
+        }
+
+        // insert stokes, channels to header entry if they are not "NA"
+        if ("NA" != stokes) {
+            if (false == _insertHeaderEntry(fileInfoExt, "- Number of Stokes", stokes)) {
+                qDebug() << "Insert (- Number of Stokes, " << stokes << ") to header entry error.";
+                return false;
+            }
+        }
+        if ("NA" != channels) {
+            if (false == _insertHeaderEntry(fileInfoExt, "- Number of Channels", channels)) {
+                qDebug() << "Insert (- Number of Channels, " << channels << ") to header entry error.";
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+// Generate customized pixel unit info according to BUNIT
+bool DataLoader::_genPixelUnitInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                   const std::map<QString, QString> headerMap) {
+    auto bunit = headerMap.find("BUNIT");
+    if (bunit == headerMap.end()) {
+        qDebug() << "Cannot find BUNIT.";
+        return false;
+    }
+
+    // insert (label, value) to header entry
+    QString label = "- Pixel unit";
+    QString value = bunit->second;
+    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
+        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+        return false;
+    }
+
+    return true;
+}
+
+// Generate customized pixel size info according to CDELT1, CDELT2, CUNIT1
+bool DataLoader::_genPixelSizeInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                   const std::map<QString, QString> headerMap) {
+    QString label = "- Pixel size";
+    QString value = "";
+
+    auto cdelt1 = headerMap.find("CDELT1");
+    auto cdelt2 = headerMap.find("CDELT2");
+    if (cdelt1 != headerMap.end() && cdelt2 != headerMap.end()) {
+        // get CDELT1, CDELT2 & convert them to double
+        QString delstr1 = cdelt1->second;
+        QString delstr2 = cdelt2->second;
+        bool ok = false;
+        double d1 = 0, d2 = 0;
+        d1 = (delstr1).toDouble(&ok);
+        if (!ok) {
+            qDebug() << "Convert degree to double error.";
             return false;
         }
+        d2 = (delstr2).toDouble(&ok);
+        if (!ok) {
+            qDebug() << "Convert degree to double error.";
+            return false;
+        }
+
+        // get unit & convert CDELT1 CDELT2 to arcsec if unit is degree
+        auto unit = headerMap.find("CUNIT1");
+        if (unit == headerMap.end()) {
+            qDebug() << "Cannot find CUNIT1.";
+            return false;
+        }
+
+        if ((unit->second).contains("deg", Qt::CaseInsensitive)) {
+            QString arcs1 = "", arcs2 = "";
+            if(false == _deg2arcsec(delstr1, arcs1)) {
+                qDebug() << "Convert CDELT1 to arcsec error.";
+                return false;
+            }
+            if(false == _deg2arcsec(delstr2, arcs2)) {
+                qDebug() << "Convert CDELT2 to arcsec error.";
+                return false;
+            }
+            delstr1 = arcs1;
+            delstr2 = arcs2;
+        } else { // not degree
+            delstr1 = delstr1 + " " + unit->second;
+            delstr2 = delstr2 + " " + unit->second;
+        }
+
+        // check whether CDELT1 & CDELT2 are the same(squre)
+        if (abs(d1) == abs(d2)) {
+            value = (d1 > 0) ? delstr1 : delstr2;
+        } else {
+            value = delstr1 + ", " + delstr2;
+        }
+    }
+
+    // insert (label, value) to header entry
+    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
+        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+        return false;
+    }
+
+    return true;
+}
+
+// Generate customized coordinate type info according to CTYPE1, CTYPE2
+bool DataLoader::_genCoordTypeInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                   const std::map<QString, QString> headerMap) {
+    auto ctype1 = headerMap.find("CTYPE1");
+    auto ctype2 = headerMap.find("CTYPE2");
+    if (ctype1 == headerMap.end() || ctype2 == headerMap.end()) {
+        qDebug() << "Cannot find CTYPE1 CTYPE2.";
+        return false;
+    }
+
+    // insert (label, value) to header entry
+    QString label = "- Coordinate type";
+    QString value = ctype1->second + ", " + ctype2->second;
+    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
+        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+        return false;
+    }
+
+    return true;
+}
+
+// Generate customized image reference coordinate info according to CRPIX1, CRPIX2, CRVAL1, CRVAL2, CUNIT1, CUNIT2
+bool DataLoader::_genImgRefCoordInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                    const std::map<QString, QString> headerMap) {
+    auto crpix1 = headerMap.find("CRPIX1");
+    auto crpix2 = headerMap.find("CRPIX2");
+    auto crval1 = headerMap.find("CRVAL1");
+    auto crval2 = headerMap.find("CRVAL2");
+    auto cunit1 = headerMap.find("CUNIT1");
+    auto cunit2 = headerMap.find("CUNIT2");
+
+    if (crpix1 == headerMap.end() || crpix2 == headerMap.end() ||
+        crval1 == headerMap.end() || crval2 == headerMap.end() ||
+        cunit1 == headerMap.end() || cunit2 == headerMap.end()) {
+        qDebug() << "Cannot find CRPIX1 CRPIX2 CRVAL1 CRVAL2 CUNIT1 CUNIT2.";
+        return false;
+    }
+
+     // insert (label, value) to header entry
+    QString label = "- Image reference coordinate";
+    QString value = "[" + crpix1->second + ", " + crpix2->second + "] [" +
+                    crval1->second + " " + cunit1->second + ", " + crval2->second + " " + cunit2->second + "]";
+    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
+        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+        return false;
+    }
+
+    return true;
+}
+
+// Generate customized celestial frame according to RADESYS, EQUINOX
+bool DataLoader::_genCelestialFrameInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                        const std::map<QString, QString> headerMap) {
+    auto radesys = headerMap.find("RADESYS");
+    auto equinox = headerMap.find("EQUINOX");
+    if (radesys == headerMap.end() || equinox == headerMap.end()) {
+        qDebug() << "Cannot find RADESYS EQUINOX.";
+        return false;
+    }
+
+    // get value of RADESYS, EQUINOX
+    QString rad = radesys->second;
+    QString equ = equinox->second;
+
+    // FK4 => B1950, FK5 => J2000, others => not modified
+    if (rad.contains("FK4", Qt::CaseInsensitive)) {
+        bool ok = false;
+        int e = equ.toDouble(&ok);
+        if (!ok) {return false;}
+        equ = "B" + QString(std::to_string(e).c_str());
+    } else if (rad.contains("FK5", Qt::CaseInsensitive)) {
+        bool ok = false;
+        int e = equ.toDouble(&ok);
+        if (!ok) {return false;}
+        equ = "J" + QString(std::to_string(e).c_str());
+    }
+
+    // insert (label, value) to header entry
+    QString label = "- Celestial frame";
+    QString value = rad + ", " + equ;
+    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
+        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+        return false;
+    }
+
+    return true;
+}
+
+// Generate customized spectral frame according to SPECSYS
+bool DataLoader::_genSpectralFrameInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                        const std::map<QString, QString> headerMap) {
+    auto specsys = headerMap.find("SPECSYS");
+    if (specsys == headerMap.end()) {
+        qDebug() << "Cannot find SPECSYS.";
+        return false;
+    }
+
+    // insert (label, value) to header entry
+    QString label = "- Spectral frame";
+    QString value = specsys->second;
+    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
+        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+        return false;
+    }
+
+    return true;
+}
+
+// Generate customized velocity definition according to VELREF
+bool DataLoader::_genVelocityDefInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                        const std::map<QString, QString> headerMap) {
+    auto velref = headerMap.find("VELREF");
+    if (velref == headerMap.end()) {
+        qDebug() << "Cannot find VELREF.";
+        return false;
+    }
+
+    // insert (label, value) to header entry
+    QString label = "- Velocity definition";
+    QString value = velref->second;
+    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
+        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+        return false;
     }
 
     return true;
@@ -600,6 +907,36 @@ void DataLoader::_makeFolderNode( QJsonArray& parentArray, const QString& fileNa
     QJsonArray arry;
     obj.insert(DIR, arry);
     parentArray.append(obj);
+}
+
+// Unit conversion: convert degree to arcsec
+bool DataLoader::_deg2arcsec(const QString degree, QString& arcsec) {
+    // convert degree to double
+    bool ok = false;
+    double deg = degree.toDouble(&ok);
+
+    if(!ok) {
+        qDebug() << "Convert degree to double error.";
+        return false;
+    }
+
+    // convert degree to arcsec
+    double arcs = deg * 3600;
+
+    // customized format of arcsec
+    char buf[512];
+    if (arcs >= 60.0){ // arcs >= 60, convert to arcmin
+        snprintf(buf, sizeof(buf), "%.2f\'", arcs/60);
+    } else if (arcs < 60.0 && arcs > 0.1) { // 0.1 < arcs < 60
+        snprintf(buf, sizeof(buf), "%.2f\"", arcs);
+    } else if (arcs <= 0.1 && arcs > 0.01) { // 0.01 < arcs <= 0.1
+        snprintf(buf, sizeof(buf), "%.3f\"", arcs);
+    } else { // arcs <= 0.01
+        snprintf(buf, sizeof(buf), "%.4f\"", arcs);
+    }
+
+    arcsec = QString(buf);
+    return true;
 }
 
 DataLoader::~DataLoader(){
