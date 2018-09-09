@@ -140,8 +140,35 @@ private:
     bool _genCustomizedInfo(CARTA::FileInfoExtended* fileInfoExt,
                          const std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
 
+    // Generate customized stokes & channels info & insert to header entry
+    bool _genStokesChannelsInfo(CARTA::FileInfoExtended* fileInfoExt, const std::map<QString, QString> headerMap);
+
+    // Generate customized pixel unit info & insert to header entry
+    bool _genPixelUnitInfo(CARTA::FileInfoExtended* fileInfoExt, const std::map<QString, QString> headerMap);
+
+    // Generate customized pixel size info & insert to header entry
+    bool _genPixelSizeInfo(CARTA::FileInfoExtended* fileInfoExt, const std::map<QString, QString> headerMap);
+
+    // Generate customized coordinate type info & insert to header entry
+    bool _genCoordTypeInfo(CARTA::FileInfoExtended* fileInfoExt, const std::map<QString, QString> headerMap);
+
+    // Generate customized image reference coordinate info & insert to header entry
+    bool _genImgRefCoordInfo(CARTA::FileInfoExtended* fileInfoExt, const std::map<QString, QString> headerMap);
+
+    // Generate customized celestial frame info & insert to header entry
+    bool _genCelestialFrameInfo(CARTA::FileInfoExtended* fileInfoExt, const std::map<QString, QString> headerMap);
+
+    // Generate customized spectral frame info & insert to header entry
+    bool _genSpectralFrameInfo(CARTA::FileInfoExtended* fileInfoExt, const std::map<QString, QString> headerMap);
+
+    // Generate customized velocity definition info & insert to header entry
+    bool _genVelocityDefInfo(CARTA::FileInfoExtended* fileInfoExt, const std::map<QString, QString> headerMap);
+
     // Insert (key, value) to header entry
     bool _insertHeaderEntry(CARTA::FileInfoExtended* fileInfoExt, const QString key, const QString value);
+
+    // Unit conversion: convert degree to arcsec
+    bool _deg2arcsec(const QString degree, QString& arcsec);
 };
 }
 }
