@@ -491,6 +491,8 @@ void NewServerConnector::openFileSignalSlot(uint32_t eventId, QString fileDir, Q
 
 void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
     bool isZFP, int precision, int numSubsets) {
+    qDebug() << "[NewServerConnector] Set image bounds [x_min, x_max, y_min, y_max, mip]=["
+             << xMin << "," << xMax << "," << yMin << "," << yMax << "," << mip << "], fileId=" << fileId;
 
     // check if need to reset image bounds
     if (xMin != m_imageBounds[fileId][0] || xMax != m_imageBounds[fileId][1] ||
@@ -631,9 +633,9 @@ void NewServerConnector::sendSerializedMessage(QString respName, uint32_t eventI
     size_t requiredSize = 0;
     std::vector<char> result = serializeToArray(respName, eventId, msg, success, requiredSize);
     if (success) {
-        emit jsBinaryMessageResultSignal(result.data(), respName, requiredSize);
+        emit jsBinaryMessageResultSignal(result.data(), respName, eventId, requiredSize);
         // this part will affect the sensitivity of the file browser or file info clipping, should investigated in detail !!
-        qDebug() << "[NewServerConnector] Send event:" << respName << QTime::currentTime().toString();
+        qDebug() << "[NewServerConnector] Send event: Name=" << respName << ", Id=" << eventId << ", Time=" << QTime::currentTime().toString();
     }
 }
 

@@ -167,8 +167,8 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
                     connector, SLOT(imageChannelUpdateSignalSlot(uint32_t, int, int, int)));
 
             // send binary signal to the frontend
-            connect(connector, SIGNAL(jsBinaryMessageResultSignal(char*, QString, size_t)),
-                    this, SLOT(forwardBinaryMessageResult(char*, QString, size_t)));
+            connect(connector, SIGNAL(jsBinaryMessageResultSignal(char*, QString, uint32_t, size_t)),
+                    this, SLOT(forwardBinaryMessageResult(char*, QString, uint32_t, size_t)));
 
             //connect(connector, SIGNAL(onTextMessageSignal(QString)), connector, SLOT(onTextMessage(QString)));
             //connect(connector, SIGNAL(jsTextMessageResultSignal(QString)), this, SLOT(forwardTextMessageResult(QString)) );
@@ -290,7 +290,7 @@ void SessionDispatcher::forwardTextMessageResult(QString result) {
     }
 }
 
-void SessionDispatcher::forwardBinaryMessageResult(char* message, QString respName, size_t length) {
+void SessionDispatcher::forwardBinaryMessageResult(char* message, QString respName, uint32_t eventId, size_t length) {
     uWS::WebSocket<uWS::SERVER> *ws = nullptr;
     NewServerConnector* connector = qobject_cast<NewServerConnector*>(sender());
     std::map<uWS::WebSocket<uWS::SERVER>*, NewServerConnector*>::iterator iter;
@@ -302,7 +302,7 @@ void SessionDispatcher::forwardBinaryMessageResult(char* message, QString respNa
     }
     if (ws) {
         ws->send(message, length, uWS::OpCode::BINARY);
-        qDebug() << "[SessionDispatcher] Send event:" << respName << QTime::currentTime().toString();
+        qDebug() << "[SessionDispatcher] Send event: Name=" << respName << ", Id=" << eventId << ", Time=" << QTime::currentTime().toString();
     } else {
         qDebug() << "[SessionDispatcher] ERROR! Cannot find the corresponding websocket!";
     }
