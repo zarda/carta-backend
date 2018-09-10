@@ -757,6 +757,222 @@ bool DataLoader::_genRemainInfo(std::map<QString, QString>& infoMap,
     return true;
 }
 
+// Generate customized pixel size info according to CDELT1, CDELT2, CUNIT1
+bool DataLoader::_genPixelSizeInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                   const std::map<QString, QString> headerMap) {
+    QString label = "- Pixel size";
+    QString value = "";
+
+    auto cdelt1 = headerMap.find("CDELT1");
+    auto cdelt2 = headerMap.find("CDELT2");
+    if (cdelt1 != headerMap.end() && cdelt2 != headerMap.end()) {
+        // get CDELT1, CDELT2 & convert them to double
+        QString delstr1 = cdelt1->second;
+        QString delstr2 = cdelt2->second;
+        bool ok = false;
+        double d1 = 0, d2 = 0;
+        d1 = (delstr1).toDouble(&ok);
+        if (!ok) {
+            qDebug() << "Convert degree to double error.";
+            return false;
+        }
+        d2 = (delstr2).toDouble(&ok);
+        if (!ok) {
+            qDebug() << "Convert degree to double error.";
+            return false;
+        }
+
+        // get unit & convert CDELT1 CDELT2 to arcsec if unit is degree
+        auto unit = headerMap.find("CUNIT1");
+        if (unit == headerMap.end()) {
+            qDebug() << "Cannot find CUNIT1.";
+            return false;
+        }
+
+        if ((unit->second).contains("deg", Qt::CaseInsensitive)) {
+            QString arcs1 = "", arcs2 = "";
+            if(false == _deg2arcsec(delstr1, arcs1)) {
+                qDebug() << "Convert CDELT1 to arcsec error.";
+                return false;
+            }
+            if(false == _deg2arcsec(delstr2, arcs2)) {
+                qDebug() << "Convert CDELT2 to arcsec error.";
+                return false;
+            }
+            delstr1 = arcs1;
+            delstr2 = arcs2;
+        } else { // not degree
+            delstr1 = delstr1 + " " + unit->second;
+            delstr2 = delstr2 + " " + unit->second;
+        }
+
+        // check whether CDELT1 & CDELT2 are the same(squre)
+        if (abs(d1) == abs(d2)) {
+            value = (d1 > 0) ? delstr1 : delstr2;
+        } else {
+            value = delstr1 + ", " + delstr2;
+        }
+    }
+
+    // insert (label, value) to header entry
+    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
+        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+        return false;
+    }
+
+    return true;
+}
+
+// Generate customized coordinate type info according to CTYPE1, CTYPE2
+bool DataLoader::_genCoordTypeInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                   const std::map<QString, QString> headerMap) {
+    auto ctype1 = headerMap.find("CTYPE1");
+    auto ctype2 = headerMap.find("CTYPE2");
+    if (ctype1 == headerMap.end() || ctype2 == headerMap.end()) {
+        qDebug() << "Cannot find CTYPE1 CTYPE2.";
+        return false;
+    }
+
+    // insert (label, value) to header entry
+    QString label = "- Coordinate type";
+    QString value = ctype1->second + ", " + ctype2->second;
+    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
+        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+        return false;
+    }
+
+    return true;
+}
+
+// Generate customized image reference coordinate info according to CRPIX1, CRPIX2, CRVAL1, CRVAL2, CUNIT1, CUNIT2
+bool DataLoader::_genImgRefCoordInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                    const std::map<QString, QString> headerMap) {
+    auto crpix1 = headerMap.find("CRPIX1");
+    auto crpix2 = headerMap.find("CRPIX2");
+    auto crval1 = headerMap.find("CRVAL1");
+    auto crval2 = headerMap.find("CRVAL2");
+    auto cunit1 = headerMap.find("CUNIT1");
+    auto cunit2 = headerMap.find("CUNIT2");
+
+    if (crpix1 == headerMap.end() || crpix2 == headerMap.end() ||
+        crval1 == headerMap.end() || crval2 == headerMap.end() ||
+        cunit1 == headerMap.end() || cunit2 == headerMap.end()) {
+        qDebug() << "Cannot find CRPIX1 CRPIX2 CRVAL1 CRVAL2 CUNIT1 CUNIT2.";
+        return false;
+    }
+
+     // insert (label, value) to header entry
+    QString label = "- Image reference coordinate";
+    QString value = "[" + crpix1->second + ", " + crpix2->second + "] [" +
+                    crval1->second + " " + cunit1->second + ", " + crval2->second + " " + cunit2->second + "]";
+    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
+        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+        return false;
+    }
+
+    return true;
+}
+
+// Generate customized celestial frame according to RADESYS, EQUINOX
+bool DataLoader::_genCelestialFrameInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                        const std::map<QString, QString> headerMap) {
+    auto radesys = headerMap.find("RADESYS");
+    auto equinox = headerMap.find("EQUINOX");
+    if (radesys == headerMap.end() || equinox == headerMap.end()) {
+        qDebug() << "Cannot find RADESYS EQUINOX.";
+        return false;
+    }
+
+    // get value of RADESYS, EQUINOX
+    QString rad = radesys->second;
+    QString equ = equinox->second;
+
+    // FK4 => B1950, FK5 => J2000, others => not modified
+    if (rad.contains("FK4", Qt::CaseInsensitive)) {
+        bool ok = false;
+        int e = equ.toDouble(&ok);
+        if (!ok) {return false;}
+        equ = "B" + QString(std::to_string(e).c_str());
+    } else if (rad.contains("FK5", Qt::CaseInsensitive)) {
+        bool ok = false;
+        int e = equ.toDouble(&ok);
+        if (!ok) {return false;}
+        equ = "J" + QString(std::to_string(e).c_str());
+    }
+
+    // insert (label, value) to header entry
+    QString label = "- Celestial frame";
+    QString value = rad + ", " + equ;
+    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
+        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+        return false;
+    }
+
+    return true;
+}
+
+// Generate customized spectral frame according to SPECSYS
+bool DataLoader::_genSpectralFrameInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                        const std::map<QString, QString> headerMap) {
+    auto specsys = headerMap.find("SPECSYS");
+    if (specsys == headerMap.end()) {
+        qDebug() << "Cannot find SPECSYS.";
+        return false;
+    }
+
+    // insert (label, value) to header entry
+    QString label = "- Spectral frame";
+    QString value = specsys->second;
+    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
+        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+        return false;
+    }
+
+    return true;
+}
+
+// Generate customized velocity definition according to VELREF
+bool DataLoader::_genVelocityDefInfo(CARTA::FileInfoExtended* fileInfoExt,
+                                        const std::map<QString, QString> headerMap) {
+    auto velref = headerMap.find("VELREF");
+    if (velref == headerMap.end()) {
+        qDebug() << "Cannot find VELREF.";
+        return false;
+    }
+
+    // insert (label, value) to header entry
+    QString label = "- Velocity definition";
+    QString value = velref->second;
+    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
+        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+        return false;
+    }
+
+    return true;
+}
+
+//  Insert fits header to header entry, the fits structure is like:
+//  NAXIS1 = 1024
+//  CTYPE1 = 'RA---TAN'
+//  CDELT1 = -9.722222222222E-07
+//   ...etc
+bool DataLoader::_insertHeaderEntry(CARTA::FileInfoExtended* fileInfoExt, const QString key, const QString value) {
+    // validate parameters
+    if (nullptr == fileInfoExt) {
+        return false;
+    }
+
+    // insert (key, value) to header entry
+    CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
+    if (nullptr == headerEntry) {
+        return false;
+    }
+    headerEntry->set_name(key.toLocal8Bit().constData());
+    headerEntry->set_value(value.toLocal8Bit().constData());
+
+    return true;
+}
+
 void DataLoader::_initCallbacks(){
 
     //Callback for returning a list of data files that can be loaded.
