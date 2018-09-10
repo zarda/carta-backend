@@ -921,7 +921,7 @@ std::vector<int32_t> DataSource::_getNanEncodingsBlock(std::vector<float>& array
     std::vector<int32_t> encodedArray;
 
     for (auto i = offset; i < offset + length; i++) {
-        bool current = isnan(array[i]);
+        bool current = std::isnan(array[i]);
         if (current != prev) {
             encodedArray.push_back(i - prevIndex);
             prevIndex = i;
@@ -944,7 +944,7 @@ std::vector<int32_t> DataSource::_getNanEncodingsBlock(std::vector<float>& array
                 for (int x = 0; x < blockWidth; x++) {
                     for (int y = 0; y < blockHeight; y++) {
                         float v = array[blockStart + (y * w) + x];
-                        if (!isnan(v)) {
+                        if (!std::isnan(v)) {
                             validCount++;
                             sum += v;
                         }
@@ -957,7 +957,7 @@ std::vector<int32_t> DataSource::_getNanEncodingsBlock(std::vector<float>& array
                     for (int x = 0; x < blockWidth; x++) {
                         for (int y = 0; y < blockHeight; y++) {
                             float v = array[blockStart + (y * w) + x];
-                            if (isnan(v)) {
+                            if (std::isnan(v)) {
                                 array[blockStart + (y * w) + x] = average;
                             }
                         } // end of blockHeight loop
