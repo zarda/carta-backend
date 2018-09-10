@@ -298,17 +298,29 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
         }
     }
 
-    // FileInfoExtended part 1: add statistic information to fileInfoExt using ImageStats plugin
-    if (false == _getStatisticInfo(fileInfoExt, image)) {
+    // generate information and insert to fileInfoExt
+    // Part 1: get statistic information using ImageStats plugin
+    // Part 2: generate some customized information
+    std::map<QString, QString> infoMap = {};
+    if (false == _getStatisticInfo(infoMap, image)) {
         qDebug() << "[File Info] Get statistic informtion error.";
-    }
-
-    // FileInfoExtended part 2: generate some customized information to fileInfoExt
-    if (false == _genCustomizedInfo(fileInfoExt, image)) {
+    }  
+    if (false == _genCustomizedInfo(infoMap, image)) {
         qDebug() << "[File Info] Generate file information error.";
     }
 
-    // FileInfoExtended part 3: add all fits headers to fileInfoExt
+    // insert Part 1, Part 2 to fileInfoExt
+    for (auto iter = infoMap.begin(); iter != infoMap.end(); iter++) {
+        auto *infoEntries = fileInfoExt->add_computed_entries();
+        if (nullptr != infoEntries) {
+            infoEntries->set_name((iter->first).toLocal8Bit().constData());
+            infoEntries->set_value((iter->second).toLocal8Bit().constData());
+        } else {
+            qDebug() << "Insert info entry to fileInfoExt error.";
+        }
+    }
+
+    // Part 3: add all fits headers to fileInfoExt
     if (false == getFitsHeaders(fileInfoExt, image)) {
         qDebug() << "[File Info] Get fits headers error!";
     }
@@ -337,20 +349,24 @@ bool DataLoader::getFitsHeaders(CARTA::FileInfoExtended* fileInfoExt,
     
     // traverse whole map to return all entries for frontend to render (AST)
     for (auto iter = headerMap.begin(); iter != headerMap.end(); iter++) {
-        if (false == _insertHeaderEntry(fileInfoExt, iter->first, iter->second)) {
+        // insert (key, value) to header entry
+        CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
+        if (nullptr == headerEntry) {
             qDebug() << "Insert (" << iter->first << ", " << iter->second << ") to header entry error.";
             return false;
         }
+        headerEntry->set_name((iter->first).toLocal8Bit().constData());
+        headerEntry->set_value((iter->second).toLocal8Bit().constData());
     }
 
     return true;
 }
 
 // Get statistic informtion using ImageStats plugin
-bool DataLoader::_getStatisticInfo(CARTA::FileInfoExtended* fileInfoExt,
+bool DataLoader::_getStatisticInfo(std::map<QString, QString>& infoMap,
                                  const std::shared_ptr<Carta::Lib::Image::ImageInterface> image) {
-    // validate parameters
-    if (nullptr == fileInfoExt || nullptr == image) {
+    // validate parameter
+    if (nullptr == image) {
         return false;
     }
 
@@ -370,17 +386,14 @@ bool DataLoader::_getStatisticInfo(CARTA::FileInfoExtended* fileInfoExt,
                 -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
 
         // lamda function for traverse
-        auto lam = [=] (const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data) {
+        auto lam = [&] (const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data) {
             //An array for each image
             for (int i = 0; i < data.size(); i++) {
                 // Each element of the image array contains an array of statistics.
                 // Go through each set of statistics for the image.
                 for (int j = 0; j < data[i].size(); j++) {
                     for (int k = 0; k < data[i][j].size(); k++) {
-                        QString label = "- " + data[i][j][k].getLabel();
-                        QString value = data[i][j][k].getValue();
-                        if (false == _insertHeaderEntry(fileInfoExt, label, value))
-                            qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+                        infoMap[data[i][j][k].getLabel()] = data[i][j][k].getValue();
                     }
                 }
             }
@@ -399,11 +412,10 @@ bool DataLoader::_getStatisticInfo(CARTA::FileInfoExtended* fileInfoExt,
 }
 
 // Generate customized file information for human readiblity by using some fits headers
-bool DataLoader::_genCustomizedInfo(CARTA::FileInfoExtended* fileInfoExt,
+bool DataLoader::_genCustomizedInfo(std::map<QString, QString>& infoMap,
                                  const std::shared_ptr<Carta::Lib::Image::ImageInterface> image) {
-    // validate parameters
-    if (nullptr == fileInfoExt || nullptr == image) {
-        qDebug() << "nullptr of fileInfoExt, image.";
+    // validate parameter
+    if (nullptr == image) {
         return false;
     }
 
@@ -412,52 +424,49 @@ bool DataLoader::_genCustomizedInfo(CARTA::FileInfoExtended* fileInfoExt,
     fhExtractor.setInput(image);
     std::map<QString, QString> headerMap = fhExtractor.getHeaderMap();
 
-    // 1. Generate customized stokes + channels info & insert to header entry
-    if (false == _genStokesChannelsInfo(fileInfoExt, headerMap)) {
-        qDebug() << "Generate stokes + channels info & insert to header entry failed.";
+    // generate customized info 1~6
+    // 1. Generate customized stokes + channels info & insert to entry
+    if (false == _genStokesChannelsInfo(infoMap, headerMap)) {
+        qDebug() << "Generate stokes + channels info & insert to entry failed.";
     }
 
-    // 2. Generate customized pixel unit info & insert to header entry
-    if (false == _genPixelUnitInfo(fileInfoExt, headerMap)) {
-        qDebug() << "Generate pixel unit info & insert to header entry failed.";
+    // 2. Generate customized pixel size info & insert to entry
+    if (false == _genPixelSizeInfo(infoMap, headerMap)) {
+        qDebug() << "Generate pixel size info & insert to entry failed.";
     }
 
-    // 3. Generate customized pixel size info & insert to header entry
-    if (false == _genPixelSizeInfo(fileInfoExt, headerMap)) {
-        qDebug() << "Generate pixel size info & insert to header entry failed.";
+    // 3. Generate customized coordinate type info & insert to entry
+    if (false == _genCoordTypeInfo(infoMap, headerMap)) {
+        qDebug() << "Generate coordinate type info & insert to entry failed.";
     }
 
-    // 4. Generate customized coordinate type info & insert to header entry
-    if (false == _genCoordTypeInfo(fileInfoExt, headerMap)) {
-        qDebug() << "Generate coordinate type info & insert to header entry failed.";
+    // 4. Generate customized image reference coordinate info & insert to entry
+    if (false == _genImgRefCoordInfo(infoMap, headerMap)) {
+        qDebug() << "Generate image reference coordinate info & insert to entry failed.";
     }
 
-    // 5. Generate customized image reference coordinate info & insert to header entry
-    if (false == _genImgRefCoordInfo(fileInfoExt, headerMap)) {
-        qDebug() << "Generate image reference coordinate info & insert to header entry failed.";
+    // 5. Generate customized celestial frame info & insert to entry
+    if (false == _genCelestialFrameInfo(infoMap, headerMap)) {
+        qDebug() << "Generate celestial frame info & insert to entry failed.";
     }
 
-    // 6. Generate customized celestial frame info & insert to header entry
-    if (false == _genCelestialFrameInfo(fileInfoExt, headerMap)) {
-        qDebug() << "Generate celestial frame info & insert to header entry failed.";
-    }
-
-    // 7. Generate customized spectral frame info & insert to header entry
-    if (false == _genSpectralFrameInfo(fileInfoExt, headerMap)) {
-        qDebug() << "Generate spectral frame info & insert to header entry failed.";
-    }
-
-    // 8. Generate customized velocity definition info & insert to header entry
-    if (false == _genVelocityDefInfo(fileInfoExt, headerMap)) {
-        qDebug() << "Generate velocity definition info & insert to header entry failed.";
-    }
+    // 6. Generate customized velocity definition info & insert to entry
+    if (false == _genRemainInfo(infoMap, headerMap)) {
+        qDebug() << "Generate velocity definition info & insert to entry failed.";
+    }    
 
     return true;
 }
 
 // Generate customized stokes & channels info according to CTYPE3, CTYPE4, NAXIS3, NAXIS4
-bool DataLoader::_genStokesChannelsInfo(CARTA::FileInfoExtended* fileInfoExt,
+bool DataLoader::_genStokesChannelsInfo(std::map<QString, QString>& infoMap,
                                    const std::map<QString, QString> headerMap) {
+    // check whether headerMap is empty
+    if (headerMap.empty()) {
+        qDebug() << "Empty argument: headerMap.";
+        return false;
+    }
+
     auto naxis = headerMap.find("NAXIS");
     if (naxis == headerMap.end()) {
         qDebug() << "Cannot find NAXIS.";
@@ -507,50 +516,29 @@ bool DataLoader::_genStokesChannelsInfo(CARTA::FileInfoExtended* fileInfoExt,
             channels = naxis4->second;
         }
 
-        // insert stokes, channels to header entry if they are not "NA"
+        // insert stokes, channels to info entry if they are not "NA"
         if ("NA" != stokes) {
-            if (false == _insertHeaderEntry(fileInfoExt, "- Number of Stokes", stokes)) {
-                qDebug() << "Insert (- Number of Stokes, " << stokes << ") to header entry error.";
-                return false;
-            }
+            infoMap["Number of Stokes"] = stokes;
         }
         if ("NA" != channels) {
-            if (false == _insertHeaderEntry(fileInfoExt, "- Number of Channels", channels)) {
-                qDebug() << "Insert (- Number of Channels, " << channels << ") to header entry error.";
-                return false;
-            }
+            infoMap["Number of Channels"] = channels;
         }
-    }
-
-    return true;
-}
-
-// Generate customized pixel unit info according to BUNIT
-bool DataLoader::_genPixelUnitInfo(CARTA::FileInfoExtended* fileInfoExt,
-                                   const std::map<QString, QString> headerMap) {
-    auto bunit = headerMap.find("BUNIT");
-    if (bunit == headerMap.end()) {
-        qDebug() << "Cannot find BUNIT.";
-        return false;
-    }
-
-    // insert (label, value) to header entry
-    QString label = "- Pixel unit";
-    QString value = bunit->second;
-    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
-        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
-        return false;
     }
 
     return true;
 }
 
 // Generate customized pixel size info according to CDELT1, CDELT2, CUNIT1
-bool DataLoader::_genPixelSizeInfo(CARTA::FileInfoExtended* fileInfoExt,
+bool DataLoader::_genPixelSizeInfo(std::map<QString, QString>& infoMap,
                                    const std::map<QString, QString> headerMap) {
-    QString label = "- Pixel size";
-    QString value = "";
+    // check whether headerMap is empty
+    if (headerMap.empty()) {
+        qDebug() << "Empty argument: headerMap.";
+        return false;
+    }
 
+    // generate value
+    QString value = "";
     auto cdelt1 = headerMap.find("CDELT1");
     auto cdelt2 = headerMap.find("CDELT2");
     if (cdelt1 != headerMap.end() && cdelt2 != headerMap.end()) {
@@ -602,18 +590,21 @@ bool DataLoader::_genPixelSizeInfo(CARTA::FileInfoExtended* fileInfoExt,
         }
     }
 
-    // insert (label, value) to header entry
-    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
-        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
-        return false;
-    }
+    // insert (label, value) to info entry
+    infoMap["Pixel size"] = value;
 
     return true;
 }
 
 // Generate customized coordinate type info according to CTYPE1, CTYPE2
-bool DataLoader::_genCoordTypeInfo(CARTA::FileInfoExtended* fileInfoExt,
+bool DataLoader::_genCoordTypeInfo(std::map<QString, QString>& infoMap,
                                    const std::map<QString, QString> headerMap) {
+    // check whether headerMap is empty
+    if (headerMap.empty()) {
+        qDebug() << "Empty argument: headerMap.";
+        return false;
+    }
+
     auto ctype1 = headerMap.find("CTYPE1");
     auto ctype2 = headerMap.find("CTYPE2");
     if (ctype1 == headerMap.end() || ctype2 == headerMap.end()) {
@@ -621,20 +612,21 @@ bool DataLoader::_genCoordTypeInfo(CARTA::FileInfoExtended* fileInfoExt,
         return false;
     }
 
-    // insert (label, value) to header entry
-    QString label = "- Coordinate type";
-    QString value = ctype1->second + ", " + ctype2->second;
-    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
-        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
-        return false;
-    }
+    // insert (label, value) to info entry
+    infoMap["Coordinate type"] = ctype1->second + ", " + ctype2->second;
 
     return true;
 }
 
 // Generate customized image reference coordinate info according to CRPIX1, CRPIX2, CRVAL1, CRVAL2, CUNIT1, CUNIT2
-bool DataLoader::_genImgRefCoordInfo(CARTA::FileInfoExtended* fileInfoExt,
+bool DataLoader::_genImgRefCoordInfo(std::map<QString, QString>& infoMap,
                                     const std::map<QString, QString> headerMap) {
+    // check whether headerMap is empty
+    if (headerMap.empty()) {
+        qDebug() << "Empty argument: headerMap.";
+        return false;
+    }
+
     auto crpix1 = headerMap.find("CRPIX1");
     auto crpix2 = headerMap.find("CRPIX2");
     auto crval1 = headerMap.find("CRVAL1");
@@ -642,28 +634,63 @@ bool DataLoader::_genImgRefCoordInfo(CARTA::FileInfoExtended* fileInfoExt,
     auto cunit1 = headerMap.find("CUNIT1");
     auto cunit2 = headerMap.find("CUNIT2");
 
+    // check whether corresponding fields can be found in map
     if (crpix1 == headerMap.end() || crpix2 == headerMap.end() ||
         crval1 == headerMap.end() || crval2 == headerMap.end() ||
         cunit1 == headerMap.end() || cunit2 == headerMap.end()) {
         qDebug() << "Cannot find CRPIX1 CRPIX2 CRVAL1 CRVAL2 CUNIT1 CUNIT2.";
         return false;
     }
+    
+    // convert CRPIX1, CRPIX2, CRVAL1, CRVAL2 to numeric value
+    bool ok = false;
+    double p1 = (crpix1->second).toDouble(&ok);
+    if(!ok) {qDebug() << "Convert CRPIX1 to double error."; return false;}
+    double p2 = (crpix2->second).toDouble(&ok);
+    if(!ok) {qDebug() << "Convert CRPIX2 to double error."; return false;}
+    double v1 = (crval1->second).toDouble(&ok);
+    if(!ok) {qDebug() << "Convert CRVAL1 to double error."; return false;}
+    double v2 = (crval2->second).toDouble(&ok);
+    if(!ok) {qDebug() << "Convert CRVAL2 to double error."; return false;}
 
-     // insert (label, value) to header entry
-    QString label = "- Image reference coordinate";
-    QString value = "[" + crpix1->second + ", " + crpix2->second + "] [" +
-                    crval1->second + " " + cunit1->second + ", " + crval2->second + " " + cunit2->second + "]";
-    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
-        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
-        return false;
+    // set CRPIX1, CRPIX2, CRVAL1, CRVAL2 with specific format
+    char buf[512];
+    snprintf(buf, sizeof(buf), "%d", p1);
+    QString pix1Str = QString(buf);
+    snprintf(buf, sizeof(buf), "%d", p2);
+    QString pix2Str = QString(buf);
+    snprintf(buf, sizeof(buf), "%.4f", v1);
+    QString val1Str = QString(buf);
+    snprintf(buf, sizeof(buf), "%.4f", v2);
+    QString val2Str = QString(buf);
+
+    // convert to arcsec if unit is degree
+    QString arcsecStr = "";
+    if ((cunit1->second).contains("deg", Qt::CaseInsensitive)) {
+        QString tmp1 = "", tmp2 = "";
+        if (false == _deg2arcsec(crval1->second, tmp1)) {return false;}
+        if (false == _deg2arcsec(crval2->second, tmp2)) {return false;}
+        arcsecStr = " [" + tmp1 + ", " + tmp2 + "]";
     }
+
+    // insert (label, value) to info entry
+    QString value = "[" + pix1Str + ", " + pix2Str + "] [" +
+                    val1Str + " " + cunit1->second + ", " + val2Str + " " + cunit2->second + "]" +
+                    arcsecStr;
+    infoMap["Image reference coordinate"] = value;
 
     return true;
 }
 
 // Generate customized celestial frame according to RADESYS, EQUINOX
-bool DataLoader::_genCelestialFrameInfo(CARTA::FileInfoExtended* fileInfoExt,
+bool DataLoader::_genCelestialFrameInfo(std::map<QString, QString>& infoMap,
                                         const std::map<QString, QString> headerMap) {
+    // check whether headerMap is empty
+    if (headerMap.empty()) {
+        qDebug() << "Empty argument: headerMap.";
+        return false;
+    }
+
     auto radesys = headerMap.find("RADESYS");
     auto equinox = headerMap.find("EQUINOX");
     if (radesys == headerMap.end() || equinox == headerMap.end()) {
@@ -675,7 +702,7 @@ bool DataLoader::_genCelestialFrameInfo(CARTA::FileInfoExtended* fileInfoExt,
     QString rad = radesys->second;
     QString equ = equinox->second;
 
-    // FK4 => B1950, FK5 => J2000, others => not modified
+    // FK4 => B1950, FK5 => J2000, others => not modified 
     if (rad.contains("FK4", Qt::CaseInsensitive)) {
         bool ok = false;
         int e = equ.toDouble(&ok);
@@ -688,75 +715,44 @@ bool DataLoader::_genCelestialFrameInfo(CARTA::FileInfoExtended* fileInfoExt,
         equ = "J" + QString(std::to_string(e).c_str());
     }
 
-    // insert (label, value) to header entry
-    QString label = "- Celestial frame";
-    QString value = rad + ", " + equ;
-    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
-        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
-        return false;
-    }
+    // insert (label, value) to info entry
+    infoMap["Celestial frame"] = rad + ", " + equ;
 
     return true;
 }
 
-// Generate customized spectral frame according to SPECSYS
-bool DataLoader::_genSpectralFrameInfo(CARTA::FileInfoExtended* fileInfoExt,
-                                        const std::map<QString, QString> headerMap) {
-    auto specsys = headerMap.find("SPECSYS");
-    if (specsys == headerMap.end()) {
-        qDebug() << "Cannot find SPECSYS.";
+// Generate customized remaining info according to BUNIT, SPECSYS, VELREF
+bool DataLoader::_genRemainInfo(std::map<QString, QString>& infoMap,
+                                   const std::map<QString, QString> headerMap) {
+    // check whether headerMap is empty
+    if (headerMap.empty()) {
+        qDebug() << "Empty argument: headerMap.";
         return false;
     }
-
-    // insert (label, value) to header entry
-    QString label = "- Spectral frame";
-    QString value = specsys->second;
-    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
-        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+    
+    // find BUNIT & insert to entry
+    auto found = headerMap.find("BUNIT");
+    if (found == headerMap.end()) {
+        qDebug() << "BUNIT not found.";
         return false;
     }
+    infoMap["Pixel unit"] = found->second;
 
-    return true;
-}
-
-// Generate customized velocity definition according to VELREF
-bool DataLoader::_genVelocityDefInfo(CARTA::FileInfoExtended* fileInfoExt,
-                                        const std::map<QString, QString> headerMap) {
-    auto velref = headerMap.find("VELREF");
-    if (velref == headerMap.end()) {
-        qDebug() << "Cannot find VELREF.";
+    // find SPECSYS & insert to entry
+    found = headerMap.find("SPECSYS");
+    if (found == headerMap.end()) {
+        qDebug() << "SPECSYS not found.";
         return false;
     }
+    infoMap["Spectral frame"] = found->second;
 
-    // insert (label, value) to header entry
-    QString label = "- Velocity definition";
-    QString value = velref->second;
-    if (false == _insertHeaderEntry(fileInfoExt, label, value)) {
-        qDebug() << "Insert (" << label << ", " << value << ") to header entry error.";
+    // find VELREF & insert to entry
+    found = headerMap.find("VELREF");
+    if (found == headerMap.end()) {
+        qDebug() << "VELREF not found.";
         return false;
     }
-
-    return true;
-}
-
-//  Insert fits header to header entry, the fits structure is like:
-//  NAXIS1 = 1024
-//  CTYPE1 = 'RA---TAN'
-//  CDELT1 = -9.722222222222E-07
-//   ...etc
-bool DataLoader::_insertHeaderEntry(CARTA::FileInfoExtended* fileInfoExt, const QString key, const QString value) {
-    // validate parameters
-    if (nullptr == fileInfoExt) {
-        return false;
-    }
-
-    // insert (key, value) to header entry
-    CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
-    if (nullptr == headerEntry) {
-        return false;
-    }
-    headerEntry->set_name(key.toLocal8Bit().constData());
-    headerEntry->set_value(value.toLocal8Bit().constData());
+    infoMap["Velocity definition"] = found->second;
 
     return true;
 }
@@ -925,7 +921,9 @@ bool DataLoader::_deg2arcsec(const QString degree, QString& arcsec) {
 
     // customized format of arcsec
     char buf[512];
-    if (arcs >= 60.0){ // arcs >= 60, convert to arcmin
+    if (arcs >= 3600) { // arcs >= 3600, convert to archour
+        snprintf(buf, sizeof(buf), "%.2f\'", arcs/3600);
+    } else if (arcs < 3600 && arcs >= 60.0){ // arcs >= 60, convert to arcmin
         snprintf(buf, sizeof(buf), "%.2f\'", arcs/60);
     } else if (arcs < 60.0 && arcs > 0.1) { // 0.1 < arcs < 60
         snprintf(buf, sizeof(buf), "%.2f\"", arcs);
