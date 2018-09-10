@@ -83,6 +83,27 @@ public:
         // \todo we'll have to embed  priority into the value, e.g. first 8 bytes?
     } // setEntry
 
+    /// for array IO
+        /// read array
+        virtual void
+        setEntry( const std::string & table, const std::vector<double> & value) override { }
+
+        /// write array
+        virtual bool
+        readEntry( const std::string & table, std::vector<double> & Value) override { return false;}
+
+        /// create empty array
+        virtual bool
+        createTable( const std::string & table) override { }
+
+        /// delete array
+        virtual bool
+        deleteTable( const std::string & table) override { return false;}
+
+        /// list name of arraies
+        virtual void
+        listTable(std::vector<std::string> & Tables) override { }
+
     static
     Carta::Lib::IPCache::SharedPtr
     getCacheSingleton( QString dirPath)
