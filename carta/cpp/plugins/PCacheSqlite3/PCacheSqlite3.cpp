@@ -45,11 +45,21 @@ public:
             return;
         }
         QSqlQuery query( m_db );
-        query.prepare( "DELETE FROM db;" );
-
-        if ( ! query.exec() ) {
-            qWarning() << "Delete query failed.";
+        if ( ! query.exec("PRAGMA WRITABLE_SCHEMA = 1;") ) {
+            qWarning() << "Unlock DB permission failed.";
         }
+        if ( ! query.exec("DELETE FROM sqlite_master WHERE TYPE IN ('table');") ) {
+            qWarning() << "Delete all tables failed.";
+        }
+        if ( ! query.exec("PRAGMA WRITABLE_SCHEMA = 0;") ) {
+            qWarning() << "Lock DB permission failed.";
+        }
+        qWarning() << "All tables were deleted.";
+        /// reduce disk usage
+        if ( ! query.exec("VACUUM;") ) {
+            qWarning() << "Vacuum failed.";
+        }
+
     } // deleteAll
 
     virtual bool
