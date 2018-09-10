@@ -158,6 +158,9 @@ private:
     // Generate customized remaining info & insert to entry
     bool _genRemainInfo(std::map<QString, QString>& infoMap, const std::map<QString, QString> headerMap);
 
+    // customized arrange file info
+    bool _arrangeFileInfo(const std::map<QString, QString> infoMap, std::vector<std::vector<QString>>& pairs);
+
     // Unit conversion: convert degree to arcsec
     bool _deg2arcsec(const QString degree, QString& arcsec);
 };

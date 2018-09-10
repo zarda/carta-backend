@@ -309,12 +309,18 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
         qDebug() << "[File Info] Generate file information error.";
     }
 
+    // customized arrange file info into an array[] of {key, value}
+    std::vector<std::vector<QString>> pairs = {};
+    if (false == _arrangeFileInfo(infoMap, pairs)) {
+        qDebug() << "Sort file info entry error.";
+    }
+
     // insert Part 1, Part 2 to fileInfoExt
-    for (auto iter = infoMap.begin(); iter != infoMap.end(); iter++) {
+    for (auto iter = pairs.begin(); iter != pairs.end(); iter++) {
         auto *infoEntries = fileInfoExt->add_computed_entries();
         if (nullptr != infoEntries) {
-            infoEntries->set_name((iter->first).toLocal8Bit().constData());
-            infoEntries->set_value((iter->second).toLocal8Bit().constData());
+            infoEntries->set_name((*iter)[0].toLocal8Bit().constData());
+            infoEntries->set_value((*iter)[1].toLocal8Bit().constData());
         } else {
             qDebug() << "Insert info entry to fileInfoExt error.";
         }
@@ -667,9 +673,21 @@ bool DataLoader::_genImgRefCoordInfo(std::map<QString, QString>& infoMap,
     // convert to arcsec if unit is degree
     QString arcsecStr = "";
     if ((cunit1->second).contains("deg", Qt::CaseInsensitive)) {
-        QString tmp1 = "", tmp2 = "";
-        if (false == _deg2arcsec(crval1->second, tmp1)) {return false;}
-        if (false == _deg2arcsec(crval2->second, tmp2)) {return false;}
+        char buf[512];
+        QString tmp1, tmp2;
+
+        int ra_hh = (int)(v1 / 15.0);
+        int ra_mm = (int)((v1 / 15.0 - ra_hh) * 60);
+        double ra_ss = (((v1 / 15.0 - ra_hh) * 60) - ra_mm) * 60;
+        snprintf(buf, sizeof(buf), "%d:%d:%.4f", ra_hh, ra_mm, ra_ss);
+        tmp1 = QString(buf);
+
+        int dec_dd = (int)v2;
+        int dec_mm = (int)((v2 - dec_dd) * 60);
+        double dec_ss = (((v2 - dec_dd) * 60) - dec_mm) * 60;
+        snprintf(buf, sizeof(buf), "%d:%d:%.4f", dec_dd, abs(dec_mm), abs(dec_ss));
+        tmp2 = QString(buf);
+
         arcsecStr = " [" + tmp1 + ", " + tmp2 + "]";
     }
 
@@ -905,6 +923,45 @@ void DataLoader::_makeFolderNode( QJsonArray& parentArray, const QString& fileNa
     parentArray.append(obj);
 }
 
+// customized arrange file info
+bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std::vector<std::vector<QString>>& pairs){
+    // check whether headerMap is empty
+    if (infoMap.empty()) {
+        qDebug() << "Empty argument: infoMap.";
+        return false;
+    }
+
+    // sort file info by the following order
+    const std::vector<QString> keys = {
+        "Name",
+        "Shape",
+        "Number of Stokes",
+        "Number of Channels",
+        "Image reference coordinate",
+        "RA Range",
+        "Dec Range",
+        "Frequency Range",
+        "Velocity Range",
+        "Celestial frame",
+        "Coordinate type",
+        "Spectral frame",
+        "Velocity definition",
+        "Restoring Beam",
+        "Beam Area",
+        "Pixel unit",
+        "Pixel size"
+    };
+
+    for (auto iter = keys.begin(); iter != keys.end(); iter++) {
+        auto found = infoMap.find(*iter);
+        if (found != infoMap.end()) { // found key
+            pairs.push_back({found->first, found->second});
+        }
+    }
+
+    return true;
+}
+
 // Unit conversion: convert degree to arcsec
 bool DataLoader::_deg2arcsec(const QString degree, QString& arcsec) {
     // convert degree to double
@@ -916,14 +973,12 @@ bool DataLoader::_deg2arcsec(const QString degree, QString& arcsec) {
         return false;
     }
 
-    // convert degree to arcsec
+    // 1 degree = 60 arcmin = 60*60 arcsec
     double arcs = deg * 3600;
 
     // customized format of arcsec
     char buf[512];
-    if (arcs >= 3600) { // arcs >= 3600, convert to archour
-        snprintf(buf, sizeof(buf), "%.2f\'", arcs/3600);
-    } else if (arcs < 3600 && arcs >= 60.0){ // arcs >= 60, convert to arcmin
+    if (arcs >= 60.0){ // arcs >= 60, convert to arcmin
         snprintf(buf, sizeof(buf), "%.2f\'", arcs/60);
     } else if (arcs < 60.0 && arcs > 0.1) { // 0.1 < arcs < 60
         snprintf(buf, sizeof(buf), "%.2f\"", arcs);
