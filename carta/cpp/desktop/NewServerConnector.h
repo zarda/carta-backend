@@ -79,12 +79,12 @@ public slots:
     void startViewerSlot(const QString & sessionID);
     void onTextMessage(QString message);
     void onBinaryMessageSignalSlot(char* message, size_t length);
-    void sendSerializedMessage(char* message, QString respName, PBMSharedPtr msg);
+    void sendSerializedMessage(QString respName, uint32_t eventId, PBMSharedPtr msg);
 
-    void imageChannelUpdateSignalSlot(char* message, int fileId, int channel, int stoke);
-    void setImageViewSignalSlot(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
+    void imageChannelUpdateSignalSlot(uint32_t eventId, int fileId, int channel, int stoke);
+    void setImageViewSignalSlot(uint32_t eventId, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
                                 bool isZFP, int precision, int numSubsets);
-    void openFileSignalSlot(char* message, QString fileDir, QString fileName, int fileId, int regionId);
+    void openFileSignalSlot(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId);
 
 signals:
 
@@ -98,10 +98,10 @@ signals:
     void jsTextMessageResultSignal(QString result);
     void jsBinaryMessageResultSignal(char* message, QString respName, size_t length);
 
-    void imageChannelUpdateSignal(char* message, int fileId, int channel, int stoke);
-    void setImageViewSignal(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
+    void imageChannelUpdateSignal(uint32_t eventId, int fileId, int channel, int stoke);
+    void setImageViewSignal(uint32_t eventId, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
                             bool isZFP, int precision, int numSubsets);
-    void openFileSignal(char* message, QString fileDir, QString fileName, int fileId, int regionId);
+    void openFileSignal(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId);
 
     // /// we emit this signal when state is changed (either by c++ or by javascript)
     // /// we listen to this signal, and so does javascript
