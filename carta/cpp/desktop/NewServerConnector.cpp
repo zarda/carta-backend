@@ -442,8 +442,8 @@ void NewServerConnector::openFileSignalSlot(char* message, QString fileDir, QStr
     // FileInfoExtended: return all entries (MUST all) for frontend to render (AST)
     Carta::State::ObjectManager* objMan2 = Carta::State::ObjectManager::objectManager();
     Carta::Data::DataLoader *dataLoader = objMan2->createObject<Carta::Data::DataLoader>();
-    if (false == dataLoader->extractFitsInfo(fileInfoExt, image, respName)) {
-        qDebug() << "[NewServerConnector] Extract FileInfoExtended info error!";
+    if (false == dataLoader->getFitsHeaders(fileInfoExt, image)) {
+        qDebug() << "[NewServerConnector] Get fits headers error!";
     }
 
     // we cannot handle the request so far, return a fake response.

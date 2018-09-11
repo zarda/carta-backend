@@ -47,7 +47,6 @@ DataLoader::DataLoader( const QString& path, const QString& id ):
     CartaObject( CLASS_NAME, path, id ){
 }
 
-
 QString DataLoader::getData(const QString& dirName, const QString& sessionId) {
     QString rootDirName = dirName;
     bool securityRestricted = isSecurityRestricted();
@@ -123,7 +122,6 @@ QStringList DataLoader::getShortNames( const QStringList& longNames ) const {
     }
     return shortNames;
 }
-
 
 QString DataLoader::getLongName( const QString& shortName, const QString& sessionId ) const {
     QString longName = shortName;
@@ -256,7 +254,7 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     QString fileFullName = fileDir + "/" + fileName;
 
     QString file = fileFullName.trimmed();
-    auto res = Globals::instance()->pluginManager()->prepare <Carta::Lib::Hooks::LoadAstroImage>(file).first();
+    auto res = Globals::instance()->pluginManager()->prepare<Carta::Lib::Hooks::LoadAstroImage>(file).first();
     std::shared_ptr<Carta::Lib::Image::ImageInterface> image;
     if (!res.isNull()) {
         image = res.val();
@@ -265,24 +263,16 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
         return nullptr;
     }
 
-    // Since the statistical plugin requires a vector of ImageInterface
-    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface> > images;
-    images.push_back(image);
-
+    // FileInfo: set name & type
     CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
-
-    // FileInfo: name
     fileInfo->set_name(fileInfoRequest.file());
-
-    // FileInfo: type
     if (image->getType() == "FITSImage") {
         fileInfo->set_type(CARTA::FileType::FITS);
     } else {
         fileInfo->set_type(CARTA::FileType::CASA);
     }
-    // fileInfo->add_hdu_list(openFile.hdu());
 
-    // FileInfoExtended part 1: add extended information
+    // FileInfoExtended init: set dimensions, width, height
     const std::vector<int> dims = image->dims();
     CARTA::FileInfoExtended* fileInfoExt = new CARTA::FileInfoExtended();
     fileInfoExt->set_dimensions(dims.size());
@@ -308,52 +298,37 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
         }
     }
 
-    // Prepare to use the ImageStats plugin.
-    std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase> > regions; // regions is an empty setting so far
-    int dimSize = image->dims().size(); // get the dimension of the image
-    std::vector<int> frameIndices(dimSize, -1); // get the statistical data of the whole image
+    // generate information and insert to fileInfoExt
+    // Part 1: get statistic information using ImageStats plugin
+    // Part 2: generate some customized information
+    std::map<QString, QString> infoMap = {};
+    if (false == _getStatisticInfo(infoMap, image)) {
+        qDebug() << "[File Info] Get statistic informtion error.";
+    }  
+    if (false == _genCustomizedInfo(infoMap, image)) {
+        qDebug() << "[File Info] Generate file information error.";
+    }
 
-    int sourceCount = images.size();
-    if (sourceCount > 0) {
-        auto result = Globals::instance()->pluginManager()
-                -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
+    // customized arrange file info into an array[] of {key, value}
+    std::vector<std::vector<QString>> pairs = {};
+    if (false == _arrangeFileInfo(infoMap, pairs)) {
+        qDebug() << "Sort file info entry error.";
+    }
 
-        auto lam = [=] (const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data) {
-            //An array for each image
-            int dataCount = data.size();
-
-            for ( int i = 0; i < dataCount; i++ ) {
-                // Each element of the image array contains an array of statistics.
-                int statCount = data[i].size();
-
-                // Go through each set of statistics for the image.
-                for (int k = 0; k < statCount; k++) {
-                    int keyCount = data[i][k].size();
-
-                    for (int j = 0; j < keyCount; j++) {
-                        QString label = data[i][k][j].getLabel();
-                        QString value = data[i][k][j].getValue();
-                        CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
-                        headerEntry->set_name(label.toLocal8Bit().constData());
-                        headerEntry->set_value(value.toLocal8Bit().constData());
-                    }
-                }
-            }
-        };
-
-        try {
-            result.forEach( lam );
-        } catch (char*& error) {
-            QString errorStr(error);
-            qDebug() << "[File Info] There is an error message: " << errorStr;
+    // insert Part 1, Part 2 to fileInfoExt
+    for (auto iter = pairs.begin(); iter != pairs.end(); iter++) {
+        auto *infoEntries = fileInfoExt->add_computed_entries();
+        if (nullptr != infoEntries) {
+            infoEntries->set_name((*iter)[0].toLocal8Bit().constData());
+            infoEntries->set_value((*iter)[1].toLocal8Bit().constData());
+        } else {
+            qDebug() << "Insert info entry to fileInfoExt error.";
         }
     }
 
-    QString respName = "FILE_INFO_RESPONSE";
-
-    // FileInfoExtended part 2: extract certain entries, such as NAXIS NAXIS1 NAXIS2 NAXIS3...etc, for showing in file browser
-    if (false == extractFitsInfo(fileInfoExt, image, respName)) {
-        qDebug() << "[File Info] Extract FileInfoExtended part 2 error.";
+    // Part 3: add all fits headers to fileInfoExt
+    if (false == getFitsHeaders(fileInfoExt, image)) {
+        qDebug() << "[File Info] Get fits headers error!";
     }
 
     // FileInfoResponse
@@ -365,15 +340,9 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     return fileInfoResponse;
 }
 
-// FileInfoExtended: extract Fits information and add to entries, including NAXIS NAXIS1 NAXIS2 NAXIS3...etc
-// The fits header structure is like:
-//  NAXIS1 = 1024
-//  CTYPE1 = 'RA---TAN'
-//  CDELT1 = -9.722222222222E-07
-//   ...etc
-bool DataLoader::extractFitsInfo(CARTA::FileInfoExtended* fileInfoExt,
-                                 const std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
-                                 const QString respond) {
+// Get all fits headers and insert to header entry
+bool DataLoader::getFitsHeaders(CARTA::FileInfoExtended* fileInfoExt,
+                                 const std::shared_ptr<Carta::Lib::Image::ImageInterface> image) {
     // validate parameters
     if (nullptr == fileInfoExt || nullptr == image) {
         return false;
@@ -383,48 +352,425 @@ bool DataLoader::extractFitsInfo(CARTA::FileInfoExtended* fileInfoExt,
     FitsHeaderExtractor fhExtractor;
     fhExtractor.setInput(image);
     std::map<QString, QString> headerMap = fhExtractor.getHeaderMap();
-
-    // extract necessary info from header, depending on the respond event
-    if ("FILE_INFO_RESPONSE" == respond) {
-        // extract only certain entries from fits header for showing in File browser
-        std::vector<QString> keys {"NAXIS", "NAXIS1", "NAXIS2", "NAXIS3",
-                                   "BMAJ", "BMIN", "BPA", "BUNIT",
-                                   "EQUINOX", "RADESYS", "SPECSYS", "VELREF",
-                                   "CTYPE1", "CRVAL1", "CDELT1", "CUNIT1",
-                                   "CTYPE2", "CRVAL2", "CDELT2", "CUNIT2",
-                                   "CTYPE3", "CRVAL3", "CDELT3", "CUNIT3",
-                                   "CTYPE4", "CRVAL4", "CDELT4", "CUNIT4"};
-        for (auto key = keys.begin(); key != keys.end(); key++) {
-            // find value corresponding to key
-            QString value = "";
-            auto found = headerMap.find(*key);
-            if (found != headerMap.end()) {
-                value = found->second;
-            }
-
-            // insert (key, value) to header entry
-            CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
-            if (nullptr == headerEntry) {
-                qDebug() << "Add header entry error in FILE_INFO_RESPONSE.";
-                return false;
-            }
-            headerEntry->set_name((*key).toLocal8Bit().constData());
-            headerEntry->set_value(value.toLocal8Bit().constData());
+    
+    // traverse whole map to return all entries for frontend to render (AST)
+    for (auto iter = headerMap.begin(); iter != headerMap.end(); iter++) {
+        // insert (key, value) to header entry
+        CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
+        if (nullptr == headerEntry) {
+            qDebug() << "Insert (" << iter->first << ", " << iter->second << ") to header entry error.";
+            return false;
         }
-    } else if ("OPEN_FILE_ACK" == respond) {
-        // traverse whole map to return all entries for frontend to render (AST)
-        for (auto iter = headerMap.begin(); iter != headerMap.end(); iter++) {
-            CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
-            if (nullptr == headerEntry) {
-                qDebug() << "Add header entry error in OPEN_FILE_ACK.";
-                return false;
-            }
-            headerEntry->set_name((iter->first).toLocal8Bit().constData());
-            headerEntry->set_value((iter->second).toLocal8Bit().constData());
-        }
-    } else {
+        headerEntry->set_name((iter->first).toLocal8Bit().constData());
+        headerEntry->set_value((iter->second).toLocal8Bit().constData());
+    }
+
+    return true;
+}
+
+// Get statistic informtion using ImageStats plugin
+bool DataLoader::_getStatisticInfo(std::map<QString, QString>& infoMap,
+                                 const std::shared_ptr<Carta::Lib::Image::ImageInterface> image) {
+    // validate parameter
+    if (nullptr == image) {
         return false;
     }
+
+    // the statistical plugin requires a vector of ImageInterface
+    std::vector<std::shared_ptr<Carta::Lib::Image::ImageInterface>> images;
+    images.push_back(image);
+    
+    // regions is an empty setting so far
+    std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase>> regions;
+    
+    // get the statistical data of the whole image
+    std::vector<int> frameIndices(image->dims().size(), -1);
+
+    if (images.size() > 0) { // [TODO]: do we really need this if statement?
+        // Prepare to use the ImageStats plugin.
+        auto result = Globals::instance()->pluginManager()
+                -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
+
+        // lamda function for traverse
+        auto lam = [&] (const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data) {
+            //An array for each image
+            for (int i = 0; i < data.size(); i++) {
+                // Each element of the image array contains an array of statistics.
+                // Go through each set of statistics for the image.
+                for (int j = 0; j < data[i].size(); j++) {
+                    for (int k = 0; k < data[i][j].size(); k++) {
+                        infoMap[data[i][j][k].getLabel()] = data[i][j][k].getValue();
+                    }
+                }
+            }
+        };
+
+        try {
+            result.forEach(lam);
+        } catch (char*& error) {
+            QString errorStr(error);
+            qDebug() << "[File Info] There is an error message: " << errorStr;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// Generate customized file information for human readiblity by using some fits headers
+bool DataLoader::_genCustomizedInfo(std::map<QString, QString>& infoMap,
+                                 const std::shared_ptr<Carta::Lib::Image::ImageInterface> image) {
+    // validate parameter
+    if (nullptr == image) {
+        return false;
+    }
+
+    // get fits header map using FitsHeaderExtractor
+    FitsHeaderExtractor fhExtractor;
+    fhExtractor.setInput(image);
+    std::map<QString, QString> headerMap = fhExtractor.getHeaderMap();
+
+    // generate customized info 1~6
+    // 1. Generate customized stokes + channels info & insert to entry
+    if (false == _genStokesChannelsInfo(infoMap, headerMap)) {
+        qDebug() << "Generate stokes + channels info & insert to entry failed.";
+    }
+
+    // 2. Generate customized pixel size info & insert to entry
+    if (false == _genPixelSizeInfo(infoMap, headerMap)) {
+        qDebug() << "Generate pixel size info & insert to entry failed.";
+    }
+
+    // 3. Generate customized coordinate type info & insert to entry
+    if (false == _genCoordTypeInfo(infoMap, headerMap)) {
+        qDebug() << "Generate coordinate type info & insert to entry failed.";
+    }
+
+    // 4. Generate customized image reference coordinate info & insert to entry
+    if (false == _genImgRefCoordInfo(infoMap, headerMap)) {
+        qDebug() << "Generate image reference coordinate info & insert to entry failed.";
+    }
+
+    // 5. Generate customized celestial frame info & insert to entry
+    if (false == _genCelestialFrameInfo(infoMap, headerMap)) {
+        qDebug() << "Generate celestial frame info & insert to entry failed.";
+    }
+
+    // 6. Generate customized velocity definition info & insert to entry
+    if (false == _genRemainInfo(infoMap, headerMap)) {
+        qDebug() << "Generate velocity definition info & insert to entry failed.";
+    }    
+
+    return true;
+}
+
+// Generate customized stokes & channels info according to CTYPE3, CTYPE4, NAXIS3, NAXIS4
+bool DataLoader::_genStokesChannelsInfo(std::map<QString, QString>& infoMap,
+                                   const std::map<QString, QString> headerMap) {
+    // check whether headerMap is empty
+    if (headerMap.empty()) {
+        qDebug() << "Empty argument: headerMap.";
+        return false;
+    }
+
+    auto naxis = headerMap.find("NAXIS");
+    if (naxis == headerMap.end()) {
+        qDebug() << "Cannot find NAXIS.";
+        return false;
+    }
+
+    bool ok = false;
+    double n = (naxis->second).toDouble(&ok);
+    if (ok && n > 2) {
+        // find CTYPE3, CTYPE4
+        auto ctype3 = headerMap.find("CTYPE3");
+        auto ctype4 = headerMap.find("CTYPE4");
+        QString stokes = "NA", channels = "NA";
+
+        // check CTYPE3, CTYPE4 to determine stokes
+        if (ctype3 != headerMap.end() && (ctype3->second).contains("STOKES", Qt::CaseInsensitive)) {
+            auto naxis3 = headerMap.find("NAXIS3");
+            if (naxis3 == headerMap.end()) {
+                qDebug() << "Cannot find NAXIS3.";
+                return false;
+            }
+            stokes = naxis3->second;
+        } else if (ctype4 != headerMap.end() && (ctype4->second).contains("STOKES", Qt::CaseInsensitive)) {
+            auto naxis4 = headerMap.find("NAXIS4");
+            if (naxis4 == headerMap.end()) {
+                qDebug() << "Cannot find NAXIS4.";
+                return false;
+            }
+            stokes = naxis4->second;
+        }
+
+        // check CTYPE3, CTYPE4 to determine channels
+        // [TODO]: regular expression should be case insensitive
+        if (ctype3 != headerMap.end() && (ctype3->second).contains(QRegExp("VOPT|FREQ"))) {
+            auto naxis3 = headerMap.find("NAXIS3");
+            if (naxis3 == headerMap.end()) {
+                qDebug() << "Cannot find NAXIS3.";
+                return false;
+            }
+            channels = naxis3->second;
+        } else if (ctype4 != headerMap.end() && (ctype4->second).contains(QRegExp("VOPT|FREQ"))) {
+            auto naxis4 = headerMap.find("NAXIS4");
+            if (naxis4 == headerMap.end()) {
+                qDebug() << "Cannot find NAXIS4.";
+                return false;
+            }
+            channels = naxis4->second;
+        }
+
+        // insert stokes, channels to info entry if they are not "NA"
+        if ("NA" != stokes) {
+            infoMap["Number of Stokes"] = stokes;
+        }
+        if ("NA" != channels) {
+            infoMap["Number of Channels"] = channels;
+        }
+    }
+
+    return true;
+}
+
+// Generate customized pixel size info according to CDELT1, CDELT2, CUNIT1
+bool DataLoader::_genPixelSizeInfo(std::map<QString, QString>& infoMap,
+                                   const std::map<QString, QString> headerMap) {
+    // check whether headerMap is empty
+    if (headerMap.empty()) {
+        qDebug() << "Empty argument: headerMap.";
+        return false;
+    }
+
+    // generate value
+    QString value = "";
+    auto cdelt1 = headerMap.find("CDELT1");
+    auto cdelt2 = headerMap.find("CDELT2");
+    if (cdelt1 != headerMap.end() && cdelt2 != headerMap.end()) {
+        // get CDELT1, CDELT2 & convert them to double
+        QString delstr1 = cdelt1->second;
+        QString delstr2 = cdelt2->second;
+        bool ok = false;
+        double d1 = 0, d2 = 0;
+        d1 = (delstr1).toDouble(&ok);
+        if (!ok) {
+            qDebug() << "Convert degree to double error.";
+            return false;
+        }
+        d2 = (delstr2).toDouble(&ok);
+        if (!ok) {
+            qDebug() << "Convert degree to double error.";
+            return false;
+        }
+
+        // get unit & convert CDELT1 CDELT2 to arcsec if unit is degree
+        auto unit = headerMap.find("CUNIT1");
+        if (unit == headerMap.end()) {
+            qDebug() << "Cannot find CUNIT1.";
+            return false;
+        }
+
+        if ((unit->second).contains("deg", Qt::CaseInsensitive)) {
+            QString arcs1 = "", arcs2 = "";
+            if(false == _deg2arcsec(delstr1, arcs1)) {
+                qDebug() << "Convert CDELT1 to arcsec error.";
+                return false;
+            }
+            if(false == _deg2arcsec(delstr2, arcs2)) {
+                qDebug() << "Convert CDELT2 to arcsec error.";
+                return false;
+            }
+            delstr1 = arcs1;
+            delstr2 = arcs2;
+        } else { // not degree
+            delstr1 = delstr1 + " " + unit->second;
+            delstr2 = delstr2 + " " + unit->second;
+        }
+
+        // check whether CDELT1 & CDELT2 are the same(squre)
+        if (abs(d1) == abs(d2)) {
+            value = (d1 > 0) ? delstr1 : delstr2;
+        } else {
+            value = delstr1 + ", " + delstr2;
+        }
+    }
+
+    // insert (label, value) to info entry
+    infoMap["Pixel size"] = value;
+
+    return true;
+}
+
+// Generate customized coordinate type info according to CTYPE1, CTYPE2
+bool DataLoader::_genCoordTypeInfo(std::map<QString, QString>& infoMap,
+                                   const std::map<QString, QString> headerMap) {
+    // check whether headerMap is empty
+    if (headerMap.empty()) {
+        qDebug() << "Empty argument: headerMap.";
+        return false;
+    }
+
+    auto ctype1 = headerMap.find("CTYPE1");
+    auto ctype2 = headerMap.find("CTYPE2");
+    if (ctype1 == headerMap.end() || ctype2 == headerMap.end()) {
+        qDebug() << "Cannot find CTYPE1 CTYPE2.";
+        return false;
+    }
+
+    // insert (label, value) to info entry
+    infoMap["Coordinate type"] = ctype1->second + ", " + ctype2->second;
+
+    return true;
+}
+
+// Generate customized image reference coordinate info according to CRPIX1, CRPIX2, CRVAL1, CRVAL2, CUNIT1, CUNIT2
+bool DataLoader::_genImgRefCoordInfo(std::map<QString, QString>& infoMap,
+                                    const std::map<QString, QString> headerMap) {
+    // check whether headerMap is empty
+    if (headerMap.empty()) {
+        qDebug() << "Empty argument: headerMap.";
+        return false;
+    }
+
+    auto crpix1 = headerMap.find("CRPIX1");
+    auto crpix2 = headerMap.find("CRPIX2");
+    auto crval1 = headerMap.find("CRVAL1");
+    auto crval2 = headerMap.find("CRVAL2");
+    auto cunit1 = headerMap.find("CUNIT1");
+    auto cunit2 = headerMap.find("CUNIT2");
+
+    // check whether corresponding fields can be found in map
+    if (crpix1 == headerMap.end() || crpix2 == headerMap.end() ||
+        crval1 == headerMap.end() || crval2 == headerMap.end() ||
+        cunit1 == headerMap.end() || cunit2 == headerMap.end()) {
+        qDebug() << "Cannot find CRPIX1 CRPIX2 CRVAL1 CRVAL2 CUNIT1 CUNIT2.";
+        return false;
+    }
+    
+    // convert CRPIX1, CRPIX2, CRVAL1, CRVAL2 to numeric value
+    bool ok = false;
+    double p1 = (crpix1->second).toDouble(&ok);
+    if(!ok) {qDebug() << "Convert CRPIX1 to double error."; return false;}
+    double p2 = (crpix2->second).toDouble(&ok);
+    if(!ok) {qDebug() << "Convert CRPIX2 to double error."; return false;}
+    double v1 = (crval1->second).toDouble(&ok);
+    if(!ok) {qDebug() << "Convert CRVAL1 to double error."; return false;}
+    double v2 = (crval2->second).toDouble(&ok);
+    if(!ok) {qDebug() << "Convert CRVAL2 to double error."; return false;}
+
+    // set CRPIX1, CRPIX2, CRVAL1, CRVAL2 with specific format
+    char buf[512];
+    snprintf(buf, sizeof(buf), "%d", p1);
+    QString pix1Str = QString(buf);
+    snprintf(buf, sizeof(buf), "%d", p2);
+    QString pix2Str = QString(buf);
+    snprintf(buf, sizeof(buf), "%.4f", v1);
+    QString val1Str = QString(buf);
+    snprintf(buf, sizeof(buf), "%.4f", v2);
+    QString val2Str = QString(buf);
+
+    // convert to arcsec if unit is degree
+    QString arcsecStr = "";
+    if ((cunit1->second).contains("deg", Qt::CaseInsensitive)) {
+        char buf[512];
+        QString tmp1, tmp2;
+
+        int ra_hh = (int)(v1 / 15.0);
+        int ra_mm = (int)((v1 / 15.0 - ra_hh) * 60);
+        double ra_ss = (((v1 / 15.0 - ra_hh) * 60) - ra_mm) * 60;
+        snprintf(buf, sizeof(buf), "%d:%d:%.4f", ra_hh, ra_mm, ra_ss);
+        tmp1 = QString(buf);
+
+        int dec_dd = (int)v2;
+        int dec_mm = (int)((v2 - dec_dd) * 60);
+        double dec_ss = (((v2 - dec_dd) * 60) - dec_mm) * 60;
+        snprintf(buf, sizeof(buf), "%d:%d:%.4f", dec_dd, abs(dec_mm), abs(dec_ss));
+        tmp2 = QString(buf);
+
+        arcsecStr = " [" + tmp1 + ", " + tmp2 + "]";
+    }
+
+    // insert (label, value) to info entry
+    QString value = "[" + pix1Str + ", " + pix2Str + "] [" +
+                    val1Str + " " + cunit1->second + ", " + val2Str + " " + cunit2->second + "]" +
+                    arcsecStr;
+    infoMap["Image reference coordinate"] = value;
+
+    return true;
+}
+
+// Generate customized celestial frame according to RADESYS, EQUINOX
+bool DataLoader::_genCelestialFrameInfo(std::map<QString, QString>& infoMap,
+                                        const std::map<QString, QString> headerMap) {
+    // check whether headerMap is empty
+    if (headerMap.empty()) {
+        qDebug() << "Empty argument: headerMap.";
+        return false;
+    }
+
+    auto radesys = headerMap.find("RADESYS");
+    auto equinox = headerMap.find("EQUINOX");
+    if (radesys == headerMap.end() || equinox == headerMap.end()) {
+        qDebug() << "Cannot find RADESYS EQUINOX.";
+        return false;
+    }
+
+    // get value of RADESYS, EQUINOX
+    QString rad = radesys->second;
+    QString equ = equinox->second;
+
+    // FK4 => B1950, FK5 => J2000, others => not modified 
+    if (rad.contains("FK4", Qt::CaseInsensitive)) {
+        bool ok = false;
+        int e = equ.toDouble(&ok);
+        if (!ok) {return false;}
+        equ = "B" + QString(std::to_string(e).c_str());
+    } else if (rad.contains("FK5", Qt::CaseInsensitive)) {
+        bool ok = false;
+        int e = equ.toDouble(&ok);
+        if (!ok) {return false;}
+        equ = "J" + QString(std::to_string(e).c_str());
+    }
+
+    // insert (label, value) to info entry
+    infoMap["Celestial frame"] = rad + ", " + equ;
+
+    return true;
+}
+
+// Generate customized remaining info according to BUNIT, SPECSYS, VELREF
+bool DataLoader::_genRemainInfo(std::map<QString, QString>& infoMap,
+                                   const std::map<QString, QString> headerMap) {
+    // check whether headerMap is empty
+    if (headerMap.empty()) {
+        qDebug() << "Empty argument: headerMap.";
+        return false;
+    }
+    
+    // find BUNIT & insert to entry
+    auto found = headerMap.find("BUNIT");
+    if (found == headerMap.end()) {
+        qDebug() << "BUNIT not found.";
+        return false;
+    }
+    infoMap["Pixel unit"] = found->second;
+
+    // find SPECSYS & insert to entry
+    found = headerMap.find("SPECSYS");
+    if (found == headerMap.end()) {
+        qDebug() << "SPECSYS not found.";
+        return false;
+    }
+    infoMap["Spectral frame"] = found->second;
+
+    // find VELREF & insert to entry
+    found = headerMap.find("VELREF");
+    if (found == headerMap.end()) {
+        qDebug() << "VELREF not found.";
+        return false;
+    }
+    infoMap["Velocity definition"] = found->second;
 
     return true;
 }
@@ -577,7 +923,74 @@ void DataLoader::_makeFolderNode( QJsonArray& parentArray, const QString& fileNa
     parentArray.append(obj);
 }
 
+// customized arrange file info
+bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std::vector<std::vector<QString>>& pairs){
+    // check whether headerMap is empty
+    if (infoMap.empty()) {
+        qDebug() << "Empty argument: infoMap.";
+        return false;
+    }
 
+    // sort file info by the following order
+    const std::vector<QString> keys = {
+        "Name",
+        "Shape",
+        "Number of Stokes",
+        "Number of Channels",
+        "Image reference coordinate",
+        "RA Range",
+        "Dec Range",
+        "Frequency Range",
+        "Velocity Range",
+        "Celestial frame",
+        "Coordinate type",
+        "Spectral frame",
+        "Velocity definition",
+        "Restoring Beam",
+        "Beam Area",
+        "Pixel unit",
+        "Pixel size"
+    };
+
+    for (auto iter = keys.begin(); iter != keys.end(); iter++) {
+        auto found = infoMap.find(*iter);
+        if (found != infoMap.end()) { // found key
+            pairs.push_back({found->first, found->second});
+        }
+    }
+
+    return true;
+}
+
+// Unit conversion: convert degree to arcsec
+bool DataLoader::_deg2arcsec(const QString degree, QString& arcsec) {
+    // convert degree to double
+    bool ok = false;
+    double deg = degree.toDouble(&ok);
+
+    if(!ok) {
+        qDebug() << "Convert degree to double error.";
+        return false;
+    }
+
+    // 1 degree = 60 arcmin = 60*60 arcsec
+    double arcs = deg * 3600;
+
+    // customized format of arcsec
+    char buf[512];
+    if (arcs >= 60.0){ // arcs >= 60, convert to arcmin
+        snprintf(buf, sizeof(buf), "%.2f\'", arcs/60);
+    } else if (arcs < 60.0 && arcs > 0.1) { // 0.1 < arcs < 60
+        snprintf(buf, sizeof(buf), "%.2f\"", arcs);
+    } else if (arcs <= 0.1 && arcs > 0.01) { // 0.01 < arcs <= 0.1
+        snprintf(buf, sizeof(buf), "%.3f\"", arcs);
+    } else { // arcs <= 0.01
+        snprintf(buf, sizeof(buf), "%.4f\"", arcs);
+    }
+
+    arcsec = QString(buf);
+    return true;
+}
 
 DataLoader::~DataLoader(){
 }
