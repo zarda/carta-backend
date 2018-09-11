@@ -6,7 +6,7 @@
 # note: these don't need to be relative paths
 #CASACOREDIR=../../ThirdParty/casacore-2.0.1-shared
 CASACOREDIR=../../ThirdParty/casacore
-ASTLIBDIR = ../../ThirdParty/ast
+#ASTLIBDIR = ../../ThirdParty/ast
 WCSLIBDIR=../../ThirdParty/wcslib
 CFITSIODIR=../../ThirdParty/cfitsio
 IMAGEANALYSISDIR=../../ThirdParty/imageanalysis
@@ -16,7 +16,7 @@ FLEXANDBISONDIR=../../ThirdParty/flex
 # relative links are replaced by absolute paths
 #CASACOREDIR=$$absolute_path($${CASACOREDIR})
 CASACOREDIR=$$absolute_path($${CASACOREDIR})
-ASTLIBDIR=$$absolute_path($${ASTLIBDIR})
+#ASTLIBDIR=$$absolute_path($${ASTLIBDIR})
 WCSLIBDIR=$$absolute_path($${WCSLIBDIR})
 CFITSIODIR=$$absolute_path($${CFITSIODIR})
 IMAGEANALYSISDIR=$$absolute_path($${IMAGEANALYSISDIR})

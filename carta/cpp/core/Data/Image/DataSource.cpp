@@ -647,7 +647,7 @@ PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int fram
     int numberOfBins, int stokeFrame,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) {
 
-    qDebug() << "Calculating the regional histogram data...................................>";
+    qDebug() << "[DataSource] Calculating the regional histogram data...................................>";
     RegionHistogramData result; // results from the "percentileAlgorithms.h"
 
     // get the raw data
@@ -711,7 +711,7 @@ PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int fram
     for (auto intensity : result.bins) {
         histogram->add_bins(intensity);
     }
-    qDebug() << ".......................................................................Done";
+    qDebug() << "[DataSource] .......................................................................Done";
 
     return region_histogram_data;
 }
@@ -723,7 +723,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
 
     // check if the minimum of the pixel value is valid
     if (m_minIntensity == std::numeric_limits<double>::min()) {
-        qWarning() << "The minimum of the pixel value is invalid! Return nullptr";
+        qWarning() << "[DataSource] The minimum of the pixel value is invalid! Return nullptr";
         return nullptr;
     }
 
@@ -736,20 +736,20 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
 
     // check if the downsampling parameter "mip" is smaller than the image width or high
     if (mip <= 0 || abs(mip) > std::min(view->dims()[0], view->dims()[1])) {
-        qWarning() << "Downsampling parameter, mip=" << mip
+        qWarning() << "[DataSource] Downsampling parameter, mip=" << mip
                    << ", which is larger than the image width=" <<  view->dims()[0]
                    << "or high=" << view->dims()[1] << ". Return nullptr";
-        //return nullptr;
+        return nullptr;
         // [Try] it may be due to the frontend signal problem, reset the mip as 1 to pass, and then resend the next correct signal
-        mip = 1;
+        //mip = 1;
     }
 
-    qDebug() << "Down sampling the raster image data.......................................>";
-    qDebug() << "Dawn sampling factor mip:" << mip;
+    qDebug() << "[DataSource] Down sampling the raster image data.......................................>";
+    //qDebug() << "Dawn sampling factor mip:" << mip;
     int nx = (xMax - xMin) / mip;
     int ny = (yMax - yMin) / mip;
-    qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << xMin << "," << xMax << "]" << "--> W=" << nx;
-    qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << yMin << "," << yMax << "]" << "--> H=" << ny;
+    //qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << xMin << "," << xMax << "]" << "--> W=" << nx;
+    //qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << yMin << "," << yMax << "]" << "--> H=" << ny;
 
     int prepareCols = view->dims()[0]; // get the full width length
     int prepareRows = mip;
@@ -857,7 +857,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
         qDebug() << "[DataSource] w/o ZFP compression!";
     }
 
-    qDebug() << "number of the raw data sent L=" << imageData.size() << ", WxH=" << nx * ny << ", Difference:" << (nx * ny - imageData.size());
+    //qDebug() << "number of the raw data sent L=" << imageData.size() << ", WxH=" << nx * ny << ", Difference:" << (nx * ny - imageData.size());
 
     // end of timer for loading the raw data
     int elapsedTime = timer.elapsed();
@@ -865,7 +865,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
         qCritical() << "<> Time to get raster image data:" << elapsedTime << "ms";
     }
 
-    qDebug() << ".......................................................................Done";
+    qDebug() << "[DataSource] .......................................................................Done";
 
     return raster;
 }
@@ -921,7 +921,7 @@ std::vector<int32_t> DataSource::_getNanEncodingsBlock(std::vector<float>& array
     std::vector<int32_t> encodedArray;
 
     for (auto i = offset; i < offset + length; i++) {
-        bool current = isnan(array[i]);
+        bool current = std::isnan(array[i]);
         if (current != prev) {
             encodedArray.push_back(i - prevIndex);
             prevIndex = i;
@@ -944,7 +944,7 @@ std::vector<int32_t> DataSource::_getNanEncodingsBlock(std::vector<float>& array
                 for (int x = 0; x < blockWidth; x++) {
                     for (int y = 0; y < blockHeight; y++) {
                         float v = array[blockStart + (y * w) + x];
-                        if (!isnan(v)) {
+                        if (!std::isnan(v)) {
                             validCount++;
                             sum += v;
                         }
@@ -957,7 +957,7 @@ std::vector<int32_t> DataSource::_getNanEncodingsBlock(std::vector<float>& array
                     for (int x = 0; x < blockWidth; x++) {
                         for (int y = 0; y < blockHeight; y++) {
                             float v = array[blockStart + (y * w) + x];
-                            if (isnan(v)) {
+                            if (std::isnan(v)) {
                                 array[blockStart + (y * w) + x] = average;
                             }
                         } // end of blockHeight loop

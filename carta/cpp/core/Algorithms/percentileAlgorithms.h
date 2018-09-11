@@ -427,7 +427,7 @@ RegionHistogramData MinMaxPercentiles<Scalar>::pixels2histogram(
 
     // total number of finite values
     size_t finiteValueCount = std::accumulate(bins.begin(), bins.end(), 0);
-    qDebug() << "finite raw data number=" << finiteValueCount;
+    //qDebug() << "finite raw data number=" << finiteValueCount;
 
     // indicate bad clip if no finite numbers were found
     if ( finiteValueCount == 0 ) {
