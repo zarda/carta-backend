@@ -335,29 +335,6 @@ void NewServerConnector::onBinaryMessageSignalSlot(char* message, size_t length)
         int closeFileId = closeFile.file_id();
         qDebug() << "[NewServerConnector] Close the file id=" << closeFileId;
 
-    } else if (eventName == "START_ANIMATION") {
-
-        CARTA::StartAnimation startAnimation;
-        startAnimation.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-        int fileId = startAnimation.file_id();
-        CARTA::AnimationFrame startFrame = startAnimation.start_frame();
-        int startChannel = startFrame.channel();
-        int startStoke = startFrame.stokes();
-        CARTA::AnimationFrame endFrame = startAnimation.end_frame();
-        int endChannel = endFrame.channel();
-        int endStoke = endFrame.stokes();
-        CARTA::AnimationFrame deltaFrame = startAnimation.delta_frame();
-        int deltaChannel = deltaFrame.channel();
-        int deltaStoke = deltaFrame.stokes();
-        int frameInterval = startAnimation.frame_interval();
-        bool looping = startAnimation.looping();
-        bool reverse = startAnimation.reverse();
-        qDebug() << "START_ANIMATION:" << "fileId=" << fileId << "startChannel=" << startChannel
-                 << "startStoke=" << startStoke << "endChannel=" << endChannel << "endStoke=" << endStoke
-                 << "deltaChannel=" << deltaChannel << "deltaStoke=" << deltaStoke << "frameInterval="
-                 << frameInterval << "looping" << looping << "reverse" << reverse;
-        return;
-
     } else {
         // Insert non-global object id
         // QString controllerID = this->viewer.m_viewManager->registerView("pluginId:ImageViewer,index:0");
