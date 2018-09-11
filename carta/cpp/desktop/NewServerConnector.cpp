@@ -286,9 +286,11 @@ void NewServerConnector::onBinaryMessageSignalSlot(char* message, size_t length)
             break;
         }
     }
-
     QString eventName = QString::fromStdString(std::string(message, nullIndex));
-    qDebug() << "[NewServerConnector] Event received: " << eventName << QTime::currentTime().toString();
+
+    uint32_t eventId = *((uint32_t*) (message + EVENT_NAME_LENGTH));
+
+    qDebug() << "[NewServerConnector] Event received: Name=" << eventName << ", Id=" << eventId << ", Time=" << QTime::currentTime().toString();
 
     QString respName;
     PBMSharedPtr msg;
@@ -309,7 +311,7 @@ void NewServerConnector::onBinaryMessageSignalSlot(char* message, size_t length)
         msg = dataLoader->getFileList(fileListRequest);
 
         // send the serialized message to the frontend
-        sendSerializedMessage(message, respName, msg);
+        sendSerializedMessage(respName, eventId, msg);
         return;
 
     } else if (eventName == "FILE_INFO_REQUEST") {
@@ -323,7 +325,7 @@ void NewServerConnector::onBinaryMessageSignalSlot(char* message, size_t length)
         msg = dataLoader->getFileInfo(fileInfoRequest);
 
         // send the serialized message to the frontend
-        sendSerializedMessage(message, respName, msg);
+        sendSerializedMessage(respName, eventId, msg);
         return;
 
     } else if (eventName == "CLOSE_FILE") {
@@ -381,7 +383,7 @@ void NewServerConnector::onBinaryMessageSignalSlot(char* message, size_t length)
     return;
 }
 
-void NewServerConnector::openFileSignalSlot(char* message, QString fileDir, QString fileName, int fileId, int regionId) {
+void NewServerConnector::openFileSignalSlot(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId) {
     QString respName;
     PBMSharedPtr msg;
 
@@ -455,7 +457,7 @@ void NewServerConnector::openFileSignalSlot(char* message, QString fileDir, QStr
     msg = ack;
 
     // send the serialized message to the frontend
-    sendSerializedMessage(message, respName, msg);
+    sendSerializedMessage(respName, eventId, msg);
 
     // set the initial image bounds
     m_imageBounds[fileId] = {0, 0, 0, 0, 0}; // {x_min, x_max, y_min, y_max, mip}
@@ -483,12 +485,14 @@ void NewServerConnector::openFileSignalSlot(char* message, QString fileDir, QStr
     msg = region_histogram_data;
 
     // send the serialized message to the frontend
-    sendSerializedMessage(message, respName, msg);
+    sendSerializedMessage(respName, eventId, msg);
     /////////////////////////////////////////////////////////////////////
 }
 
-void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
+void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
     bool isZFP, int precision, int numSubsets) {
+    qDebug() << "[NewServerConnector] Set image bounds [x_min, x_max, y_min, y_max, mip]=["
+             << xMin << "," << xMax << "," << yMin << "," << yMax << "," << mip << "], fileId=" << fileId;
 
     // check if need to reset image bounds
     if (xMin != m_imageBounds[fileId][0] || xMax != m_imageBounds[fileId][1] ||
@@ -508,7 +512,6 @@ void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int x
     }
 
     QString respName;
-    PBMSharedPtr msg;
 
     // get the controller
     Carta::Data::Controller* controller = _getController();
@@ -533,10 +536,8 @@ void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int x
         Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
         PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
 
-        msg = region_histogram_data;
-
         // send the serialized message to the frontend
-        sendSerializedMessage(message, respName, msg);
+        sendSerializedMessage(respName, eventId, region_histogram_data);
 
         m_changeFrame[fileId] = false;
         /////////////////////////////////////////////////////////////////////
@@ -547,14 +548,13 @@ void NewServerConnector::setImageViewSignalSlot(char* message, int fileId, int x
 
     // get the down sampling raster image raw data
     PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
-    msg = raster;
 
     // send the serialized message to the frontend
-    sendSerializedMessage(message, respName, msg);
+    sendSerializedMessage(respName, eventId, raster);
     /////////////////////////////////////////////////////////////////////
 }
 
-void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId, int channel, int stoke) {
+void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int fileId, int channel, int stoke) {
     qDebug() << "[NewServerConnector] Set image channel=" << channel << ", fileId=" << fileId << ", stoke=" << stoke;
 
     QString respName;
@@ -594,7 +594,7 @@ void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId,
     msg = region_histogram_data;
 
     // send the serialized message to the frontend
-    sendSerializedMessage(message, respName, msg);
+    sendSerializedMessage(respName, eventId, msg);
     /////////////////////////////////////////////////////////////////////
 
     /////////////////////////////////////////////////////////////////////
@@ -620,19 +620,12 @@ void NewServerConnector::imageChannelUpdateSignalSlot(char* message, int fileId,
     msg = raster;
 
     // send the serialized message to the frontend
-    sendSerializedMessage(message, respName, msg);
+    sendSerializedMessage(respName, eventId, msg);
     /////////////////////////////////////////////////////////////////////
 }
 
-void NewServerConnector::sendSerializedMessage(char* message, QString respName, PBMSharedPtr msg) {
-    bool success = false;
-    size_t requiredSize = 0;
-    std::vector<char> result = serializeToArray(message, respName, msg, success, requiredSize);
-    if (success) {
-        emit jsBinaryMessageResultSignal(result.data(), requiredSize);
-        // this part will affect the sensitivity of the file browser or file info clipping, should investigated in detail !!
-        qDebug() << "[NewServerConnector] Send event:" << respName << QTime::currentTime().toString();
-    }
+void NewServerConnector::sendSerializedMessage(QString respName, uint32_t eventId, PBMSharedPtr msg) {
+    emit jsBinaryMessageResultSignal(respName, eventId, msg);
 }
 
 Carta::Data::Controller* NewServerConnector::_getController() {
