@@ -512,7 +512,6 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
     }
 
     QString respName;
-    PBMSharedPtr msg;
 
     // get the controller
     Carta::Data::Controller* controller = _getController();
@@ -537,10 +536,8 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
         Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
         PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
 
-        msg = region_histogram_data;
-
         // send the serialized message to the frontend
-        sendSerializedMessage(respName, eventId, msg);
+        sendSerializedMessage(respName, eventId, region_histogram_data);
 
         m_changeFrame[fileId] = false;
         /////////////////////////////////////////////////////////////////////
@@ -551,10 +548,9 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
 
     // get the down sampling raster image raw data
     PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
-    msg = raster;
 
     // send the serialized message to the frontend
-    sendSerializedMessage(respName, eventId, msg);
+    sendSerializedMessage(respName, eventId, raster);
     /////////////////////////////////////////////////////////////////////
 }
 
@@ -629,14 +625,7 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
 }
 
 void NewServerConnector::sendSerializedMessage(QString respName, uint32_t eventId, PBMSharedPtr msg) {
-    bool success = false;
-    size_t requiredSize = 0;
-    std::vector<char> result = serializeToArray(respName, eventId, msg, success, requiredSize);
-    if (success) {
-        emit jsBinaryMessageResultSignal(result.data(), respName, eventId, requiredSize);
-        // this part will affect the sensitivity of the file browser or file info clipping, should investigated in detail !!
-        qDebug() << "[NewServerConnector] Send event: Name=" << respName << ", Id=" << eventId << ", Time=" << QTime::currentTime().toString();
-    }
+    emit jsBinaryMessageResultSignal(respName, eventId, msg);
 }
 
 Carta::Data::Controller* NewServerConnector::_getController() {

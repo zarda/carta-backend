@@ -145,6 +145,7 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
         if (!sessionExisting) {
             qRegisterMetaType<size_t>("size_t");
             qRegisterMetaType<uint32_t>("uint32_t");
+            qRegisterMetaType<PBMSharedPtr>("PBMSharedPtr");
 
             // start the image viewer
             connect(connector, SIGNAL(startViewerSignal(const QString &)),
@@ -167,8 +168,8 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
                     connector, SLOT(imageChannelUpdateSignalSlot(uint32_t, int, int, int)));
 
             // send binary signal to the frontend
-            connect(connector, SIGNAL(jsBinaryMessageResultSignal(char*, QString, uint32_t, size_t)),
-                    this, SLOT(forwardBinaryMessageResult(char*, QString, uint32_t, size_t)));
+            connect(connector, SIGNAL(jsBinaryMessageResultSignal(QString, uint32_t, PBMSharedPtr)),
+                    this, SLOT(forwardBinaryMessageResult(QString, uint32_t, PBMSharedPtr)));
 
             //connect(connector, SIGNAL(onTextMessageSignal(QString)), connector, SLOT(onTextMessage(QString)));
             //connect(connector, SIGNAL(jsTextMessageResultSignal(QString)), this, SLOT(forwardTextMessageResult(QString)) );
@@ -290,7 +291,7 @@ void SessionDispatcher::forwardTextMessageResult(QString result) {
     }
 }
 
-void SessionDispatcher::forwardBinaryMessageResult(char* message, QString respName, uint32_t eventId, size_t length) {
+void SessionDispatcher::forwardBinaryMessageResult(QString respName, uint32_t eventId, PBMSharedPtr protoMsg) {
     uWS::WebSocket<uWS::SERVER> *ws = nullptr;
     NewServerConnector* connector = qobject_cast<NewServerConnector*>(sender());
     std::map<uWS::WebSocket<uWS::SERVER>*, NewServerConnector*>::iterator iter;
@@ -301,8 +302,14 @@ void SessionDispatcher::forwardBinaryMessageResult(char* message, QString respNa
         }
     }
     if (ws) {
-        ws->send(message, length, uWS::OpCode::BINARY);
-        qDebug() << "[SessionDispatcher] Send event: Name=" << respName << ", Id=" << eventId << ", Time=" << QTime::currentTime().toString();
+        // send serialized message to the frontend
+        bool success = false;
+        size_t requiredSize = 0;
+        std::vector<char> message = serializeToArray(respName, eventId, protoMsg, success, requiredSize);
+        if (success) {
+            ws->send(message.data(), requiredSize, uWS::OpCode::BINARY);
+            qDebug() << "[SessionDispatcher] Send event: Name=" << respName << ", Id=" << eventId << ", Time=" << QTime::currentTime().toString();
+        }
     } else {
         qDebug() << "[SessionDispatcher] ERROR! Cannot find the corresponding websocket!";
     }
