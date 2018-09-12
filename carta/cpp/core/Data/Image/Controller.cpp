@@ -24,8 +24,6 @@
 #include "CartaLib/IImage.h"
 #include "Globals.h"
 
-#include "CartaLib/Proto/lm.helloworld.pb.h"
-
 #include <QtCore/QDebug>
 #include <QtCore/QList>
 #include <QtCore/QDir>
@@ -599,13 +597,13 @@ void Controller::_initializeCallbacks(){
     //     result = QString::fromStdString(data);
     //     return result;
     // });
-    addMessageCallback( "testProtoBuf", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> PBMSharedPtr {
-        std::shared_ptr<lm::helloworld> msg1(new lm::helloworld());
-        msg1->set_id(101);
-        msg1->set_str("hello");
-        return static_cast<PBMSharedPtr>(msg1);
-    });
+    //addMessageCallback( "testProtoBuf", [=] (const QString & /*cmd*/,
+    //        const QString & params, const QString & /*sessionId*/) -> PBMSharedPtr {
+    //    std::shared_ptr<lm::helloworld> msg1(new lm::helloworld());
+    //    msg1->set_id(101);
+    //    msg1->set_str("hello");
+    //    return static_cast<PBMSharedPtr>(msg1);
+    //});
 
     // addMessageCallback( "OPEN_FILE", [=] (const QString & /*cmd*/,
     //         const QString & params, const QString & /*sessionId*/) -> PBMSharedPtr {
