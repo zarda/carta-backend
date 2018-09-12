@@ -264,6 +264,10 @@ private:
             int numberOfBins,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter);
 
+    RegionHistogramData _getPixels2HistogramData(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+            int numberOfBins,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter);
+
     int _getStokeIndicator();
     int _getSpectralIndicator();
 
