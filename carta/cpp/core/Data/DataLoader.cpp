@@ -661,9 +661,9 @@ bool DataLoader::_genImgRefCoordInfo(std::map<QString, QString>& infoMap,
 
     // set CRPIX1, CRPIX2, CRVAL1, CRVAL2 with specific format
     char buf[512];
-    snprintf(buf, sizeof(buf), "%d", p1);
+    snprintf(buf, sizeof(buf), "%d", (int)p1);
     QString pix1Str = QString(buf);
-    snprintf(buf, sizeof(buf), "%d", p2);
+    snprintf(buf, sizeof(buf), "%d", (int)p2);
     QString pix2Str = QString(buf);
     snprintf(buf, sizeof(buf), "%.4f", v1);
     QString val1Str = QString(buf);
@@ -685,7 +685,7 @@ bool DataLoader::_genImgRefCoordInfo(std::map<QString, QString>& infoMap,
         int dec_dd = (int)v2;
         int dec_mm = (int)((v2 - dec_dd) * 60);
         double dec_ss = (((v2 - dec_dd) * 60) - dec_mm) * 60;
-        snprintf(buf, sizeof(buf), "%d:%d:%.4f", dec_dd, abs(dec_mm), abs(dec_ss));
+        snprintf(buf, sizeof(buf), "%d:%d:%.4f", dec_dd, abs(dec_mm), fabs(dec_ss));
         tmp2 = QString(buf);
 
         arcsecStr = " [" + tmp1 + ", " + tmp2 + "]";
