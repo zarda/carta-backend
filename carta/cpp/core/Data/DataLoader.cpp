@@ -981,7 +981,9 @@ bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std:
 
     for (auto iter = keys.begin(); iter != keys.end(); iter++) {
         auto found = infoMap.find(*iter);
-        if (found != infoMap.end()) { // found key
+
+        // omit empty fields
+        if (found != infoMap.end() && found->second != "") {
             pairs.push_back({found->first, found->second});
         }
     }
