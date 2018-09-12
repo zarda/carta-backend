@@ -249,7 +249,7 @@ private:
      */
     std::vector<double> _getIntensity( int frameLow, int frameHigh,
             const std::vector<double>& percentiles, int stokeFrame,
-            Carta::Lib::IntensityUnitConverter::SharedPtr converter);
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
 
     /**
      * Returns the histogram of pixels.
@@ -262,11 +262,11 @@ private:
      */
     PBMSharedPtr _getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
             int numberOfBins,
-            Carta::Lib::IntensityUnitConverter::SharedPtr converter);
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
 
     RegionHistogramData _getPixels2HistogramData(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
             int numberOfBins,
-            Carta::Lib::IntensityUnitConverter::SharedPtr converter);
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
 
     int _getStokeIndicator();
     int _getSpectralIndicator();

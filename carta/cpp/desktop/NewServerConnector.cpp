@@ -456,7 +456,7 @@ void NewServerConnector::openFileSignalSlot(uint32_t eventId, QString fileDir, Q
 
 void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
     bool isZFP, int precision, int numSubsets) {
-    QString respName;
+    QString respName = "RASTER_IMAGE_DATA";
 
     // check if need to reset image bounds
     if (xMin != m_imageBounds[fileId][0] || xMax != m_imageBounds[fileId][1] ||
@@ -494,27 +494,6 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
     // do not include unit converter for pixel values
     Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr;
 
-    // check if need to re-calculate the histogram!!
-    if (m_changeFrame[fileId]) {
-        /////////////////////////////////////////////////////////////////////
-        respName = "REGION_HISTOGRAM_DATA";
-
-        // calculate pixels to histogram data
-        PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId,
-                                                                             frameLow, frameHigh, stokeFrame,
-                                                                             numberOfBins, converter);
-
-        // send the serialized message to the frontend
-        sendSerializedMessage(respName, eventId, region_histogram_data);
-
-        // set image changed is false
-        m_changeFrame[fileId] = false;
-        /////////////////////////////////////////////////////////////////////
-    }
-
-    /////////////////////////////////////////////////////////////////////
-    respName = "RASTER_IMAGE_DATA";
-
     // get the down sampling raster image raw data
     PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip,
                                                          frameLow, frameHigh, stokeFrame,
@@ -523,11 +502,10 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
 
     // send the serialized message to the frontend
     sendSerializedMessage(respName, eventId, raster);
-    /////////////////////////////////////////////////////////////////////
 }
 
 void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int fileId, int channel, int stoke) {
-    QString respName;
+    QString respName = "RASTER_IMAGE_DATA";
 
     if (m_currentChannel[fileId][0] != channel || m_currentChannel[fileId][1] != stoke) {
         //qDebug() << "[NewServerConnector] Set image channel=" << channel << ", fileId=" << fileId << ", stoke=" << stoke;
@@ -553,26 +531,14 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
     int frameHigh = frameLow;
     int stokeFrame = m_currentChannel[fileId][1];
 
-    /////////////////////////////////////////////////////////////////////
-    respName = "REGION_HISTOGRAM_DATA";
-
     // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
     int regionId = -1;
 
     // do not include unit converter for pixel values
     Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr;
 
-    // calculate pixels to histogram data
-    PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId,
-                                                                         frameLow, frameHigh, stokeFrame,
-                                                                         numberOfBins, converter);
-
-    // send the serialized message to the frontend
-    sendSerializedMessage(respName, eventId, region_histogram_data);
-    /////////////////////////////////////////////////////////////////////
-
-    /////////////////////////////////////////////////////////////////////
-    respName = "RASTER_IMAGE_DATA";
+    // set image changed is true
+    m_changeFrame[fileId] = true;
 
     // get image viewer bounds with respect to the fileId
     int xMin = m_imageBounds[fileId][0];
@@ -593,7 +559,6 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
 
     // send the serialized message to the frontend
     sendSerializedMessage(respName, eventId, raster);
-    /////////////////////////////////////////////////////////////////////
 }
 
 void NewServerConnector::sendSerializedMessage(QString respName, uint32_t eventId, PBMSharedPtr msg) {
