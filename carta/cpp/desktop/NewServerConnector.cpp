@@ -498,7 +498,9 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
 
         // calculate pixels to histogram data
         Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-        PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+        PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId,
+                                                                             frameLow, frameHigh, stokeFrame,
+                                                                             numberOfBins, converter);
 
         // send the serialized message to the frontend
         sendSerializedMessage(respName, eventId, region_histogram_data);
@@ -556,7 +558,9 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
 
     // calculate pixels to histogram data
     Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-    PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+    PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId,
+                                                                         frameLow, frameHigh, stokeFrame,
+                                                                         numberOfBins, converter);
 
     // send the serialized message to the frontend
     sendSerializedMessage(respName, eventId, region_histogram_data);

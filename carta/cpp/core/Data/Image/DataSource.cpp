@@ -643,8 +643,8 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
     return intensities;
 }
 
-PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
-    int numberOfBins, int stokeFrame,
+PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+    int numberOfBins,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) {
 
     qDebug() << "[DataSource] Calculating the regional histogram data...................................>";

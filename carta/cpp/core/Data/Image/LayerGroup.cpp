@@ -556,12 +556,12 @@ int LayerGroup::_getSpectralIndicator() const {
     return result;
 }
 
-PBMSharedPtr LayerGroup::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
-    int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
+PBMSharedPtr LayerGroup::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+    int numberOfBins, Lib::IntensityUnitConverter::SharedPtr converter) const {
     PBMSharedPtr results;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        results = m_children[dataIndex]->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+        results = m_children[dataIndex]->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, stokeFrame, numberOfBins, converter);
     }
     return results;
 }

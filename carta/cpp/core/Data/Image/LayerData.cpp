@@ -401,12 +401,12 @@ int LayerData::_getSpectralIndicator() const {
     return result;
 }
 
-PBMSharedPtr LayerData::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
-    int numberOfBins, int stokeFrame,
+PBMSharedPtr LayerData::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+    int numberOfBins,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
     PBMSharedPtr results;
     if ( m_dataSource ){
-        results = m_dataSource->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+        results = m_dataSource->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, stokeFrame, numberOfBins, converter);
     }
     return results;
 }

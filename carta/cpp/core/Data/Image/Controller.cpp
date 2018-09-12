@@ -397,8 +397,8 @@ int Controller::getSpectralIndicator() const {
     return result;
 }
 
-PBMSharedPtr Controller::getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
-    PBMSharedPtr result = m_stack->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+PBMSharedPtr Controller::getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame, int numberOfBins, Lib::IntensityUnitConverter::SharedPtr converter) const {
+    PBMSharedPtr result = m_stack->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, stokeFrame, numberOfBins, converter);
     return result;
 }
 

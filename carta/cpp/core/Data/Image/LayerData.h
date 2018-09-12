@@ -380,8 +380,8 @@ protected:
      * @param converter - used to convert the pixel values for different unit
      * @return - a struct RegionHistogramData
      */
-    virtual PBMSharedPtr _getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
-            int numberOfBins, int stokeFrame,
+    virtual PBMSharedPtr _getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+            int numberOfBins,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const Q_DECL_OVERRIDE;
 
     virtual int _getStokeIndicator() const Q_DECL_OVERRIDE;
