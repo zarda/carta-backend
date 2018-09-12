@@ -670,7 +670,6 @@ PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int fram
     } else {
         minIntensity = minMaxIntensities[0];
         // assign the minimum of the pixel value as a private parameter
-        m_minIntensity = minIntensity;
         maxIntensity = minMaxIntensities[1];
     }
 
@@ -720,12 +719,6 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const {
 
     std::vector<float> imageData; // the image raw data with downsampling
-
-    // check if the minimum of the pixel value is valid
-    if (m_minIntensity == std::numeric_limits<double>::min()) {
-        qWarning() << "[DataSource] The minimum of the pixel value is invalid! Return nullptr";
-        return nullptr;
-    }
 
     // start timer for computing approximate percentiles
     QElapsedTimer timer;
