@@ -448,7 +448,7 @@ void NewServerConnector::openFileSignalSlot(uint32_t eventId, QString fileDir, Q
 
     // set spectral and stoke frame ranges to calculate the pixel to histogram data
     //m_calHistRange[fileId] = {0, m_lastFrame[fileId], 0}; // {frameLow, frameHigh, stokeFrame}
-    m_calHistRange[fileId] = {0, 0, 0}; // {frameLow, frameHigh, stokeFrame}
+    //m_calHistRange[fileId] = {0, 0, 0}; // {frameLow, frameHigh, stokeFrame}
 
     // set image changed is true
     m_changeFrame[fileId] = true;
@@ -456,6 +456,7 @@ void NewServerConnector::openFileSignalSlot(uint32_t eventId, QString fileDir, Q
 
 void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
     bool isZFP, int precision, int numSubsets) {
+    QString respName;
 
     // check if need to reset image bounds
     if (xMin != m_imageBounds[fileId][0] || xMax != m_imageBounds[fileId][1] ||
@@ -476,14 +477,13 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
         m_ZFPSet[fileId] = {precision, numSubsets};
     }
 
-    QString respName;
-
     // get the controller
     Carta::Data::Controller* controller = _getController();
 
     // set the file id as the private parameter in the Stack object
     controller->setFileId(fileId);
 
+    // set the current channel
     int frameLow = m_currentChannel[fileId][0];
     int frameHigh = frameLow;
     int stokeFrame = m_currentChannel[fileId][1];
@@ -498,7 +498,7 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
 
         // calculate pixels to histogram data
         Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-        PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
+        PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
 
         // send the serialized message to the frontend
         sendSerializedMessage(respName, eventId, region_histogram_data);
@@ -512,7 +512,9 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
     respName = "RASTER_IMAGE_DATA";
 
     // get the down sampling raster image raw data
-    PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
+    PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip,
+                                                         frameLow, frameHigh, stokeFrame,
+                                                         isZFP, precision, numSubsets);
 
     // send the serialized message to the frontend
     sendSerializedMessage(respName, eventId, raster);
@@ -525,8 +527,7 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
     if (m_currentChannel[fileId][0] != channel || m_currentChannel[fileId][1] != stoke) {
         //qDebug() << "[NewServerConnector] Set image channel=" << channel << ", fileId=" << fileId << ", stoke=" << stoke;
         // update the current channel and stoke
-        m_currentChannel[fileId][0] = channel;
-        m_currentChannel[fileId][1] = stoke;
+        m_currentChannel[fileId] = {channel, stoke};
     } else {
         //qDebug() << "[NewServerConnector] Internal signal is repeated!! Don't know the reason yet, just ignore the signal!!";
         return;
@@ -534,13 +535,18 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
 
     // set spectral and stoke frame ranges to calculate the pixel to histogram data
     //m_calHistRange[fileId] = {0, m_lastFrame[fileId], 0};
-    m_calHistRange[fileId] = {channel, channel, stoke};
+    //m_calHistRange[fileId] = {channel, channel, stoke};
 
     // get the controller
     Carta::Data::Controller* controller = _getController();
 
     // set the file id as the private parameter in the Stack object
     controller->setFileId(fileId);
+
+    // set the current channel
+    int frameLow = m_currentChannel[fileId][0];
+    int frameHigh = frameLow;
+    int stokeFrame = m_currentChannel[fileId][1];
 
     /////////////////////////////////////////////////////////////////////
     respName = "REGION_HISTOGRAM_DATA";
@@ -550,7 +556,7 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
 
     // calculate pixels to histogram data
     Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-    PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
+    PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
 
     // send the serialized message to the frontend
     sendSerializedMessage(respName, eventId, region_histogram_data);
@@ -558,10 +564,6 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
 
     /////////////////////////////////////////////////////////////////////
     respName = "RASTER_IMAGE_DATA";
-
-    int frameLow = m_currentChannel[fileId][0];
-    int frameHigh = frameLow;
-    int stokeFrame = m_currentChannel[fileId][1];
 
     // get image viewer bounds with respect to the fileId
     int x_min = m_imageBounds[fileId][0];
@@ -575,7 +577,9 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
     int numSubsets = m_ZFPSet[fileId][1];
 
     // use image bounds with respect to the fileID and get the down sampling raster image raw data
-    PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
+    PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip,
+                                                         frameLow, frameHigh, stokeFrame,
+                                                         isZFP, precision, numSubsets);
 
     // send the serialized message to the frontend
     sendSerializedMessage(respName, eventId, raster);
