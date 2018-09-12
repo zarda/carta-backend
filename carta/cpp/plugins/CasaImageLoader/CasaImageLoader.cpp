@@ -79,14 +79,25 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
     qDebug() << "CasaImageLoader plugin trying to load image: " << fname;
 
     // get the image type
-    casacore::ImageOpener::ImageTypes filetype = casacore::ImageOpener::imageType(fname.toStdString());
+    casacore::ImageOpener::ImageTypes filetype;
+    try {
+        filetype = casacore::ImageOpener::imageType(fname.toStdString());
+    } catch (...) {
+        qDebug() << "Get image typed failed";
+        return nullptr;
+    }
 
     // load image
     casacore::LatticeBase * lat = nullptr;
     if(filetype == casacore::ImageOpener::ImageTypes::AIPSPP)
     {
         casa_mutex.lock();
-        lat = casacore::ImageOpener::openPagedImage ( fname.toStdString());
+        try {
+            lat = casacore::ImageOpener::openPagedImage ( fname.toStdString());
+        } catch (...) {
+            qDebug() << "Open paged image failed.";
+            return nullptr;
+        }
         casa_mutex.unlock();
 
         qDebug() << "\t-opened as paged image";

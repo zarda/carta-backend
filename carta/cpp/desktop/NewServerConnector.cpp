@@ -325,7 +325,11 @@ void NewServerConnector::onBinaryMessageSignalSlot(char* message, size_t length)
         msg = dataLoader->getFileInfo(fileInfoRequest);
 
         // send the serialized message to the frontend
-        sendSerializedMessage(respName, eventId, msg);
+        if(nullptr != msg) {
+            sendSerializedMessage(respName, eventId, msg);
+        } else {
+            // return a error msg
+        }
         return;
 
     } else if (eventName == "CLOSE_FILE") {
