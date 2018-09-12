@@ -592,9 +592,6 @@ private:
     int m_axisIndexX;
     int m_axisIndexY;
 
-    // minimum of the pixel value
-    double m_minIntensity = std::numeric_limits<double>::min();
-
     const static int INDEX_LOCATION;
     const static int INDEX_INTENSITY;
     const static int INDEX_PERCENTILE;
