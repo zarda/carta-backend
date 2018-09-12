@@ -534,7 +534,7 @@ bool DataLoader::_genStokesChannelsInfo(std::map<QString, QString>& infoMap,
     return true;
 }
 
-// Generate customized pixel size info according to CDELT1, CDELT2, CUNIT1
+// Generate customized pixel size info according to CDELT1, CDELT2, CUNIT1, CUNIT2
 bool DataLoader::_genPixelSizeInfo(std::map<QString, QString>& infoMap,
                                    const std::map<QString, QString> headerMap) {
     // check whether headerMap is empty
@@ -543,57 +543,66 @@ bool DataLoader::_genPixelSizeInfo(std::map<QString, QString>& infoMap,
         return false;
     }
 
-    // generate value
-    QString value = "";
     auto cdelt1 = headerMap.find("CDELT1");
     auto cdelt2 = headerMap.find("CDELT2");
-    if (cdelt1 != headerMap.end() && cdelt2 != headerMap.end()) {
-        // get CDELT1, CDELT2 & convert them to double
-        QString delstr1 = cdelt1->second;
-        QString delstr2 = cdelt2->second;
-        bool ok = false;
-        double d1 = 0, d2 = 0;
-        d1 = (delstr1).toDouble(&ok);
-        if (!ok) {
-            qDebug() << "Convert degree to double error.";
+    auto unit1 = headerMap.find("CUNIT1");
+    auto unit2 = headerMap.find("CUNIT2");
+
+    // check whether corresponding fields can be found in map
+    if (cdelt1 == headerMap.end() || cdelt2 == headerMap.end() ||
+        unit1 == headerMap.end() || unit2 == headerMap.end()) {
+        qDebug() << "Cannot find CDELT1 CDELT2 CUNIT1 CUNIT2.";
+        return false;
+    }
+
+    QString delstr1 = cdelt1->second;
+    QString delstr2 = cdelt2->second;
+    bool ok = false;
+    double d1 = 0, d2 = 0;
+    d1 = (delstr1).toDouble(&ok);
+    if (!ok) {
+        qDebug() << "Convert degree to double error.";
+        return false;
+    }
+    d2 = (delstr2).toDouble(&ok);
+    if (!ok) {
+        qDebug() << "Convert degree to double error.";
+        return false;
+    }
+
+    // convert CDELT1 CDELT2 to arcsec if unit is degree
+    // convert CDELT1 CDELT2 to MHz/GHz if unit is Hz
+    if ((unit1->second).contains("deg", Qt::CaseInsensitive)) {
+        QString arcs1 = "", arcs2 = "";
+        if(false == _deg2arcsec(delstr1, arcs1)) {
+            qDebug() << "Convert CDELT1 to arcsec error.";
             return false;
         }
-        d2 = (delstr2).toDouble(&ok);
-        if (!ok) {
-            qDebug() << "Convert degree to double error.";
+        if(false == _deg2arcsec(delstr2, arcs2)) {
+            qDebug() << "Convert CDELT2 to arcsec error.";
             return false;
         }
-
-        // get unit & convert CDELT1 CDELT2 to arcsec if unit is degree
-        auto unit = headerMap.find("CUNIT1");
-        if (unit == headerMap.end()) {
-            qDebug() << "Cannot find CUNIT1.";
-            return false;
-        }
-
-        if ((unit->second).contains("deg", Qt::CaseInsensitive)) {
-            QString arcs1 = "", arcs2 = "";
-            if(false == _deg2arcsec(delstr1, arcs1)) {
-                qDebug() << "Convert CDELT1 to arcsec error.";
-                return false;
-            }
-            if(false == _deg2arcsec(delstr2, arcs2)) {
-                qDebug() << "Convert CDELT2 to arcsec error.";
-                return false;
-            }
-            delstr1 = arcs1;
-            delstr2 = arcs2;
-        } else { // not degree
-            delstr1 = delstr1 + " " + unit->second;
-            delstr2 = delstr2 + " " + unit->second;
-        }
-
-        // check whether CDELT1 & CDELT2 are the same(squre)
-        if (abs(d1) == abs(d2)) {
-            value = (d1 > 0) ? delstr1 : delstr2;
+        delstr1 = arcs1;
+        delstr2 = arcs2;
+    } else { // not degree
+        if ((unit1->second).contains("Hz", Qt::CaseInsensitive)) {
+            delstr1 = _convertHz(d1);
         } else {
-            value = delstr1 + ", " + delstr2;
+            delstr1 = delstr1 + " " + unit1->second;
         }
+        if ((unit2->second).contains("Hz", Qt::CaseInsensitive)) {
+            delstr2 = _convertHz(d2);
+        } else {
+            delstr2 = delstr2 + " " + unit2->second;
+        }
+    }
+
+    QString value = "";
+    // check whether CDELT1 & CDELT2 are the same(squre)
+    if (abs(d1) == abs(d2)) {
+        value = (d1 > 0) ? delstr1 : delstr2;
+    } else {
+        value = delstr1 + ", " + delstr2;
     }
 
     // insert (label, value) to info entry
@@ -685,12 +694,24 @@ bool DataLoader::_genImgRefCoordInfo(std::map<QString, QString>& infoMap,
     QString pix1Str = QString(buf);
     snprintf(buf, sizeof(buf), "%d", (int)p2);
     QString pix2Str = QString(buf);
-    snprintf(buf, sizeof(buf), "%.4f", v1);
-    QString val1Str = QString(buf);
-    snprintf(buf, sizeof(buf), "%.4f", v2);
-    QString val2Str = QString(buf);
 
-    // convert to arcsec if unit is degree
+    QString val1Str = "";
+    QString val2Str = "";
+    // convert to MHz if unit is Hz
+    if ((cunit1->second).contains("Hz", Qt::CaseInsensitive)) {
+        val1Str = _convertHz(v1);
+    } else {
+        snprintf(buf, sizeof(buf), "%.4f", v1);
+        val1Str = QString(buf) + " " + cunit1->second;
+    }
+    if ((cunit2->second).contains("Hz", Qt::CaseInsensitive)) {
+        val2Str = _convertHz(v2);
+    } else {
+        snprintf(buf, sizeof(buf), "%.4f", v2);
+        val2Str = QString(buf) + " " + cunit2->second;
+    }
+
+    // generate arcsec if unit is degree
     QString arcsecStr = "";
     if ((cunit1->second).contains("deg", Qt::CaseInsensitive)) {
         char buf[512];
@@ -713,7 +734,7 @@ bool DataLoader::_genImgRefCoordInfo(std::map<QString, QString>& infoMap,
 
     // insert (label, value) to info entry
     QString value = "[" + pix1Str + ", " + pix2Str + "] [" +
-                    val1Str + " " + cunit1->second + ", " + val2Str + " " + cunit2->second + "]" +
+                    val1Str + ", " + val2Str + "]" +
                     arcsecStr;
     infoMap["Image reference coordinate"] = value;
 
@@ -982,8 +1003,8 @@ bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std:
     for (auto iter = keys.begin(); iter != keys.end(); iter++) {
         auto found = infoMap.find(*iter);
 
-        // omit empty fields
-        if (found != infoMap.end() && found->second != "") {
+        // omit empty field
+        if (found != infoMap.end() && "" != found->second) {
             pairs.push_back({found->first, found->second});
         }
     }
@@ -1019,6 +1040,21 @@ bool DataLoader::_deg2arcsec(const QString degree, QString& arcsec) {
 
     arcsec = QString(buf);
     return true;
+}
+
+// Unit conversion: convert Hz to MHz or GHz
+QString DataLoader::_convertHz(const double hz) {
+    char buf[512];
+
+    if (hz >= 1.0e9) {
+        snprintf(buf, sizeof(buf), "%.4f GHz", hz/1.0e9);
+    } else if (hz < 1.0e9 && hz >= 1.0e6) {
+        snprintf(buf, sizeof(buf), "%.4f MHz", hz/1.0e6);
+    } else {
+        snprintf(buf, sizeof(buf), "%.4f Hz", hz);
+    }
+
+    return QString(buf);
 }
 
 DataLoader::~DataLoader(){
