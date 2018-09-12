@@ -770,7 +770,13 @@ bool DataLoader::_genRemainInfo(std::map<QString, QString>& infoMap,
         qDebug() << "VELREF not found.";
         return false;
     }
-    infoMap["Velocity definition"] = found->second;
+    if ((found->second).contains("Radio", Qt::CaseInsensitive)) {
+        infoMap["Velocity definition"] = "Radio";
+    } else if ((found->second).contains("Optical", Qt::CaseInsensitive)) {
+        infoMap["Velocity definition"] = "Optical";
+    } else {
+        infoMap["Velocity definition"] = found->second;
+    }
 
     return true;
 }
