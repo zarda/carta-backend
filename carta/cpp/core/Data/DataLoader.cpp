@@ -313,16 +313,16 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     std::vector<std::vector<QString>> pairs = {};
     if (false == _arrangeFileInfo(infoMap, pairs)) {
         qDebug() << "Sort file info entry error.";
-    }
-
-    // insert Part 1, Part 2 to fileInfoExt
-    for (auto iter = pairs.begin(); iter != pairs.end(); iter++) {
-        auto *infoEntries = fileInfoExt->add_computed_entries();
-        if (nullptr != infoEntries) {
-            infoEntries->set_name((*iter)[0].toLocal8Bit().constData());
-            infoEntries->set_value((*iter)[1].toLocal8Bit().constData());
-        } else {
-            qDebug() << "Insert info entry to fileInfoExt error.";
+    } else {
+        // insert Part 1, Part 2 to fileInfoExt
+        for (auto iter = pairs.begin(); iter != pairs.end(); iter++) {
+            auto *infoEntries = fileInfoExt->add_computed_entries();
+            if (nullptr != infoEntries) {
+                infoEntries->set_name((*iter)[0].toLocal8Bit().constData());
+                infoEntries->set_value((*iter)[1].toLocal8Bit().constData());
+            } else {
+                qDebug() << "Insert info entry to fileInfoExt error.";
+            }
         }
     }
 
