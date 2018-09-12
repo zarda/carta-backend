@@ -260,8 +260,11 @@ public:
      * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
      * @return - vector of pixels.
      */
-    PBMSharedPtr getRasterImageData(int fileId, int x_min, int x_max, int y_min, int y_max,
-            int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const;
+    PBMSharedPtr getRasterImageData(int fileId, int x_min, int x_max, int y_min, int y_max, int mip,
+        int frameLow, int frameHigh, int stokeFrame,
+        bool isZFP, int precision, int numSubsets,
+        bool &changeFrame, int regionId, int numberOfBins,
+        Lib::IntensityUnitConverter::SharedPtr converter) const;
 
     /**
      * Return the layer with the given name, if a name is specified; otherwise, return the current

@@ -488,16 +488,18 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
     int frameHigh = frameLow;
     int stokeFrame = m_currentChannel[fileId][1];
 
+    // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
+    int regionId = -1;
+
+    // do not include unit converter for pixel values
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr;
+
     // check if need to re-calculate the histogram!!
     if (m_changeFrame[fileId]) {
         /////////////////////////////////////////////////////////////////////
         respName = "REGION_HISTOGRAM_DATA";
 
-        // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
-        int regionId = -1;
-
         // calculate pixels to histogram data
-        Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
         PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId,
                                                                              frameLow, frameHigh, stokeFrame,
                                                                              numberOfBins, converter);
@@ -516,7 +518,8 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
     // get the down sampling raster image raw data
     PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip,
                                                          frameLow, frameHigh, stokeFrame,
-                                                         isZFP, precision, numSubsets);
+                                                         isZFP, precision, numSubsets,
+                                                         m_changeFrame[fileId], regionId, numberOfBins, converter);
 
     // send the serialized message to the frontend
     sendSerializedMessage(respName, eventId, raster);
@@ -556,8 +559,10 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
     // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
     int regionId = -1;
 
+    // do not include unit converter for pixel values
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr;
+
     // calculate pixels to histogram data
-    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
     PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId,
                                                                          frameLow, frameHigh, stokeFrame,
                                                                          numberOfBins, converter);
@@ -570,10 +575,10 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
     respName = "RASTER_IMAGE_DATA";
 
     // get image viewer bounds with respect to the fileId
-    int x_min = m_imageBounds[fileId][0];
-    int x_max = m_imageBounds[fileId][1];
-    int y_min = m_imageBounds[fileId][2];
-    int y_max = m_imageBounds[fileId][3];
+    int xMin = m_imageBounds[fileId][0];
+    int xMax = m_imageBounds[fileId][1];
+    int yMin = m_imageBounds[fileId][2];
+    int yMax = m_imageBounds[fileId][3];
     int mip = m_imageBounds[fileId][4];
 
     bool isZFP = m_isZFP[fileId];
@@ -581,9 +586,10 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
     int numSubsets = m_ZFPSet[fileId][1];
 
     // use image bounds with respect to the fileID and get the down sampling raster image raw data
-    PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip,
+    PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip,
                                                          frameLow, frameHigh, stokeFrame,
-                                                         isZFP, precision, numSubsets);
+                                                         isZFP, precision, numSubsets,
+                                                         m_changeFrame[fileId], regionId, numberOfBins, converter);
 
     // send the serialized message to the frontend
     sendSerializedMessage(respName, eventId, raster);
