@@ -21,6 +21,9 @@
 #include <QElapsedTimer>
 #include "CartaLib/UtilCASA.h"
 
+#include <zfp.h>
+#include <cmath>
+
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
 
@@ -644,7 +647,7 @@ PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int fram
     int numberOfBins, int stokeFrame,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) {
 
-    qDebug() << "Calculating the regional histogram data...................................>";
+    qDebug() << "[DataSource] Calculating the regional histogram data...................................>";
     RegionHistogramData result; // results from the "percentileAlgorithms.h"
 
     // get the raw data
@@ -667,7 +670,6 @@ PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int fram
     } else {
         minIntensity = minMaxIntensities[0];
         // assign the minimum of the pixel value as a private parameter
-        m_minIntensity = minIntensity;
         maxIntensity = minMaxIntensities[1];
     }
 
@@ -708,41 +710,39 @@ PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int fram
     for (auto intensity : result.bins) {
         histogram->add_bins(intensity);
     }
-    qDebug() << ".......................................................................Done";
+    qDebug() << "[DataSource] .......................................................................Done";
 
     return region_histogram_data;
 }
 
 PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
-    int mip, int frameLow, int frameHigh, int stokeFrame) const {
+    int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const {
 
-    std::vector<float> results; // the image raw data with downsampling
+    std::vector<float> imageData; // the image raw data with downsampling
 
-    // check if the minimum of the pixel value is valid
-    if (m_minIntensity == std::numeric_limits<double>::min()) {
-        qWarning() << "The minimum of the pixel value is invalid! Return nullptr";
-        return nullptr;
-    }
+    // start timer for computing approximate percentiles
+    QElapsedTimer timer;
+    timer.start();
 
     // get the raw data
     Carta::Lib::NdArray::RawViewInterface* view = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
 
     // check if the downsampling parameter "mip" is smaller than the image width or high
     if (mip <= 0 || abs(mip) > std::min(view->dims()[0], view->dims()[1])) {
-        qWarning() << "Downsampling parameter, mip=" << mip
+        qWarning() << "[DataSource] Downsampling parameter, mip=" << mip
                    << ", which is larger than the image width=" <<  view->dims()[0]
                    << "or high=" << view->dims()[1] << ". Return nullptr";
-        //return nullptr;
+        return nullptr;
         // [Try] it may be due to the frontend signal problem, reset the mip as 1 to pass, and then resend the next correct signal
-        mip = 1;
+        //mip = 1;
     }
 
-    qDebug() << "Down sampling the raster image data.......................................>";
-    qDebug() << "Dawn sampling factor mip:" << mip;
-    int W = (xMax - xMin) / mip;
-    int H = (yMax - yMin) / mip;
-    qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << xMin << "," << xMax << "]" << "--> W=" << W;
-    qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << yMin << "," << yMax << "]" << "--> H=" << H;
+    qDebug() << "[DataSource] Down sampling the raster image data.......................................>";
+    //qDebug() << "Dawn sampling factor mip:" << mip;
+    int nx = (xMax - xMin) / mip;
+    int ny = (yMax - yMin) / mip;
+    //qDebug() << "get the x-pixel-coordinate range: [x_min, x_max]= [" << xMin << "," << xMax << "]" << "--> W=" << nx;
+    //qDebug() << "get the y-pixel-coordinate range: [y_min, y_max]= [" << yMin << "," << yMax << "]" << "--> H=" << ny;
 
     int prepareCols = view->dims()[0]; // get the full width length
     int prepareRows = mip;
@@ -766,11 +766,7 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
         int t = 0;
         fview.forEach( [&] ( const float & val ) {
             // To improve the performance, the prepareArea also update only one row by computing the module
-            if (std::isfinite(val)) {
-                prepareArea[(t++)] = val;
-            } else {
-                prepareArea[(t++)] = m_minIntensity;
-            }
+            prepareArea[(t++)] = val;
         });
 
         if (t != area) {
@@ -796,8 +792,8 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
                 }
             }
             // set the NaN type of the pixel as the minimum of the other finite pixel values
-            rawData = (denominator < 1 ? m_minIntensity : rawData / denominator);
-            results.push_back(rawData);
+            rawData = (denominator < 1 ? NAN : rawData / denominator);
+            imageData.push_back(rawData);
         }
         nextRowToReadIn += prepareRows;
     };
@@ -820,23 +816,150 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     raster->set_channel(frameLow);
     raster->set_stokes(stokeFrame);
     raster->set_mip(mip);
-    raster->add_image_data(results.data(), results.size() * sizeof(float));
 
-    //
-    // leave empty in the following two messages
-    //
-    // use the compression type from the "viewSetting" will cause problems on the frontend
-    //raster->set_compression_type(viewSetting.compression_type());
-    //
-    // use the following type is OK
-    //raster->set_compression_type(CARTA::CompressionType::NONE);
-    //
-    //raster->set_compression_quality(viewSetting.compression_quality());
+    if (isZFP) {
 
-    qDebug() << "number of the raw data sent L=" << results.size() << ", WxH=" << W * H << ", Difference:" << (W * H - results.size());
-    qDebug() << ".......................................................................Done";
+        // use ZFP compression
+        raster->set_compression_type(CARTA::CompressionType::ZFP);
+        raster->set_compression_quality(precision);
+
+        // so far I only use one thread, use "numSubsets" for multi-thread calculations
+        std::vector<char> compressionBuffer;
+        size_t compressedSize; // use "vector<size_t> compressedSizes(numSubsets);" for multi-thread calculations
+
+        // get NaN type pixel distances of indices
+        std::vector<int32_t> nanEncodings = _getNanEncodingsBlock(imageData, 0, nx, ny);
+
+        // apply ZFP function
+        _compress(imageData, 0, compressionBuffer, compressedSize, nx, ny, precision);
+
+        // use "raster->add_image_data(compressionBuffers[i].data(), compressedSizes[i])" for multi-thread calculations
+        raster->add_image_data(compressionBuffer.data(), compressedSize);
+        raster->add_nan_encodings((char*) nanEncodings.data(), nanEncodings.size() * sizeof(int)); // This item is necessary !!
+
+        qDebug() << "[DataSource] Apply ZFP compression (precision=" << precision << ", number of subsets= 1"
+                 << ", NaN encodings size=" << nanEncodings.size() << ")";
+
+    } else {
+
+        // without compression
+        raster->set_compression_type(CARTA::CompressionType::NONE);
+        raster->set_compression_quality(0);
+        raster->add_image_data(imageData.data(), imageData.size() * sizeof(float));
+
+        qDebug() << "[DataSource] w/o ZFP compression!";
+    }
+
+    //qDebug() << "number of the raw data sent L=" << imageData.size() << ", WxH=" << nx * ny << ", Difference:" << (nx * ny - imageData.size());
+
+    // end of timer for loading the raw data
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to get raster image data:" << elapsedTime << "ms";
+    }
+
+    qDebug() << "[DataSource] .......................................................................Done";
 
     return raster;
+}
+
+// This function is provided by Angus
+int DataSource::_compress(std::vector<float> &array, size_t offset, std::vector<char> &compressionBuffer,
+    size_t &compressedSize, uint32_t nx, uint32_t ny, uint32_t precision) const {
+
+    int status = 0;    /* return value: 0 = success */
+    zfp_type type;     /* array scalar type */
+    zfp_field* field;  /* array meta data */
+    zfp_stream* zfp;   /* compressed stream */
+    size_t bufsize;    /* byte size of compressed buffer */
+    bitstream* stream; /* bit stream to write to or read from */
+
+    type = zfp_type_float;
+    field = zfp_field_2d(array.data() + offset, type, nx, ny);
+
+    /* allocate meta data for a compressed stream */
+    zfp = zfp_stream_open(nullptr);
+
+    /* set compression mode and parameters via one of three functions */
+    zfp_stream_set_precision(zfp, precision);
+
+    /* allocate buffer for compressed data */
+    bufsize = zfp_stream_maximum_size(zfp, field);
+    if (compressionBuffer.size() < bufsize) {
+        compressionBuffer.resize(bufsize);
+    }
+    stream = stream_open(compressionBuffer.data(), bufsize);
+    zfp_stream_set_bit_stream(zfp, stream);
+    zfp_stream_rewind(zfp);
+
+    compressedSize = zfp_compress(zfp, field);
+    if (!compressedSize) {
+        status = 1;
+    }
+
+    /* clean up */
+    zfp_field_free(field);
+    zfp_stream_close(zfp);
+    stream_close(stream);
+
+    return status;
+}
+
+// This function is provided by Angus
+std::vector<int32_t> DataSource::_getNanEncodingsBlock(std::vector<float>& array, int offset, int w, int h) const {
+    // Generate RLE NaN list
+    int length = w * h;
+    int32_t prevIndex = offset;
+    bool prev = false;
+    std::vector<int32_t> encodedArray;
+
+    for (auto i = offset; i < offset + length; i++) {
+        bool current = std::isnan(array[i]);
+        if (current != prev) {
+            encodedArray.push_back(i - prevIndex);
+            prevIndex = i;
+            prev = current;
+        }
+    }
+    encodedArray.push_back(offset + length - prevIndex);
+
+    // Skip all-NaN images and NaN-free images
+    if (encodedArray.size() > 1) {
+        // Calculate average of 4x4 blocks (matching blocks used in ZFP), and replace NaNs with block average
+        for (auto i = 0; i < w; i += 4) {
+            for (auto j = 0; j < h; j += 4) {
+                int blockStart = offset + j * w + i;
+                int validCount = 0;
+                float sum = 0;
+                // Limit the block size when at the edges of the image
+                int blockWidth = std::min(4, w - i);
+                int blockHeight = std::min(4, h - j);
+                for (int x = 0; x < blockWidth; x++) {
+                    for (int y = 0; y < blockHeight; y++) {
+                        float v = array[blockStart + (y * w) + x];
+                        if (!std::isnan(v)) {
+                            validCount++;
+                            sum += v;
+                        }
+                    } // end of blockHeight loop
+                } // end of blockWidth loop
+
+                // Only process blocks which have at least one valid value AND at least one NaN. All-NaN blocks won't affect ZFP compression
+                if (validCount && validCount != blockWidth * blockHeight) {
+                    float average = sum / validCount;
+                    for (int x = 0; x < blockWidth; x++) {
+                        for (int y = 0; y < blockHeight; y++) {
+                            float v = array[blockStart + (y * w) + x];
+                            if (std::isnan(v)) {
+                                array[blockStart + (y * w) + x] = average;
+                            }
+                        } // end of blockHeight loop
+                    } // end of blockWidth loop
+                } // check whether if validCount > 0 && validCount != blockWidth * blockHeight
+            } // end of j loop
+        } // end of i loop
+    }
+    return encodedArray;
 }
 
 QColor DataSource::_getNanColor() const {
@@ -1329,7 +1452,7 @@ QString DataSource::_setFileName( const QString& fileName, bool* success ){
                     _resetPan();
 
                     m_fileName = file;
-                    qDebug() << "[DataSource] m_fileName=" << m_fileName;
+                    //qDebug() << "[DataSource] m_fileName=" << m_fileName;
                 }
                 else {
                     result = "Could not find any plugin to load image";

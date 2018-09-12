@@ -5,8 +5,13 @@ SUBDIRS += casaCore
 SUBDIRS += CasaImageLoader
 SUBDIRS += Colormaps1
 SUBDIRS += Fitter1D
+<<<<<<< HEAD
 #SUBDIRS += Histogram
 SUBDIRS += WcsPlotter
+=======
+SUBDIRS += Histogram
+#SUBDIRS += WcsPlotter    # remove the Ast dependency as well
+>>>>>>> master
 SUBDIRS += ConversionSpectral
 SUBDIRS += ConversionSpectral/Test.pro
 SUBDIRS += ConversionIntensity
@@ -17,7 +22,7 @@ SUBDIRS += RegionCASA
 #SUBDIRS += RegionDs9
 SUBDIRS += ProfileCASA
 SUBDIRS += qimage
-SUBDIRS += python273
+#SUBDIRS += python273
 SUBDIRS += CyberSKA
 SUBDIRS += DevIntegration
 SUBDIRS += PCacheSqlite3

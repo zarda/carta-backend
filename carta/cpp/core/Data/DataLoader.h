@@ -36,10 +36,9 @@ public:
 
     PBMSharedPtr getFileInfo(CARTA::FileInfoRequest fileInfoRequest);
 
-    // FileInfoExtended: extract Fits information and add to entries, including NAXIS NAXIS1 NAXIS2 NAXIS3...etc
-    bool extractFitsInfo(CARTA::FileInfoExtended* fileInfoExt,
-                         const std::shared_ptr<Carta::Lib::Image::ImageInterface> image,
-                         const QString respond);
+    // Get all fits headers and insert to entry
+    bool getFitsHeaders(CARTA::FileInfoExtended* fileInfoExt,
+                         const std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
 
     /**
      * Returns a QString containing a hierarchical listing of data files that can
@@ -132,6 +131,38 @@ private:
     DataLoader( const QString& path, const QString& id);
     DataLoader( const DataLoader& other);
     DataLoader& operator=( const DataLoader& other );
+
+    // Get statistic informtion using ImageStats plugin
+    bool _getStatisticInfo(std::map<QString, QString>& infoMap,
+                         const std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
+
+    // Generate customized file information for human readiblity using some fits headers
+    bool _genCustomizedInfo(std::map<QString, QString>& infoMap,
+                         const std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
+
+    // Generate customized stokes & channels info & insert to entry
+    bool _genStokesChannelsInfo(std::map<QString, QString>& infoMap, const std::map<QString, QString> headerMap);
+
+    // Generate customized pixel size info & insert to entry
+    bool _genPixelSizeInfo(std::map<QString, QString>& infoMap, const std::map<QString, QString> headerMap);
+
+    // Generate customized coordinate type info & insert to entry
+    bool _genCoordTypeInfo(std::map<QString, QString>& infoMap, const std::map<QString, QString> headerMap);
+
+    // Generate customized image reference coordinate info & insert to entry
+    bool _genImgRefCoordInfo(std::map<QString, QString>& infoMap, const std::map<QString, QString> headerMap);
+
+    // Generate customized celestial frame info & insert to entry
+    bool _genCelestialFrameInfo(std::map<QString, QString>& infoMap, const std::map<QString, QString> headerMap);
+
+    // Generate customized remaining info & insert to entry
+    bool _genRemainInfo(std::map<QString, QString>& infoMap, const std::map<QString, QString> headerMap);
+
+    // customized arrange file info
+    bool _arrangeFileInfo(const std::map<QString, QString> infoMap, std::vector<std::vector<QString>>& pairs);
+
+    // Unit conversion: convert degree to arcsec
+    bool _deg2arcsec(const QString degree, QString& arcsec);
 };
 }
 }

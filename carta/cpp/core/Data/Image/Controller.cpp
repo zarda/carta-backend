@@ -24,8 +24,6 @@
 #include "CartaLib/IImage.h"
 #include "Globals.h"
 
-#include "CartaLib/Proto/lm.helloworld.pb.h"
-
 #include <QtCore/QDebug>
 #include <QtCore/QList>
 #include <QtCore/QDir>
@@ -405,8 +403,8 @@ PBMSharedPtr Controller::getPixels2Histogram(int fileId, int regionId, int frame
 }
 
 PBMSharedPtr Controller::getRasterImageData(int fileId, int x_min, int x_max, int y_min, int y_max,
-    int mip, int frameLow, int frameHigh, int stokeFrame) const {
-    PBMSharedPtr result = m_stack->_getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame);
+    int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const {
+    PBMSharedPtr result = m_stack->_getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
     return result;
 }
 
@@ -599,13 +597,13 @@ void Controller::_initializeCallbacks(){
     //     result = QString::fromStdString(data);
     //     return result;
     // });
-    addMessageCallback( "testProtoBuf", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> PBMSharedPtr {
-        std::shared_ptr<lm::helloworld> msg1(new lm::helloworld());
-        msg1->set_id(101);
-        msg1->set_str("hello");
-        return static_cast<PBMSharedPtr>(msg1);
-    });
+    //addMessageCallback( "testProtoBuf", [=] (const QString & /*cmd*/,
+    //        const QString & params, const QString & /*sessionId*/) -> PBMSharedPtr {
+    //    std::shared_ptr<lm::helloworld> msg1(new lm::helloworld());
+    //    msg1->set_id(101);
+    //    msg1->set_str("hello");
+    //    return static_cast<PBMSharedPtr>(msg1);
+    //});
 
     // addMessageCallback( "OPEN_FILE", [=] (const QString & /*cmd*/,
     //         const QString & params, const QString & /*sessionId*/) -> PBMSharedPtr {

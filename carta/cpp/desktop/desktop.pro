@@ -17,8 +17,6 @@ SOURCES += \
     NewServerConnector.cpp \
     SessionDispatcher.cpp
 
-RESOURCES = resources.qrc
-
 INCLUDEPATH += ../../../ThirdParty/rapidjson/include
 INCLUDEPATH += ../core
 
