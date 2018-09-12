@@ -450,35 +450,23 @@ void NewServerConnector::openFileSignalSlot(uint32_t eventId, QString fileDir, Q
     //m_calHistRange[fileId] = {0, m_lastFrame[fileId], 0}; // {frameLow, frameHigh, stokeFrame}
     m_calHistRange[fileId] = {0, 0, 0}; // {frameLow, frameHigh, stokeFrame}
 
-    m_changeFrame[fileId] = false;
-
-    /////////////////////////////////////////////////////////////////////
-    respName = "REGION_HISTOGRAM_DATA";
-
-    // calculate pixels to histogram data
-    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-    PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
-
-    msg = region_histogram_data;
-
-    // send the serialized message to the frontend
-    sendSerializedMessage(respName, eventId, msg);
-    /////////////////////////////////////////////////////////////////////
+    // set image changed is true
+    m_changeFrame[fileId] = true;
 }
 
 void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
     bool isZFP, int precision, int numSubsets) {
-    qDebug() << "[NewServerConnector] Set image bounds [x_min, x_max, y_min, y_max, mip]=["
-             << xMin << "," << xMax << "," << yMin << "," << yMax << "," << mip << "], fileId=" << fileId;
 
     // check if need to reset image bounds
     if (xMin != m_imageBounds[fileId][0] || xMax != m_imageBounds[fileId][1] ||
         yMin != m_imageBounds[fileId][2] || yMax != m_imageBounds[fileId][3] ||
         mip != m_imageBounds[fileId][4]) {
+        //qDebug() << "[NewServerConnector] Set image bounds [x_min, x_max, y_min, y_max, mip]=["
+        //         << xMin << "," << xMax << "," << yMin << "," << yMax << "," << mip << "], fileId=" << fileId;
         // update image viewer bounds with respect to the fileId
         m_imageBounds[fileId] = {xMin, xMax, yMin, yMax, mip};
     } else {
-        qDebug() << "[NewServerConnector] Frontend image viewer signal is repeated, just ignore the signal!!";
+        //qDebug() << "[NewServerConnector] Frontend image viewer signal is repeated, just ignore the signal!!";
         return;
     }
 
@@ -502,7 +490,6 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
 
     // check if need to re-calculate the histogram!!
     if (m_changeFrame[fileId]) {
-        qDebug() << "Re-calculate the pixel histogram!!";
         /////////////////////////////////////////////////////////////////////
         respName = "REGION_HISTOGRAM_DATA";
 
@@ -516,6 +503,7 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
         // send the serialized message to the frontend
         sendSerializedMessage(respName, eventId, region_histogram_data);
 
+        // set image changed is false
         m_changeFrame[fileId] = false;
         /////////////////////////////////////////////////////////////////////
     }
@@ -532,25 +520,21 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
 }
 
 void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int fileId, int channel, int stoke) {
-    qDebug() << "[NewServerConnector] Set image channel=" << channel << ", fileId=" << fileId << ", stoke=" << stoke;
-
     QString respName;
-    PBMSharedPtr msg;
 
     if (m_currentChannel[fileId][0] != channel || m_currentChannel[fileId][1] != stoke) {
+        //qDebug() << "[NewServerConnector] Set image channel=" << channel << ", fileId=" << fileId << ", stoke=" << stoke;
         // update the current channel and stoke
         m_currentChannel[fileId][0] = channel;
         m_currentChannel[fileId][1] = stoke;
     } else {
-        qDebug() << "[NewServerConnector] Internal signal is repeated!! Don't know the reason yet, just ignore the signal!!";
+        //qDebug() << "[NewServerConnector] Internal signal is repeated!! Don't know the reason yet, just ignore the signal!!";
         return;
     }
 
     // set spectral and stoke frame ranges to calculate the pixel to histogram data
     //m_calHistRange[fileId] = {0, m_lastFrame[fileId], 0};
     m_calHistRange[fileId] = {channel, channel, stoke};
-
-    m_changeFrame[fileId] = true;
 
     // get the controller
     Carta::Data::Controller* controller = _getController();
@@ -568,10 +552,8 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
     Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
     PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
 
-    msg = region_histogram_data;
-
     // send the serialized message to the frontend
-    sendSerializedMessage(respName, eventId, msg);
+    sendSerializedMessage(respName, eventId, region_histogram_data);
     /////////////////////////////////////////////////////////////////////
 
     /////////////////////////////////////////////////////////////////////
@@ -594,10 +576,9 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
 
     // use image bounds with respect to the fileID and get the down sampling raster image raw data
     PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
-    msg = raster;
 
     // send the serialized message to the frontend
-    sendSerializedMessage(respName, eventId, msg);
+    sendSerializedMessage(respName, eventId, raster);
     /////////////////////////////////////////////////////////////////////
 }
 
