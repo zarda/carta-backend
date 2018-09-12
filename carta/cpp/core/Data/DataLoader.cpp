@@ -618,8 +618,28 @@ bool DataLoader::_genCoordTypeInfo(std::map<QString, QString>& infoMap,
         return false;
     }
 
-    // insert (label, value) to info entry
-    infoMap["Coordinate type"] = ctype1->second + ", " + ctype2->second;
+    // coordinate should be [RA, DEC], [GLON, GLAT], [others]
+    QString c1Str = ctype1->second;
+    QString c2Str = ctype2->second;
+    if (c1Str.contains("RA", Qt::CaseInsensitive) && c2Str.contains("DEC", Qt::CaseInsensitive)) {
+        infoMap["Coordinate type"] = "RA, DEC";
+
+        // find projection, "RA---SIN", projection = SIN
+        QStringList list = c1Str.split(QRegExp("[\-]+"));
+        if (list.size() > 1) {
+            infoMap["Projection"] = list[1];
+        }
+    } else if (c1Str.contains("GLON", Qt::CaseInsensitive) && c2Str.contains("GLAT", Qt::CaseInsensitive)) {
+        infoMap["Coordinate type"] = "GLON, GLAT";
+
+        // find projection, "GLON---SIN", projection = SIN
+        QStringList list = c1Str.split(QRegExp("[\-]+"));
+        if (list.size() > 1) {
+            infoMap["Projection"] = list[1];
+        }
+    } else {
+        infoMap["Coordinate type"] = c1Str + ", " + c2Str;
+    }
 
     return true;
 }
@@ -950,6 +970,7 @@ bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std:
         "Velocity Range",
         "Celestial frame",
         "Coordinate type",
+        "Projection",
         "Spectral frame",
         "Velocity definition",
         "Restoring Beam",
