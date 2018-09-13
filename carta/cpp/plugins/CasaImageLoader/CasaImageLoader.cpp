@@ -34,16 +34,16 @@ bool CasaImageLoader::handleHook(BaseHook & hookData)
         return true;
     }
 
-    else if( hookData.is<Carta::Lib::Hooks::LoadAstroImage>()) {
+    else if(hookData.is<Carta::Lib::Hooks::LoadAstroImage>()) {
         Carta::Lib::Hooks::LoadAstroImage & hook
-                = static_cast<Carta::Lib::Hooks::LoadAstroImage &>( hookData);
+                = static_cast<Carta::Lib::Hooks::LoadAstroImage &>(hookData);
         auto fname = hook.paramsPtr->fileName;
-        hook.result = loadImage( fname);
+        hook.result = loadImage(fname);
         // return true if result is not null
         return hook.result != nullptr;
     }
 
-    qWarning() << "Sorrry, dont' know how to handle this hook";
+    qWarning() << "Sorry, dont' know how to handle this hook";
     return false;
 }
 
@@ -61,8 +61,8 @@ static CCImageBase::SharedPtr tryCast( casacore::LatticeBase * lat)
     typedef casacore::ImageInterface<T> CCIT;
     CCIT * cii = dynamic_cast<CCIT *>(lat);
     typename CCImage<T>::SharedPtr res = nullptr;
-    if( cii) {
-        res = CCImage<T>::create( cii);
+    if(cii) {
+        res = CCImage<T>::create(cii);
     }
     return res;
 }
@@ -74,7 +74,7 @@ static CCImageBase::SharedPtr tryCast( casacore::LatticeBase * lat)
 /// \param result where to store the result
 /// \return true if successful, false otherwise
 ///
-Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const QString & fname)
+Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage(const QString & fname)
 {
     qDebug() << "CasaImageLoader plugin trying to load image: " << fname;
 
@@ -87,55 +87,54 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
         return nullptr;
     }
 
-    // load image
+    // load image: casacore::ImageOpener::openPagedImage will emit exception if failed,
+    // so need to catch the exception for error handling.
+    // However, it's a strange design by throwing exception instead of returning nullptr in lat when open file failed,
+    // maybe a bug (crashed inside openPagedImage) in casacore (because not mentioned in casacore document)
+    bool success = true;
     casacore::LatticeBase * lat = nullptr;
-    if(filetype == casacore::ImageOpener::ImageTypes::AIPSPP)
-    {
+    if(filetype == casacore::ImageOpener::ImageTypes::AIPSPP) {
+        qDebug() << "\t-opened as paged image";
+
         casa_mutex.lock();
         try {
-            lat = casacore::ImageOpener::openPagedImage ( fname.toStdString());
+            lat = casacore::ImageOpener::openPagedImage(fname.toStdString());
         } catch (...) {
-            qDebug() << "Open paged image failed.";
-            return nullptr;
+            success = false;
+            qDebug() << "\t-ERROR: open paged image failed.";
         }
         casa_mutex.unlock();
-
-        qDebug() << "\t-opened as paged image";
-    }
-    else if(filetype != casacore::ImageOpener::ImageTypes::UNKNOWN)
-    {
+    } else if (filetype != casacore::ImageOpener::ImageTypes::UNKNOWN) {
         qDebug() << "CasaImageLoader plugin tries to load non-casa image";
-
-        casa_mutex.lock();
-        lat = casacore::ImageOpener::openImage ( fname.toStdString());
-        casa_mutex.unlock();
-
-        qDebug() << "CasaImageLoader plugin loads non-casa image ok";
-
-        if(filetype == casacore::ImageOpener::ImageTypes::FITS)
-        {
+        if (filetype == casacore::ImageOpener::ImageTypes::FITS) {
             qDebug() << "\t-opened as FITS image";
-        }
-        else if(filetype == casacore::ImageOpener::ImageTypes::MIRIAD )
-        {
+        } else if(filetype == casacore::ImageOpener::ImageTypes::MIRIAD) {
             qDebug() << "\t-opened as MIRIAD image";
-        }
-        else
-        {
+        } else {
             qDebug() << "\t-opened as unpaged image";
         }
-    }
-    else
-    {
+
+        casa_mutex.lock();
+        try {
+            lat = casacore::ImageOpener::openImage(fname.toStdString());
+        } catch (...) {
+            success = false;
+            qDebug() << "\t-ERROR: open image failed.";
+        }
+        casa_mutex.unlock();
+    } else {
+        success = false;
         qDebug() << "unknow format \t-out of ideas, bailing out";
     }
 
+    if (!success) {
+        qDebug() << "Load image failed.";
+        return nullptr;
+    }
 
-    if(lat == 0)
-    {
+    if (0 == lat) {
         qDebug() << "unknow format \t-out of ideas, bailing out";
         return nullptr;
-
     }
 
     qDebug() << "CasaImageLoader plugin trying to load image 5 ";
@@ -171,7 +170,6 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
         return res;
     }
 
-
     // if the initial conversion attempt failed, try a LEL expression
 /*
     casacore::ImageInterface<casacore::Float> * img = 0;
@@ -185,7 +183,6 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage( const Q
         return CCImage<float>::create( img);
     } catch ( ... ) {}
 */
-
 
     // indicate failure
     qWarning() << "Unsupported lattice type:" << lat-> dataType();
