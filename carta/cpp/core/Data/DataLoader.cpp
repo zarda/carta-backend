@@ -1001,6 +1001,7 @@ bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std:
         "Spectral frame",
         "Velocity definition",
         "Restoring Beam",
+        "Median Restoring Beam",
         "Beam Area",
         "Pixel unit",
         "Pixel size"
