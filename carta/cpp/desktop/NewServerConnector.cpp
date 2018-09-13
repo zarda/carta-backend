@@ -315,8 +315,6 @@ void NewServerConnector::onBinaryMessageSignalSlot(char* message, size_t length)
         return;
 
     } else if (eventName == "FILE_INFO_REQUEST") {
-        respName = "FILE_INFO_RESPONSE";
-
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
 
@@ -325,13 +323,8 @@ void NewServerConnector::onBinaryMessageSignalSlot(char* message, size_t length)
         msg = dataLoader->getFileInfo(fileInfoRequest);
 
         // send the serialized message to the frontend
-        if(nullptr != msg) {
-            sendSerializedMessage(respName, eventId, msg);
-        } else {
-            // return a error msg
-        }
+        sendSerializedMessage("FILE_INFO_RESPONSE", eventId, msg);
         return;
-
     } else if (eventName == "CLOSE_FILE") {
 
         CARTA::CloseFile closeFile;

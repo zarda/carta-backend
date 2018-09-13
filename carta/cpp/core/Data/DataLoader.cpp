@@ -243,11 +243,15 @@ DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileLis
 }
 
 DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfoRequest) {
+    std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
 
     QString fileDir = QString::fromStdString(fileInfoRequest.directory());
     if (!QDir(fileDir).exists()) {
-        qWarning() << "[File Info] File directory doesn't exist! (" << fileDir << ")";
-        return nullptr;
+        QString message = "[File Info] File directory doesn't exist! (" + fileDir + ")";
+        qWarning() << message;
+        fileInfoResponse->set_success(false);
+        fileInfoResponse->set_message(message.toStdString());
+        return fileInfoResponse;
     }
 
     QString fileName = QString::fromStdString(fileInfoRequest.file());
@@ -259,8 +263,11 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     if (!res.isNull()) {
         image = res.val();
     } else {
-        qWarning() << "[File Info] Can not open the image file! (" << file << ")";
-        return nullptr;
+        QString message = "[File Info] Can not open the image file! (" + file + ")";
+        qWarning() << message;
+        fileInfoResponse->set_success(false);
+        fileInfoResponse->set_message(message.toStdString());
+        return fileInfoResponse;
     }
 
     // FileInfo: set name & type
@@ -332,7 +339,6 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     }
 
     // FileInfoResponse
-    std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
     fileInfoResponse->set_success(true);
     fileInfoResponse->set_allocated_file_info(fileInfo);
     fileInfoResponse->set_allocated_file_info_extended(fileInfoExt);
