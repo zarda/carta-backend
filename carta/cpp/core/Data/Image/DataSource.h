@@ -249,7 +249,7 @@ private:
      */
     std::vector<double> _getIntensity( int frameLow, int frameHigh,
             const std::vector<double>& percentiles, int stokeFrame,
-            Carta::Lib::IntensityUnitConverter::SharedPtr converter);
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
 
     /**
      * Returns the histogram of pixels.
@@ -260,9 +260,13 @@ private:
      * @param converter - used to convert the pixel values for different unit.
      * @return - a struct RegionHistogramData.
      */
-    PBMSharedPtr _getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
-            int numberOfBins, int stokeFrame,
-            Carta::Lib::IntensityUnitConverter::SharedPtr converter);
+    PBMSharedPtr _getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+            int numberOfBins,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
+
+    RegionHistogramData _getPixels2HistogramData(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+            int numberOfBins,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
 
     int _getStokeIndicator();
     int _getSpectralIndicator();
@@ -280,8 +284,11 @@ private:
      * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
      * @return - vector of pixels.
      */
-    PBMSharedPtr _getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
-            int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const;
+    PBMSharedPtr _getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
+        int frameLow, int frameHigh, int stokeFrame,
+        bool isZFP, int precision, int numSubsets,
+        bool &changeFrame, int regionId, int numberOfBins,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
 
     int _compress(std::vector<float>& array, size_t offset, std::vector<char>& compressionBuffer,
             size_t& compressedSize, uint32_t nx, uint32_t ny, uint32_t precision) const;

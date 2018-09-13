@@ -380,8 +380,8 @@ protected:
      * @param converter - used to convert the pixel values for different unit
      * @return - a struct RegionHistogramData
      */
-    virtual PBMSharedPtr _getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
-            int numberOfBins, int stokeFrame,
+    virtual PBMSharedPtr _getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+            int numberOfBins,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const Q_DECL_OVERRIDE;
 
     virtual int _getStokeIndicator() const Q_DECL_OVERRIDE;
@@ -400,8 +400,11 @@ protected:
      * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
      * @return - vector of pixels.
      */
-    virtual PBMSharedPtr _getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
-            int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const Q_DECL_OVERRIDE;
+    virtual PBMSharedPtr _getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
+        int frameLow, int frameHigh, int stokeFrame,
+        bool isZFP, int precision, int numSubsets,
+        bool &changeFrame, int regionId, int numberOfBins,
+        Lib::IntensityUnitConverter::SharedPtr converter) const Q_DECL_OVERRIDE;
 
     /**
      * Return the units of the pixels.
