@@ -357,18 +357,18 @@ bool DataLoader::getFitsHeaders(CARTA::FileInfoExtended* fileInfoExt,
     // get fits header map using FitsHeaderExtractor
     FitsHeaderExtractor fhExtractor;
     fhExtractor.setInput(image);
-    std::map<QString, QString> headerMap = fhExtractor.getHeaderMap();
+    std::vector<std::vector<QString>> headerList = fhExtractor.getHeaderList();
     
     // traverse whole map to return all entries for frontend to render (AST)
-    for (auto iter = headerMap.begin(); iter != headerMap.end(); iter++) {
+    for (auto iter = headerList.begin(); iter != headerList.end(); iter++) {
         // insert (key, value) to header entry
         CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
-        if (nullptr == headerEntry) {
-            qDebug() << "Insert (" << iter->first << ", " << iter->second << ") to header entry error.";
+        if ((*iter).size() != 2 || nullptr == headerEntry) {
+            qDebug() << "Insert header to header entry error.";
             return false;
         }
-        headerEntry->set_name((iter->first).toLocal8Bit().constData());
-        headerEntry->set_value((iter->second).toLocal8Bit().constData());
+        headerEntry->set_name((*iter)[0].toLocal8Bit().constData());
+        headerEntry->set_value((*iter)[1].toLocal8Bit().constData());
     }
 
     return true;
