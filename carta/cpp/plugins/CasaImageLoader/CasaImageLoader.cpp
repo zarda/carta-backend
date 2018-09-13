@@ -89,8 +89,8 @@ Carta::Lib::Image::ImageInterface::SharedPtr CasaImageLoader::loadImage(const QS
 
     // load image: casacore::ImageOpener::openPagedImage will emit exception if failed,
     // so need to catch the exception for error handling.
-    // However, it's a strange design by throwing exception instead of returning nullptr in lat when open file failed,
-    // maybe a bug (crashed inside openPagedImage) in casacore (because not mentioned in casacore document)
+    // However, it's a strange design by throwing exception instead of returning nullptr in lat when opening file failed,
+    // maybe it's a bug (crashed inside openPagedImage) in casacore (because not mentioned in casacore document)
     bool success = true;
     casacore::LatticeBase * lat = nullptr;
     if(filetype == casacore::ImageOpener::ImageTypes::AIPSPP) {
