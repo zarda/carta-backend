@@ -605,6 +605,8 @@ private:
     const static int INDEX_FRAME_LOW;
     const static int INDEX_FRAME_HIGH;
     const static bool APPROXIMATION_GET_LOCATION;
+    const static bool IS_MULTITHREAD_ZFP;
+    const static int MAX_SUBSETS;
 
     DataSource(const DataSource& other);
     DataSource& operator=(const DataSource& other);
