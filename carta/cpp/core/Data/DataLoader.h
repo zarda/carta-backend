@@ -163,6 +163,9 @@ private:
 
     // Unit conversion: convert degree to arcsec
     bool _deg2arcsec(const QString degree, QString& arcsec);
+
+    // Unit conversion: convert Hz to MHz or GHz
+    QString _convertHz(const double hz);
 };
 }
 }
