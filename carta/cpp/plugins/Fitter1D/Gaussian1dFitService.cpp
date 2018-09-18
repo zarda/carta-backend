@@ -20,14 +20,11 @@ namespace Gaussian1dFitService
 static bool
 registerMetaTypes()
 {
-    std::cerr << "Registering metatype\n";
-    std::cerr << "Gaussian1dFitService::Results = "
-              << qRegisterMetaType < Gaussian1dFitService::ResultsG1dFit > ( "ResultsG1dFit" ) <<
-        "\n";
-    std::cerr << "Gaussian1dFitService::InputParameters = "
-              << qRegisterMetaType < Gaussian1dFitService::InputParametersG1dFit > (
-        "InputParametersG1dFit" )
-              << "\n";
+    qDebug() << "Registering metatype";
+    qDebug() << "Gaussian1dFitService::Results = "
+             << qRegisterMetaType<Gaussian1dFitService::ResultsG1dFit>( "ResultsG1dFit" );
+    qDebug() << "Gaussian1dFitService::InputParameters = "
+             << qRegisterMetaType < Gaussian1dFitService::InputParametersG1dFit >("InputParametersG1dFit");
     return true;
 }
 
