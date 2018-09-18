@@ -85,6 +85,7 @@ public slots:
     void setImageViewSignalSlot(uint32_t eventId, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
                                 bool isZFP, int precision, int numSubsets);
     void openFileSignalSlot(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId);
+    void setCursorSignalSlot(int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs);
 
 signals:
 
@@ -102,6 +103,7 @@ signals:
     void setImageViewSignal(uint32_t eventId, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
                             bool isZFP, int precision, int numSubsets);
     void openFileSignal(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId);
+    void setCursorSignal(int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs);
 
     // /// we emit this signal when state is changed (either by c++ or by javascript)
     // /// we listen to this signal, and so does javascript
