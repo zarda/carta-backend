@@ -558,6 +558,19 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
     sendSerializedMessage(respName, eventId, raster);
 }
 
+void NewServerConnector::setCursorSignalSlot(int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs) {
+    qDebug() << "[NewServerConnector] set cursor file id=" << fileId;
+
+    // get the controller
+    Carta::Data::Controller* controller = _getController();
+
+    // get X/Y profile
+    //controller->getXYProfile(fileId);
+
+    // send the serialized message to the frontend
+    //sendSerializedMessage("SPATIAL_PROFILE_DATA", eventId, msg);
+}
+
 void NewServerConnector::sendSerializedMessage(QString respName, uint32_t eventId, PBMSharedPtr msg) {
     emit jsBinaryMessageResultSignal(respName, eventId, msg);
 }
