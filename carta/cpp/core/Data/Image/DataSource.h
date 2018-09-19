@@ -296,6 +296,13 @@ private:
     std::vector<int32_t> _getNanEncodingsBlock(std::vector<float>& array, int offset, int w, int h) const;
 
     /**
+     * Returns a vector including X proflie in a vector[0] & Y proflie in a vector[1].
+     * @param 
+     * @return - vector of pixels.
+     */
+    std::vector<std::vector<float>> _getXYProfiles(int fileId) const;
+
+    /**
      * Returns the color used to draw nan pixels.
      * @return - the color used to draw nan pixels.
      */
