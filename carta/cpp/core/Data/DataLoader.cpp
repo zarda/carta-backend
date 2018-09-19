@@ -756,32 +756,35 @@ bool DataLoader::_genCelestialFrameInfo(std::map<QString, QString>& infoMap,
         return false;
     }
 
+    // find RADESYS
     auto radesys = headerMap.find("RADESYS");
-    auto equinox = headerMap.find("EQUINOX");
-    if (radesys == headerMap.end() || equinox == headerMap.end()) {
-        qDebug() << "Cannot find RADESYS EQUINOX.";
+    if (radesys == headerMap.end()) {
+        qDebug() << "Cannot find RADESYS.";
         return false;
     }
-
-    // get value of RADESYS, EQUINOX
     QString rad = radesys->second;
-    QString equ = equinox->second;
 
-    // FK4 => B1950, FK5 => J2000, others => not modified 
-    if (rad.contains("FK4", Qt::CaseInsensitive)) {
-        bool ok = false;
-        int e = equ.toDouble(&ok);
-        if (!ok) {return false;}
-        equ = "B" + QString(std::to_string(e).c_str());
-    } else if (rad.contains("FK5", Qt::CaseInsensitive)) {
-        bool ok = false;
-        int e = equ.toDouble(&ok);
-        if (!ok) {return false;}
-        equ = "J" + QString(std::to_string(e).c_str());
+    // find EQUINOX
+    auto equinox = headerMap.find("EQUINOX");
+    if (equinox != headerMap.end()) {
+        QString equ = equinox->second;
+
+        // FK4 => B1950, FK5 => J2000, others => not modified
+        if (rad.contains("FK4", Qt::CaseInsensitive)) {
+            bool ok = false;
+            int e = equ.toDouble(&ok);
+            if (!ok) {return false;}
+            rad += (", B" + QString(std::to_string(e).c_str()));
+        } else if (rad.contains("FK5", Qt::CaseInsensitive)) {
+            bool ok = false;
+            int e = equ.toDouble(&ok);
+            if (!ok) {return false;}
+            rad += (", J" + QString(std::to_string(e).c_str()));
+        }
     }
 
     // insert (label, value) to info entry
-    infoMap["Celestial frame"] = rad + ", " + equ;
+    infoMap["Celestial frame"] = rad;
 
     return true;
 }

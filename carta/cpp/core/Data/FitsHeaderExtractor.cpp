@@ -35,10 +35,14 @@ void FitsLine::_parse(QString &key, QString &value, QString &comment) {
         return;
     if( _raw[vStart] != '\'') { // it's an unquoted value
         // non-string value, find the end
-        vEnd = _raw.indexOf( '/', vStart + 1); if( vEnd != -1) vEnd --; else vEnd = 79;
-        //            vEnd = vStart + 1;
-        //            while( ! _raw[vEnd].isSpace()) { if( vEnd >= 80) break; else vEnd ++; }
-        //            vEnd --;
+        // vEnd = _raw.indexOf( '/', vStart + 1); if( vEnd != -1) vEnd --; else vEnd = 79;
+        vEnd = 79;
+        while(_raw[vEnd].isSpace()) {
+            if(vEnd <= vStart)
+                break;
+            else
+                vEnd--;
+        }
     } else { // it's s quoted string
         // temporarily remove all occurrences of double single-quotes and then find the next single quote
         QString tmp = _raw; for(int i=0;i<=vStart;i++){tmp[i]=' ';} tmp.replace( "''", "..");
