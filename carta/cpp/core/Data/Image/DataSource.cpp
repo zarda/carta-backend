@@ -912,6 +912,35 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     return raster;
 }
 
+std::vector<std::vector<float>> DataSource::_getXYProfiles(int fileId) const {
+    qDebug() << "[DataSource] Get X/Y profiles...................................>";
+    std::vector<std::vector<float>> result = {};
+
+    /*
+    // get the raw data
+    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
+    if (rawData == nullptr) {
+        qCritical() << "[DataSource] Error: could not retrieve image data to calculate missing intensities.";
+        return result;
+    }
+
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
+    Carta::Lib::NdArray::Double doubleView(view.get(), false);
+
+    // get the calculator
+    Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = nullptr;
+    calculator = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
+
+    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+    result = calculator->pixels2histogram(fileId, regionId, doubleView, minIntensity, maxIntensity,
+                                          numberOfBins, spectralIndex, converter, hertzValues, frameLow, stokeFrame);
+
+    */
+    qDebug() << "[DataSource] .......................................................................Done";
+
+    return result;
+}
+
 // This function is provided by Angus
 int DataSource::_compress(std::vector<float> &array, size_t offset, std::vector<char> &compressionBuffer,
     size_t &compressedSize, uint32_t nx, uint32_t ny, uint32_t precision) const {
