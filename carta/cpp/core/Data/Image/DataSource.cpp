@@ -20,9 +20,10 @@
 #include <QDebug>
 #include <QElapsedTimer>
 #include "CartaLib/UtilCASA.h"
-
 #include <zfp.h>
 #include <cmath>
+#include <QFuture>
+#include <QtConcurrent>
 
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
@@ -39,6 +40,8 @@ const int DataSource::INDEX_INTENSITY = 1;
 const int DataSource::INDEX_PERCENTILE = 2;
 const int DataSource::INDEX_FRAME_LOW = 3;
 const int DataSource::INDEX_FRAME_HIGH = 4;
+const bool DataSource::IS_MULTITHREAD_ZFP = true;
+const int DataSource::MAX_SUBSETS = 8;
 
 CoordinateSystems* DataSource::m_coords = nullptr;
 
@@ -837,35 +840,81 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     raster->set_mip(mip);
 
     if (isZFP) {
-
         // use ZFP compression
         raster->set_compression_type(CARTA::CompressionType::ZFP);
         raster->set_compression_quality(precision);
 
-        // so far I only use one thread, use "numSubsets" for multi-thread calculations
-        std::vector<char> compressionBuffer;
-        size_t compressedSize; // use "vector<size_t> compressedSizes(numSubsets);" for multi-thread calculations
+        if (IS_MULTITHREAD_ZFP) {
+            // ZFP compression with multi-thread
+            int N = std::min(numSubsets, MAX_SUBSETS); // total number of threads
+            std::vector<size_t> compressedSizes(N);
+            std::vector<std::vector<int32_t> > nanEncodings(N);
+            std::vector<std::vector<char> > compressionBuffers(N);
+            std::vector<int> status(N);
+            std::vector<QFuture<void> > futures;
 
-        // get NaN type pixel distances of indices
-        std::vector<int32_t> nanEncodings = _getNanEncodingsBlock(imageData, 0, nx, ny);
+            for (int i = 0; i < N; i++) {
+                auto &compressionBuffer = compressionBuffers[i];
+                auto &compressedSize = compressedSizes[i];
 
-        // apply ZFP function
-        _compress(imageData, 0, compressionBuffer, compressedSize, nx, ny, precision);
+                QFuture<void> future = QtConcurrent::run(
+                    [&nanEncodings, &imageData, &compressionBuffer, &compressedSize, &status, i,
+                        nx, ny, N, precision, this]() {
 
-        // use "raster->add_image_data(compressionBuffers[i].data(), compressedSizes[i])" for multi-thread calculations
-        raster->add_image_data(compressionBuffer.data(), compressedSize);
-        raster->add_nan_encodings((char*) nanEncodings.data(), nanEncodings.size() * sizeof(int)); // This item is necessary !!
+                    int subsetRowStart = i * (ny / N);
+                    int subsetRowEnd = (i + 1) * (ny / N);
 
-        qDebug() << "[DataSource] Apply ZFP compression (precision=" << precision << ", number of subsets= 1"
-                 << ", NaN encodings size=" << nanEncodings.size() << ")";
+                    if (i == N - 1) {
+                        subsetRowEnd = ny;
+                    }
 
+                    int subsetElementStart = subsetRowStart * nx;
+
+                    nanEncodings[i] = this->_getNanEncodingsBlock(imageData, subsetElementStart, nx, subsetRowEnd - subsetRowStart);
+                    status[i] = this->_compress(imageData, subsetElementStart, compressionBuffer, compressedSize,
+                                                nx, subsetRowEnd - subsetRowStart, precision);
+                });
+
+                futures.push_back(future);
+            }
+
+            // Wait for completed compression threads
+            for (auto future : futures) {
+                // Note that if the future finished BEFORE we call this, it will still work.
+                future.waitForFinished();
+            }
+
+            // Complete the message
+            for (int i = 0; i < N; i++) {
+                raster->add_image_data(compressionBuffers[i].data(), compressedSizes[i]);
+                raster->add_nan_encodings((char*) nanEncodings[i].data(), nanEncodings[i].size() * sizeof(int));
+            }
+
+            qDebug() << "[DataSource] Apply ZFP compression (status=" << status << ", precision=" << precision
+                     << ", number of subsets=" << N << ", NaN encodings size=" << nanEncodings.size() << ")";
+        } else {
+            // ZFP compression with single thread
+            std::vector<char> compressionBuffer;
+            size_t compressedSize; // use "vector<size_t> compressedSizes(numSubsets);" for multi-thread calculations
+
+            // get NaN type pixel distances of indices
+            std::vector<int32_t> nanEncodings = _getNanEncodingsBlock(imageData, 0, nx, ny);
+
+            // apply ZFP function
+            int status = _compress(imageData, 0, compressionBuffer, compressedSize, nx, ny, precision);
+
+            // use "raster->add_image_data(compressionBuffers[i].data(), compressedSizes[i])" for multi-thread calculations
+            raster->add_image_data(compressionBuffer.data(), compressedSize);
+            raster->add_nan_encodings((char*) nanEncodings.data(), nanEncodings.size() * sizeof(int)); // This item is necessary !!
+
+            qDebug() << "[DataSource] Apply ZFP compression (status=" << status << ", precision=" << precision
+                     << ", number of subsets= 1" << ", NaN encodings size=" << nanEncodings.size() << ")";
+        }
     } else {
-
         // without compression
         raster->set_compression_type(CARTA::CompressionType::NONE);
         raster->set_compression_quality(0);
         raster->add_image_data(imageData.data(), imageData.size() * sizeof(float));
-
         qDebug() << "[DataSource] w/o ZFP compression!";
     }
 

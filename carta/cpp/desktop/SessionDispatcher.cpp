@@ -24,6 +24,7 @@
 // #include "qwebchannel.h"
 #include <QBuffer>
 #include <QThread>
+#include <QUuid>
 
 #include "NewServerConnector.h"
 
@@ -121,12 +122,12 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
     if (eventName == "REGISTER_VIEWER") {
 
         bool sessionExisting = false;
-        // TODO: replace the temporary way to generate ID
-        QString sessionID = QString::number(std::rand());
+        QString sessionID = QUuid::createUuid().toString(); // generate a unique ID
         NewServerConnector *connector = new NewServerConnector();
 
         CARTA::RegisterViewer registerViewer;
         registerViewer.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+
         if (registerViewer.session_id() != "") {
             sessionID = QString::fromStdString(registerViewer.session_id());
             qDebug() << "[SessionDispatcher] Get Session ID from frontend:" << sessionID;
