@@ -73,6 +73,7 @@ void SessionDispatcher::loopPoll(){
     m_hub.poll();
     // submit a queue into qt eventloop
     defer([this](){
+        QThread::msleep(20); // sleep for 20 ms in order to ease the loading of CPU
         loopPoll();
     });
 }
