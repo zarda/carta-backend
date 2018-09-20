@@ -594,25 +594,21 @@ bool DataLoader::_genPixelSizeInfo(std::map<QString, QString>& infoMap,
         if ((unit1->second).contains("Hz", Qt::CaseInsensitive)) {
             delstr1 = _convertHz(d1);
         } else {
-            delstr1 = delstr1 + " " + unit1->second;
+            char buf[512];
+            snprintf(buf, sizeof(buf), "%.3f", d1);
+            delstr1 = QString(buf) + " " + unit1->second;
         }
         if ((unit2->second).contains("Hz", Qt::CaseInsensitive)) {
             delstr2 = _convertHz(d2);
         } else {
-            delstr2 = delstr2 + " " + unit2->second;
+            char buf[512];
+            snprintf(buf, sizeof(buf), "%.3f", d2);
+            delstr2 = QString(buf) + " " + unit2->second;
         }
     }
 
-    QString value = "";
-    // check whether CDELT1 & CDELT2 are the same(squre)
-    if (abs(d1) == abs(d2)) {
-        value = (d1 > 0) ? delstr1 : delstr2;
-    } else {
-        value = delstr1 + ", " + delstr2;
-    }
-
     // insert (label, value) to info entry
-    infoMap["Pixel size"] = value;
+    infoMap["Pixel size"] = delstr1 + ", " + delstr2;
 
     return true;
 }
@@ -1034,18 +1030,18 @@ bool DataLoader::_deg2arcsec(const QString degree, QString& arcsec) {
     }
 
     // 1 degree = 60 arcmin = 60*60 arcsec
-    double arcs = deg * 3600;
+    double arcs = fabs(deg * 3600);
 
     // customized format of arcsec
     char buf[512];
     if (arcs >= 60.0){ // arcs >= 60, convert to arcmin
-        snprintf(buf, sizeof(buf), "%.2f\'", arcs/60);
+        snprintf(buf, sizeof(buf), "%.2f\'", deg < 0 ? -1*arcs/60 : arcs/60);
     } else if (arcs < 60.0 && arcs > 0.1) { // 0.1 < arcs < 60
-        snprintf(buf, sizeof(buf), "%.2f\"", arcs);
+        snprintf(buf, sizeof(buf), "%.2f\"", deg < 0 ? -1*arcs : arcs);
     } else if (arcs <= 0.1 && arcs > 0.01) { // 0.01 < arcs <= 0.1
-        snprintf(buf, sizeof(buf), "%.3f\"", arcs);
+        snprintf(buf, sizeof(buf), "%.3f\"", deg < 0 ? -1*arcs : arcs);
     } else { // arcs <= 0.01
-        snprintf(buf, sizeof(buf), "%.4f\"", arcs);
+        snprintf(buf, sizeof(buf), "%.4f\"", deg < 0 ? -1*arcs : arcs);
     }
 
     arcsec = QString(buf);
