@@ -549,66 +549,23 @@ bool DataLoader::_genPixelSizeInfo(std::map<QString, QString>& infoMap,
         return false;
     }
 
+    // check whether corresponding fields can be found in map
     auto cdelt1 = headerMap.find("CDELT1");
     auto cdelt2 = headerMap.find("CDELT2");
     auto unit1 = headerMap.find("CUNIT1");
     auto unit2 = headerMap.find("CUNIT2");
-
-    // check whether corresponding fields can be found in map
     if (cdelt1 == headerMap.end() || cdelt2 == headerMap.end() ||
         unit1 == headerMap.end() || unit2 == headerMap.end()) {
         qDebug() << "Cannot find CDELT1 CDELT2 CUNIT1 CUNIT2.";
         return false;
     }
 
-    QString delstr1 = cdelt1->second;
-    QString delstr2 = cdelt2->second;
-    bool ok = false;
-    double d1 = 0, d2 = 0;
-    d1 = (delstr1).toDouble(&ok);
-    if (!ok) {
-        qDebug() << "Convert degree to double error.";
-        return false;
-    }
-    d2 = (delstr2).toDouble(&ok);
-    if (!ok) {
-        qDebug() << "Convert degree to double error.";
-        return false;
-    }
-
-    // convert CDELT1 CDELT2 to arcsec if unit is degree
-    // convert CDELT1 CDELT2 to MHz/GHz if unit is Hz
-    if ((unit1->second).contains("deg", Qt::CaseInsensitive)) {
-        QString arcs1 = "", arcs2 = "";
-        if(false == _deg2arcsec(delstr1, arcs1)) {
-            qDebug() << "Convert CDELT1 to arcsec error.";
-            return false;
-        }
-        if(false == _deg2arcsec(delstr2, arcs2)) {
-            qDebug() << "Convert CDELT2 to arcsec error.";
-            return false;
-        }
-        delstr1 = arcs1;
-        delstr2 = arcs2;
-    } else { // not degree
-        if ((unit1->second).contains("Hz", Qt::CaseInsensitive)) {
-            delstr1 = _convertHz(d1);
-        } else {
-            char buf[512];
-            snprintf(buf, sizeof(buf), "%.3f", d1);
-            delstr1 = QString(buf) + " " + unit1->second;
-        }
-        if ((unit2->second).contains("Hz", Qt::CaseInsensitive)) {
-            delstr2 = _convertHz(d2);
-        } else {
-            char buf[512];
-            snprintf(buf, sizeof(buf), "%.3f", d2);
-            delstr2 = QString(buf) + " " + unit2->second;
-        }
-    }
+    // unit conversion
+    QString str1 = _unitConversion(cdelt1->second, unit1->second);
+    QString str2 = _unitConversion(cdelt2->second, unit2->second);
 
     // insert (label, value) to info entry
-    infoMap["Pixel size"] = delstr1 + ", " + delstr2;
+    infoMap["Pixel size"] = str1 + ", " + str2;
 
     return true;
 }
@@ -1018,34 +975,56 @@ bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std:
     return true;
 }
 
-// Unit conversion: convert degree to arcsec
-bool DataLoader::_deg2arcsec(const QString degree, QString& arcsec) {
-    // convert degree to double
-    bool ok = false;
-    double deg = degree.toDouble(&ok);
+// Unit conversion: returns "value + unit"
+QString DataLoader::_unitConversion(const QString value, const QString unit){
+    QString result = "";
 
-    if(!ok) {
-        qDebug() << "Convert degree to double error.";
-        return false;
+    // convert value to double
+    bool ok = false;
+    double num = 0;
+    num = value.toDouble(&ok);
+    if (!ok) {
+        qDebug() << "Convert string " << value << " to double error.";
+        result = value + " " + unit;
+        return result;
     }
 
+    // check unit: degree, Hz, arcsec, etc...
+    if (unit.contains("deg", Qt::CaseInsensitive)) {
+        result = _deg2arcsec(num);
+    } else if (unit.contains("Hz", Qt::CaseInsensitive)) {
+        result = _convertHz(num);
+    } else if (unit.contains("arcsec", Qt::CaseInsensitive)) {
+        char buf[512];
+        snprintf(buf, sizeof(buf), "%.3f\"", num);
+        result = QString(buf);
+    } else { // unknown
+        char buf[512];
+        snprintf(buf, sizeof(buf), "%.3f", num);
+        result = QString(buf) + " " + unit;
+    }
+
+    return result;
+}
+
+// Unit conversion: convert degree to arcsec
+QString DataLoader::_deg2arcsec(const double degree) {
     // 1 degree = 60 arcmin = 60*60 arcsec
-    double arcs = fabs(deg * 3600);
+    double arcs = fabs(degree * 3600);
 
     // customized format of arcsec
     char buf[512];
     if (arcs >= 60.0){ // arcs >= 60, convert to arcmin
-        snprintf(buf, sizeof(buf), "%.2f\'", deg < 0 ? -1*arcs/60 : arcs/60);
+        snprintf(buf, sizeof(buf), "%.2f\'", degree < 0 ? -1*arcs/60 : arcs/60);
     } else if (arcs < 60.0 && arcs > 0.1) { // 0.1 < arcs < 60
-        snprintf(buf, sizeof(buf), "%.2f\"", deg < 0 ? -1*arcs : arcs);
+        snprintf(buf, sizeof(buf), "%.2f\"", degree < 0 ? -1*arcs : arcs);
     } else if (arcs <= 0.1 && arcs > 0.01) { // 0.01 < arcs <= 0.1
-        snprintf(buf, sizeof(buf), "%.3f\"", deg < 0 ? -1*arcs : arcs);
+        snprintf(buf, sizeof(buf), "%.3f\"", degree < 0 ? -1*arcs : arcs);
     } else { // arcs <= 0.01
-        snprintf(buf, sizeof(buf), "%.4f\"", deg < 0 ? -1*arcs : arcs);
+        snprintf(buf, sizeof(buf), "%.4f\"", degree < 0 ? -1*arcs : arcs);
     }
 
-    arcsec = QString(buf);
-    return true;
+    return QString(buf);
 }
 
 // Unit conversion: convert Hz to MHz or GHz
