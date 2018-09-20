@@ -564,11 +564,26 @@ void NewServerConnector::setCursorSignalSlot(int fileId, CARTA::Point point, CAR
     // get the controller
     Carta::Data::Controller* controller = _getController();
 
+    // set the file id as the private parameter in the Stack object
+    controller->setFileId(fileId);
+
+    // set the current channel
+    int frameLow = m_currentChannel[fileId][0];
+    int frameHigh = frameLow;
+    int stokeFrame = m_currentChannel[fileId][1];
+
+    // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
+    int regionId = -1;
+
     // get X/Y profile
-    //controller->getXYProfile(fileId);
+    // do not include unit converter for pixel values
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr;
+
+    // get the down sampling raster image raw data
+    //PBMSharedPtr xyProfiles = controller->getXYProfiles(fileId, x, y, frameLow, frameHigh, stokeFrame);
 
     // send the serialized message to the frontend
-    //sendSerializedMessage("SPATIAL_PROFILE_DATA", eventId, msg);
+    //sendSerializedMessage("SPATIAL_PROFILE_DATA", eventId, xyProfiles);
 }
 
 void NewServerConnector::sendSerializedMessage(QString respName, uint32_t eventId, PBMSharedPtr msg) {

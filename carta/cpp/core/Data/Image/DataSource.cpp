@@ -961,33 +961,50 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     return raster;
 }
 
-std::vector<std::vector<float>> DataSource::_getXYProfiles(int fileId) const {
+std::vector<std::vector<float>> DataSource::_getXYProfiles(int fileId, float x, float y,
+    int frameLow, int frameHigh, int stokeFrame) const {
     qDebug() << "[DataSource] Get X/Y profiles...................................>";
-    std::vector<std::vector<float>> result = {};
+    std::vector<std::vector<float>> xyProfiles = {}; // results from the "percentileAlgorithms.h"
 
     /*
+
     // get the raw data
     Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
     if (rawData == nullptr) {
-        qCritical() << "[DataSource] Error: could not retrieve image data to calculate missing intensities.";
-        return result;
+        qCritical() << "[DataSource] Error: could not retrieve image data to get X/Y profiles.";
+        return xyProfiles;
     }
 
     std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
     Carta::Lib::NdArray::Double doubleView(view.get(), false);
 
-    // get the calculator
-    Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = nullptr;
-    calculator = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
+    // find image size
+    const int width = view->dims()[0]; // get the full width length
+    const int height = view->dims()[1]; // get the full height length
+
+    // Find Hz values if they are required for the unit transformation
+    std::vector<double> hertzValues;
+    if (converter && converter->frameDependent) {
+        hertzValues = _getHertzValues(doubleView.dims());
+    }
 
     int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
-    result = calculator->pixels2histogram(fileId, regionId, doubleView, minIntensity, maxIntensity,
-                                          numberOfBins, spectralIndex, converter, hertzValues, frameLow, stokeFrame);
+    
+    for (size_t f = 0; f < hertzValues.size(); f++) {
+        hertzVal = hertzValues[f];
+    
+        Carta::Lib::NdArray::Double viewSlice = Carta::Lib::viewSliceForFrame(view, spectralIndex, f);
 
+        // iterate over the frame
+        viewSlice.forEach([&xyProfiles](const Scalar & val) {
+            // push pixel X/Y profile here
+
+        });
+    }
     */
     qDebug() << "[DataSource] .......................................................................Done";
 
-    return result;
+    return xyProfiles;
 }
 
 // This function is provided by Angus

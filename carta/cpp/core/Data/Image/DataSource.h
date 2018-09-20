@@ -300,7 +300,7 @@ private:
      * @param 
      * @return - vector of pixels.
      */
-    std::vector<std::vector<float>> _getXYProfiles(int fileId) const;
+    std::vector<std::vector<float>> _getXYProfiles(int fileId, float x, float y) const;
 
     /**
      * Returns the color used to draw nan pixels.
