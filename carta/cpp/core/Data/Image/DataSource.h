@@ -300,7 +300,9 @@ private:
      * @param 
      * @return - vector of pixels.
      */
-    std::vector<std::vector<float>> _getXYProfiles(int fileId, float x, float y) const;
+    std::vector<std::vector<float>> _getXYProfiles(int fileId, float x, float y,
+        int frameLow, int frameHigh, int stokeFrame,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
 
     /**
      * Returns the color used to draw nan pixels.
