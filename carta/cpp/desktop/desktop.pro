@@ -2,8 +2,7 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT      +=  network widgets xml websockets webchannel
-# QT      +=  webkitwidgets
+QT      +=  core xml
 
 HEADERS += \
     DesktopPlatform.h \
@@ -30,7 +29,7 @@ INCLUDEPATH += /usr/local/opt/libuv/include
 LIBS += -L/usr/local/opt/libuv/lib -luv
 
 INCLUDEPATH += ../../../ThirdParty/uWebSockets/include
-LIBS += -L../../../ThirdParty/uWebSockets/lib -luWS -lz
+LIBS += -L../../../ThirdParty/uWebSockets/lib -luWS -lz -lssl
 
 unix: LIBS += -L$$OUT_PWD/../core/ -lcore
 unix: LIBS += -L$$OUT_PWD/../CartaLib/ -lCartaLib
@@ -39,15 +38,10 @@ DEPENDPATH += $$PROJECT_ROOT/CartaLib
 
 QMAKE_LFLAGS += '-Wl,-rpath,\'\$$ORIGIN/../CartaLib:\$$ORIGIN/../core\''
 
-#QWT_ROOT = $$absolute_path("../../../ThirdParty/qwt")
 unix:macx {
-#    QMAKE_LFLAGS += '-F$$QWT_ROOT/lib'
-#    LIBS +=-framework qwt
     PRE_TARGETDEPS += $$OUT_PWD/../core/libcore.dylib
 }
 else{
-#    QMAKE_LFLAGS += '-Wl,-rpath,\'$$QWT_ROOT/lib\''
-#    LIBS +=-L$$QWT_ROOT/lib -lqwt
     PRE_TARGETDEPS += $$OUT_PWD/../core/libcore.so
 }
 
