@@ -15,6 +15,7 @@
 
 #include "CartaLib/Proto/region_histogram.pb.h"
 #include "CartaLib/Proto/raster_image.pb.h"
+#include "CartaLib/Proto/spatial_profile.pb.h"
 
 typedef Carta::Lib::RegionHistogramData RegionHistogramData;
 typedef std::shared_ptr<google::protobuf::MessageLite> PBMSharedPtr;
@@ -296,13 +297,20 @@ private:
     std::vector<int32_t> _getNanEncodingsBlock(std::vector<float>& array, int offset, int w, int h) const;
 
     /**
-     * Returns a vector including X proflie in a vector[0] & Y proflie in a vector[1].
-     * @param 
-     * @return - vector of pixels.
+     * Returns a spatial profile data
+     * @param x - x coordinate of cursor
+     * @param y - y coordinate of cursor
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
+     * @return - vectors of x profile/y profile.
      */
-    std::vector<std::vector<float>> _getXYProfiles(int fileId, float x, float y,
+    PBMSharedPtr _getXYProfiles(int fileId, int x, int y,
         int frameLow, int frameHigh, int stokeFrame,
         Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
+
+    bool _addProfile(std::shared_ptr<CARTA::SpatialProfileData> spatialProfileData,
+        const std::vector<float> & profile, const std::string coordinate) const;
 
     /**
      * Returns the color used to draw nan pixels.

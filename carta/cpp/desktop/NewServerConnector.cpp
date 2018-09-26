@@ -558,9 +558,10 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
     sendSerializedMessage(respName, eventId, raster);
 }
 
-void NewServerConnector::setCursorSignalSlot(int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs) {
+void NewServerConnector::setCursorSignalSlot(uint32_t eventId, int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs) {
     qDebug() << "[NewServerConnector] set cursor file id=" << fileId;
 
+    // Part 1: Caculate spatial profile data
     // get the controller
     Carta::Data::Controller* controller = _getController();
 
@@ -572,18 +573,16 @@ void NewServerConnector::setCursorSignalSlot(int fileId, CARTA::Point point, CAR
     int frameHigh = frameLow;
     int stokeFrame = m_currentChannel[fileId][1];
 
-    // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
-    int regionId = -1;
-
-    // get X/Y profile
     // do not include unit converter for pixel values
     Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr;
 
-    // get the down sampling raster image raw data
-    //PBMSharedPtr xyProfiles = controller->getXYProfiles(fileId, x, y, frameLow, frameHigh, stokeFrame);
+    // get X/Y profile & fill in the response
+    int x = (int)round(point.x());
+    int y = (int)round(point.y());
+    PBMSharedPtr pbMsg = controller->getXYProfiles(fileId, x, y, frameLow, frameHigh, stokeFrame, converter);
 
     // send the serialized message to the frontend
-    //sendSerializedMessage("SPATIAL_PROFILE_DATA", eventId, xyProfiles);
+    sendSerializedMessage("SPATIAL_PROFILE_DATA", eventId, pbMsg);
 }
 
 void NewServerConnector::sendSerializedMessage(QString respName, uint32_t eventId, PBMSharedPtr msg) {

@@ -402,6 +402,13 @@ PBMSharedPtr Controller::getPixels2Histogram(int fileId, int regionId, int frame
     return result;
 }
 
+PBMSharedPtr Controller::getXYProfiles(int fileId, int x, int y,
+            int frameLow, int frameHigh, int stokeFrame,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
+    PBMSharedPtr result = m_stack->_getXYProfiles(fileId, x, y, frameLow, frameHigh, stokeFrame, converter);
+    return result;
+}
+
 PBMSharedPtr Controller::getRasterImageData(int fileId, int x_min, int x_max, int y_min, int y_max, int mip,
     int frameLow, int frameHigh, int stokeFrame,
     bool isZFP, int precision, int numSubsets,

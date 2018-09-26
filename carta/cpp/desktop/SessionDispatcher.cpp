@@ -171,8 +171,8 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
                     connector, SLOT(imageChannelUpdateSignalSlot(uint32_t, int, int, int)));
 
             // set cursor
-            connect(connector, SIGNAL(setCursorSignal(int, CARTA::Point, CARTA::SetSpatialRequirements)),
-                    connector, SLOT(setCursorSignalSlot(int, CARTA::Point, CARTA::SetSpatialRequirements)));
+            connect(connector, SIGNAL(setCursorSignal(uint32_t, int, CARTA::Point, CARTA::SetSpatialRequirements)),
+                    connector, SLOT(setCursorSignalSlot(uint32_t, int, CARTA::Point, CARTA::SetSpatialRequirements)));
 
             // send binary signal to the frontend
             connect(connector, SIGNAL(jsBinaryMessageResultSignal(QString, uint32_t, PBMSharedPtr)),
@@ -282,19 +282,8 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
             CARTA::Point point = setCursor.point();
             CARTA::SetSpatialRequirements spatialReqs = setCursor.spatial_requirements();
             qDebug() << "[SessionDispatcher] Set cursor fileId=" << fileId << ", point=(" << point.x() << ", " << point.y() << ")";
-            emit connector->setCursorSignal(fileId, point, spatialReqs);
+            emit connector->setCursorSignal(eventId, fileId, point, spatialReqs);
 
-        } else if (eventName == "SET_SPATIAL_REQUIREMENTS") {
-            // [TODO]
-            /*
-            CARTA::SetSpatialRequirements setSpatialReqs;
-            setSpatialReqs.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-            int fileId = setSpatialReqs.file_id();
-            int regionId = setSpatialReqs.region_id();
-            //QString fileName = QString::fromStdString(setSpatialReqs.file());
-            qDebug() << "[SessionDispatcher] Set spatial requirements fileId=" << fileId << ", regionId=" << regionId;
-            //emit connector->setCursorSignal(fileId, point, spatialReqs);
-            */
         } else {
             emit connector->onBinaryMessageSignal(message, length);
         }

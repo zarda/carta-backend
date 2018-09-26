@@ -961,69 +961,108 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     return raster;
 }
 
-std::vector<std::vector<float>> DataSource::_getXYProfiles(int fileId, float x, float y,
+PBMSharedPtr DataSource::_getXYProfiles(int fileId, int x, int y,
     int frameLow, int frameHigh, int stokeFrame,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
 
-    qDebug() << "[DataSource] Get X/Y profiles...................................>";
+    qDebug() << "[DataSource] Get X/Y profiles...................................";
 
     // save X proflie in xyProfiles[0] & Y proflie in xyProfiles[1].
     std::vector<std::vector<float>> xyProfiles = {};
+    xyProfiles.push_back({});
+    xyProfiles.push_back({});
 
     // get the raw data of image
     Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
     if (rawData == nullptr) {
         qCritical() << "[DataSource] Error: could not retrieve image data to get X/Y profiles.";
-        return xyProfiles;
+        return nullptr;
     }
     std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
     Carta::Lib::NdArray::Double doubleView(view.get(), false);
-
-    // Find Hz values if they are required for the unit transformation
-    std::vector<double> hertzValues;
-    if (converter && converter->frameDependent) {
-        hertzValues = _getHertzValues(doubleView.dims());
-    }
-
-    int spectralIndex = Util::getAxisIndex(m_image, AxisInfo::KnownType::SPECTRAL);
-    
-    // find image width
     const int imgWidth = view->dims()[0];
+    int spectralIndex = Util::getAxisIndex(m_image, AxisInfo::KnownType::SPECTRAL);
 
-    // set received (x,y) to pixel coordinate (px,py)
-    int px = (int)round(x);
-    int py = (int)round(y);
-
-    // traverse hertzValues
-    // [TODO]: how to eliminate f ???
-    for (size_t f = 0; f < hertzValues.size(); f++) {
-        double hertzVal = hertzValues[f];
-    
-        Carta::Lib::NdArray::Double viewSlice = Carta::Lib::viewSliceForFrame(doubleView, spectralIndex, f);
-
-        unsigned int pIndex = 0;
-        // iterate over the frame
-        viewSlice.forEach([&xyProfiles, &imgWidth, &px, &py, &pIndex](const double & val) {
-            pIndex++;
-            if (std::isfinite(val)) {
+    if (converter && converter->frameDependent) {
+        // Find Hz values if they are required for the unit transformation
+        std::vector<double> hertzValues = _getHertzValues(doubleView.dims());
+        for (size_t f = 0; f < hertzValues.size(); f++) {
+            double hertzVal = hertzValues[f];
+            Carta::Lib::NdArray::Double viewSlice = Carta::Lib::viewSliceForFrame(doubleView, spectralIndex, f);
+            unsigned int pIndex = 0;
+            viewSlice.forEach([&xyProfiles, &imgWidth, &x, &y, &pIndex](const double & val) {
+                pIndex++;
                 // get X profile
-                if ((pIndex / imgWidth) == py) {
-                    xyProfiles[0].push_back(val);
+                if ((pIndex / imgWidth) == y) {
+                    std::isfinite(val) ? xyProfiles[0].push_back((float)val) : xyProfiles[0].push_back(0);
                 }
-
                 // get Y profile
-                if ((pIndex % imgWidth) == px) {
-                    xyProfiles[1].push_back(val);
+                if ((pIndex % imgWidth) == x) {
+                    std::isfinite(val) ? xyProfiles[1].push_back((float)val) : xyProfiles[1].push_back(0);
                 }
-            } else {
-                // [TODO] need to complement 0 ???
+            });
+        }
+    } else {
+        unsigned int pIndex = 0;
+        doubleView.forEach([&xyProfiles, &imgWidth, &x, &y, &pIndex](const double & val) {
+            pIndex++;
+            // get X profile
+            if ((pIndex / imgWidth) == y) {
+                std::isfinite(val) ? xyProfiles[0].push_back((float)val) : xyProfiles[0].push_back(0);
+            }
+            // get Y profile
+            if ((pIndex % imgWidth) == x) {
+                std::isfinite(val) ? xyProfiles[1].push_back((float)val) : xyProfiles[1].push_back(0);
             }
         });
     }
 
+    // create spatial profile data
+    std::shared_ptr<CARTA::SpatialProfileData> spatialProfileData(new CARTA::SpatialProfileData());
+    spatialProfileData->set_file_id(fileId);
+    spatialProfileData->set_region_id(0);
+    spatialProfileData->set_x(x);
+    spatialProfileData->set_y(y);
+    spatialProfileData->set_channel(frameLow);
+    spatialProfileData->set_stokes(stokeFrame);
+    //spatialProfileData->set_value();
+
+    // Add X/Y profiles to spatial profile data
+    if (false == _addProfile(spatialProfileData, xyProfiles[0], "x")) {
+        qDebug() << "Add X profile to spatial profile data failed.";
+        return nullptr;
+    }
+    if (false == _addProfile(spatialProfileData, xyProfiles[1], "y")) {
+        qDebug() << "Add Y profile to spatial profile data failed.";
+        return nullptr;
+    }
+
     qDebug() << "[DataSource] .......................................................................Done";
 
-    return xyProfiles;
+    return spatialProfileData;
+}
+
+bool DataSource::_addProfile(std::shared_ptr<CARTA::SpatialProfileData> spatialProfileData,
+    const std::vector<float> & profile, const std::string coordinate) const {
+    if(nullptr == spatialProfileData) {
+        qDebug() << "Spatial profile data is null.";
+        return false;
+    }
+
+    CARTA::SpatialProfile* spatialProfile = spatialProfileData->add_profiles();
+    if (nullptr == spatialProfile) {
+        qDebug() << "Add spatial profile to spatial profile data error.";
+        return false;
+    }
+
+    spatialProfile->set_start(0);
+    spatialProfile->set_end(profile.size() - 1);
+    for (auto val = profile.begin(); val != profile.end(); val++) {
+        spatialProfile->add_values(*val);
+    }
+    spatialProfile->set_coordinate(coordinate);
+
+    return true;
 }
 
 // This function is provided by Angus
