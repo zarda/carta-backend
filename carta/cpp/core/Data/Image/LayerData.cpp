@@ -411,6 +411,16 @@ PBMSharedPtr LayerData::_getPixels2Histogram(int fileId, int regionId, int frame
     return results;
 }
 
+PBMSharedPtr LayerData::_getXYProfiles(int fileId, int x, int y,
+    int frameLow, int frameHigh, int stokeFrame,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
+    PBMSharedPtr results;
+    if ( m_dataSource ){
+        results = m_dataSource->_getXYProfiles(fileId, x, y, frameLow, frameHigh, stokeFrame, converter);
+    }
+    return results;
+}
+
 PBMSharedPtr LayerData::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
     int frameLow, int frameHigh, int stokeFrame,
     bool isZFP, int precision, int numSubsets,

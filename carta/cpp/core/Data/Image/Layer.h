@@ -300,6 +300,19 @@ protected:
     virtual int _getStokeIndicator() const = 0;
     virtual int _getSpectralIndicator() const = 0;
 
+     /**
+     * Returns a spatial profile data
+     * @param x - x coordinate of cursor
+     * @param y - y coordinate of cursor
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
+     * @return - vectors of x profile/y profile.
+     */
+    virtual PBMSharedPtr _getXYProfiles(int fileId, int x, int y,
+            int frameLow, int frameHigh, int stokeFrame,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const = 0;
+
     /**
      * Returns a vector of pixels.
      * @param xMin - lower bound of the x-pixel-coordinate.

@@ -13,6 +13,7 @@
 #include "State/UtilState.h"
 
 #include <set>
+#include <math.h>
 
 using Carta::Lib::AxisInfo;
 
