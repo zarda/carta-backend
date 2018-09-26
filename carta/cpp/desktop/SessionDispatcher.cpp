@@ -148,6 +148,8 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
             qRegisterMetaType<size_t>("size_t");
             qRegisterMetaType<uint32_t>("uint32_t");
             qRegisterMetaType<PBMSharedPtr>("PBMSharedPtr");
+            qRegisterMetaType<CARTA::Point>("CARTA::Point");
+            qRegisterMetaType<CARTA::SetSpatialRequirements>("CARTA::SetSpatialRequirements");
 
             // start the image viewer
             connect(connector, SIGNAL(startViewerSignal(const QString &)),
@@ -168,6 +170,10 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
             // set image channel
             connect(connector, SIGNAL(imageChannelUpdateSignal(uint32_t, int, int, int)),
                     connector, SLOT(imageChannelUpdateSignalSlot(uint32_t, int, int, int)));
+
+            // set cursor
+            connect(connector, SIGNAL(setCursorSignal(uint32_t, int, CARTA::Point, CARTA::SetSpatialRequirements)),
+                    connector, SLOT(setCursorSignalSlot(uint32_t, int, CARTA::Point, CARTA::SetSpatialRequirements)));
 
             // send binary signal to the frontend
             connect(connector, SIGNAL(jsBinaryMessageResultSignal(QString, uint32_t, PBMSharedPtr)),
@@ -268,6 +274,16 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
             int stoke = setImageChannels.stokes();
             qDebug() << "[SessionDispatcher] Set image channel=" << channel << ", fileId=" << fileId << ", stoke=" << stoke;
             emit connector->imageChannelUpdateSignal(eventId, fileId, channel, stoke);
+
+        } else if (eventName == "SET_CURSOR") {
+
+            CARTA::SetCursor setCursor;
+            setCursor.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+            int fileId = setCursor.file_id();
+            CARTA::Point point = setCursor.point();
+            CARTA::SetSpatialRequirements spatialReqs = setCursor.spatial_requirements();
+            qDebug() << "[SessionDispatcher] Set cursor fileId=" << fileId << ", point=(" << point.x() << ", " << point.y() << ")";
+            emit connector->setCursorSignal(eventId, fileId, point, spatialReqs);
 
         } else {
             emit connector->onBinaryMessageSignal(message, length);
