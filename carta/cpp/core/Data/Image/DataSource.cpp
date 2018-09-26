@@ -983,6 +983,10 @@ PBMSharedPtr DataSource::_getXYProfiles(int fileId, int x, int y,
     const int imgWidth = view->dims()[0];
     int spectralIndex = Util::getAxisIndex(m_image, AxisInfo::KnownType::SPECTRAL);
 
+    // start timer for computing X/Y profiles
+    QElapsedTimer timer;
+    timer.start();
+
     if (converter && converter->frameDependent) {
         // Find Hz values if they are required for the unit transformation
         std::vector<double> hertzValues = _getHertzValues(doubleView.dims());
@@ -1015,6 +1019,12 @@ PBMSharedPtr DataSource::_getXYProfiles(int fileId, int x, int y,
                 std::isfinite(val) ? xyProfiles[1].push_back((float)val) : xyProfiles[1].push_back(0);
             }
         });
+    }
+
+    // end of timer for computing X/Y profiles
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to get X/Y profiles:" << elapsedTime << "ms";
     }
 
     // create spatial profile data
