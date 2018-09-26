@@ -5,8 +5,6 @@
 #include "NewServerConnector.h"
 
 #include <iostream>
-#include <QImage>
-#include <QPainter>
 #include <QXmlInputSource>
 #include <cmath>
 #include <QTime>
