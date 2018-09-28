@@ -965,12 +965,9 @@ PBMSharedPtr DataSource::_getXYProfiles(int fileId, int x, int y,
     int frameLow, int frameHigh, int stokeFrame,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
 
-    qDebug() << "[DataSource] Get X/Y profiles...................................";
+    qDebug() << "[DataSource] Get X/Y profiles...................................>";
 
-    // save X proflie in xyProfiles[0] & Y proflie in xyProfiles[1].
-    std::vector<std::vector<float>> xyProfiles = {};
-    xyProfiles.push_back({});
-    xyProfiles.push_back({});
+    std::vector<float> xProfile, yProfile;
 
     // get the raw data of image
     Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
@@ -981,6 +978,7 @@ PBMSharedPtr DataSource::_getXYProfiles(int fileId, int x, int y,
     std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
     Carta::Lib::NdArray::Double doubleView(view.get(), false);
     const int imgWidth = view->dims()[0];
+    const int imgHeight = view->dims()[1];
     int spectralIndex = Util::getAxisIndex(m_image, AxisInfo::KnownType::SPECTRAL);
 
     // start timer for computing X/Y profiles
@@ -993,32 +991,10 @@ PBMSharedPtr DataSource::_getXYProfiles(int fileId, int x, int y,
         for (size_t f = 0; f < hertzValues.size(); f++) {
             double hertzVal = hertzValues[f];
             Carta::Lib::NdArray::Double viewSlice = Carta::Lib::viewSliceForFrame(doubleView, spectralIndex, f);
-            unsigned int pIndex = 0;
-            viewSlice.forEach([&xyProfiles, &imgWidth, &x, &y, &pIndex](const double & val) {
-                pIndex++;
-                // get X profile
-                if ((pIndex / imgWidth) == y) {
-                    std::isfinite(val) ? xyProfiles[0].push_back((float)val) : xyProfiles[0].push_back(0);
-                }
-                // get Y profile
-                if ((pIndex % imgWidth) == x) {
-                    std::isfinite(val) ? xyProfiles[1].push_back((float)val) : xyProfiles[1].push_back(0);
-                }
-            });
+            _getXYProfiles(doubleView, imgWidth, imgHeight, x, y, xProfile, yProfile);
         }
     } else {
-        unsigned int pIndex = 0;
-        doubleView.forEach([&xyProfiles, &imgWidth, &x, &y, &pIndex](const double & val) {
-            pIndex++;
-            // get X profile
-            if ((pIndex / imgWidth) == y) {
-                std::isfinite(val) ? xyProfiles[0].push_back((float)val) : xyProfiles[0].push_back(0);
-            }
-            // get Y profile
-            if ((pIndex % imgWidth) == x) {
-                std::isfinite(val) ? xyProfiles[1].push_back((float)val) : xyProfiles[1].push_back(0);
-            }
-        });
+        _getXYProfiles(doubleView, imgWidth, imgHeight, x, y, xProfile, yProfile);
     }
 
     // end of timer for computing X/Y profiles
@@ -1035,14 +1011,18 @@ PBMSharedPtr DataSource::_getXYProfiles(int fileId, int x, int y,
     spatialProfileData->set_y(y);
     spatialProfileData->set_channel(frameLow);
     spatialProfileData->set_stokes(stokeFrame);
-    //spatialProfileData->set_value();
+    if (xProfile.size() > x) {
+        spatialProfileData->set_value(xProfile[x]);
+    } else if (yProfile.size() > y) {
+        spatialProfileData->set_value(yProfile[y]);
+    }
 
     // Add X/Y profiles to spatial profile data
-    if (false == _addProfile(spatialProfileData, xyProfiles[0], "x")) {
+    if (false == _addProfile(spatialProfileData, xProfile, "x")) {
         qDebug() << "Add X profile to spatial profile data failed.";
         return nullptr;
     }
-    if (false == _addProfile(spatialProfileData, xyProfiles[1], "y")) {
+    if (false == _addProfile(spatialProfileData, yProfile, "y")) {
         qDebug() << "Add Y profile to spatial profile data failed.";
         return nullptr;
     }
@@ -1050,6 +1030,22 @@ PBMSharedPtr DataSource::_getXYProfiles(int fileId, int x, int y,
     qDebug() << "[DataSource] .......................................................................Done";
 
     return spatialProfileData;
+}
+
+void DataSource::_getXYProfiles(Carta::Lib::NdArray::Double doubleView, const int imgWidth, const int imgHeight,
+    const int x, const int y, std::vector<float> & xProfile, std::vector<float> & yProfile) const {
+
+    // get X profile
+    for (int index = 0; index < imgWidth; index++) {
+        float val = (float)doubleView.get({index,y});
+        std::isfinite(val) ? xProfile.push_back(val) : xProfile.push_back(0);
+    }
+
+    // get Y profile
+    for (int index = 0; index < imgHeight; index++) {
+        float val = (float)doubleView.get({x,index});
+        std::isfinite(val) ? yProfile.push_back(val) : yProfile.push_back(0);
+    }
 }
 
 bool DataSource::_addProfile(std::shared_ptr<CARTA::SpatialProfileData> spatialProfileData,
