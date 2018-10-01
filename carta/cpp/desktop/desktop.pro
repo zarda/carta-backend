@@ -2,7 +2,8 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT      +=  core xml
+QT  +=  core xml
+QT  -=  gui widgets
 
 HEADERS += \
     DesktopPlatform.h \

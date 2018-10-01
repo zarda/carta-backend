@@ -127,25 +127,25 @@ public:
 signals:
 
     // keyboard events
-    void
-    key( std::shared_ptr < QKeyEvent > );
+//    void
+//    key( std::shared_ptr < QKeyEvent > );
 
-    // active mouse events
-    void
-    mouseClick( std::shared_ptr < QMouseEvent > );
+//    // active mouse events
+//    void
+//    mouseClick( std::shared_ptr < QMouseEvent > );
 
-    void
-    mouseDown( std::shared_ptr < QMouseEvent > );
+//    void
+//    mouseDown( std::shared_ptr < QMouseEvent > );
 
-    void
-    mouseUp( std::shared_ptr < QMouseEvent > );
+//    void
+//    mouseUp( std::shared_ptr < QMouseEvent > );
 
-    void
-    mouseDrag( std::shared_ptr < QMouseEvent > );
+//    void
+//    mouseDrag( std::shared_ptr < QMouseEvent > );
 
-    // passive mouse events
-    void
-    mouseMove( std::shared_ptr < QMouseEvent > );
+//    // passive mouse events
+//    void
+//    mouseMove( std::shared_ptr < QMouseEvent > );
 };
 }
 }

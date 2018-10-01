@@ -13,9 +13,11 @@
 #pragma once
 
 #include "PluginManager.h"
+#include "IConnector.h"
+#include "IPlatform.h"
 
-class IConnector;
-class IPlatform;
+//class IConnector;
+//class IPlatform;
 namespace CmdLine { class ParsedInfo; }
 namespace MainConfig { class ParsedInfo; }
 

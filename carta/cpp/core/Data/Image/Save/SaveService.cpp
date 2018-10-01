@@ -78,39 +78,39 @@ void SaveService::_saveImage( QImage img ){
     emit saveImageResult( result );
 }
 
-void SaveService::_scheduleSave( const std::shared_ptr<RenderResponse>& response ){
-    m_renderCount++;
-    m_images[response->getLayerName()] = response;
-    if ( m_renderCount != m_redrawCount ) {
-        return;
-    }
+//void SaveService::_scheduleSave( const std::shared_ptr<RenderResponse>& response ){
+//    m_renderCount++;
+//    m_images[response->getLayerName()] = response;
+//    if ( m_renderCount != m_redrawCount ) {
+//        return;
+//    }
 
-    m_view->resetLayers();
+//    m_view->resetLayers();
 
-    //We want the selected index to be the last one in the stack.
-    int dataCount = m_layers.size();
-    int stackIndex = 0;
-    for ( int i = 0; i < dataCount; i++ ){
-        int dIndex = ( m_selectIndex + i + 1) % dataCount;
-        m_layers[dIndex]->disconnect( this );
-        if ( m_layers[dIndex]->_isVisible() ){
-            QString layerId = m_layers[dIndex]->_getLayerId();
-            if ( m_images.contains( layerId ) ){
-                QImage image = m_images[layerId]->getImage();
-                Carta::Lib::VectorGraphics::VGList graphicsList = m_images[layerId]->getVectorGraphics();
-                m_view->setRasterLayer( stackIndex, image );
-                m_view->setVectorGraphicsLayer( stackIndex, graphicsList );
-                stackIndex++;
-            }
-        }
-    }
-    for ( int i = 0; i < dataCount; i++ ){
-           m_layers[i]->_renderDone();
-       }
-    m_view->paintLayers();
-    QImage image = m_view->getImage();
-    _saveImage( image );
-}
+//    //We want the selected index to be the last one in the stack.
+//    int dataCount = m_layers.size();
+//    int stackIndex = 0;
+//    for ( int i = 0; i < dataCount; i++ ){
+//        int dIndex = ( m_selectIndex + i + 1) % dataCount;
+//        m_layers[dIndex]->disconnect( this );
+//        if ( m_layers[dIndex]->_isVisible() ){
+//            QString layerId = m_layers[dIndex]->_getLayerId();
+//            if ( m_images.contains( layerId ) ){
+//                QImage image = m_images[layerId]->getImage();
+//                Carta::Lib::VectorGraphics::VGList graphicsList = m_images[layerId]->getVectorGraphics();
+//                m_view->setRasterLayer( stackIndex, image );
+//                m_view->setVectorGraphicsLayer( stackIndex, graphicsList );
+//                stackIndex++;
+//            }
+//        }
+//    }
+//    for ( int i = 0; i < dataCount; i++ ){
+//           m_layers[i]->_renderDone();
+//       }
+//    m_view->paintLayers();
+//    QImage image = m_view->getImage();
+//    _saveImage( image );
+//}
 
 void SaveService::setFileName( const QString& saveName ){
    m_fileName = saveName;

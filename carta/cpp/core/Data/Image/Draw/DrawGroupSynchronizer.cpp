@@ -57,63 +57,63 @@ void DrawGroupSynchronizer::render(
     }
 }
 
-void DrawGroupSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderResponse>& response){
-    m_renderCount++;
-    m_images[response->getLayerName()] = response;
+//void DrawGroupSynchronizer::_scheduleFrameRepaint( const std::shared_ptr<RenderResponse>& response){
+//    m_renderCount++;
+//    m_images[response->getLayerName()] = response;
 
-    //If we are still waiting for other layers to finish, do nothing.
-    if ( m_renderCount != m_redrawCount ) {
-        return;
-    }
-    int dataCount = m_layers.size();
-    QImage image;
-    Carta::Lib::VectorGraphics::VGList graphics;
-    if ( m_imageSize.height() > 0 && m_imageSize.width() > 0 ){
-    	Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
-        if ( m_combineMode == LayerCompositionModes::PLUS ){
-            std::shared_ptr<Carta::Lib::PixelMaskCombiner> pmc =
-                    std::make_shared < Carta::Lib::PixelMaskCombiner > ();
-            image = QImage(m_imageSize, QImage::Format_ARGB32 );
-            image.fill( QColor(0,0,0,0));
-            for ( int i = 0; i < dataCount; i++ ){
-                m_layers[i]->disconnect( this );
-                QString layerName = m_layers[i]->_getLayerId();
-                if ( m_images.contains( layerName ) ){
-                    std::shared_ptr<RenderResponse> response = m_images[layerName];
-                    QImage layerImage = response->getImage();
-                    Carta::Lib::VectorGraphics::VGList vgList = response->getVectorGraphics();
-                    if ( vgList.entries().size() > 0 ){
-                    	comp.appendList( vgList );
-                    }
-                    float alphaVal = m_layers[i]->_getMaskAlpha();
-                    pmc-> setAlpha( alphaVal );
-                    qint32 maskColor = m_layers[i]->_getMaskColor();
-                    pmc-> setMask( maskColor );
-                    pmc->combine( image, layerImage );
-                }
-            }
-            graphics = comp.vgList();
-        }
+//    //If we are still waiting for other layers to finish, do nothing.
+//    if ( m_renderCount != m_redrawCount ) {
+//        return;
+//    }
+//    int dataCount = m_layers.size();
+//    QImage image;
+//    Carta::Lib::VectorGraphics::VGList graphics;
+//    if ( m_imageSize.height() > 0 && m_imageSize.width() > 0 ){
+//    	Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
+//        if ( m_combineMode == LayerCompositionModes::PLUS ){
+//            std::shared_ptr<Carta::Lib::PixelMaskCombiner> pmc =
+//                    std::make_shared < Carta::Lib::PixelMaskCombiner > ();
+//            image = QImage(m_imageSize, QImage::Format_ARGB32 );
+//            image.fill( QColor(0,0,0,0));
+//            for ( int i = 0; i < dataCount; i++ ){
+//                m_layers[i]->disconnect( this );
+//                QString layerName = m_layers[i]->_getLayerId();
+//                if ( m_images.contains( layerName ) ){
+//                    std::shared_ptr<RenderResponse> response = m_images[layerName];
+//                    QImage layerImage = response->getImage();
+//                    Carta::Lib::VectorGraphics::VGList vgList = response->getVectorGraphics();
+//                    if ( vgList.entries().size() > 0 ){
+//                    	comp.appendList( vgList );
+//                    }
+//                    float alphaVal = m_layers[i]->_getMaskAlpha();
+//                    pmc-> setAlpha( alphaVal );
+//                    qint32 maskColor = m_layers[i]->_getMaskColor();
+//                    pmc-> setMask( maskColor );
+//                    pmc->combine( image, layerImage );
+//                }
+//            }
+//            graphics = comp.vgList();
+//        }
 
-        else {
-            if ( dataCount > 0 ){
-                //Implement for now to just get one image.
-                QString imageName = m_layers[0]->_getLayerId();
-                if ( m_images.contains( imageName ) ){
-                	graphics = m_images[imageName]->getVectorGraphics();
-                    image = m_images[imageName]->getImage();
-                }
-            }
-        }
+//        else {
+//            if ( dataCount > 0 ){
+//                //Implement for now to just get one image.
+//                QString imageName = m_layers[0]->_getLayerId();
+//                if ( m_images.contains( imageName ) ){
+//                	graphics = m_images[imageName]->getVectorGraphics();
+//                    image = m_images[imageName]->getImage();
+//                }
+//            }
+//        }
 
 
-    }
-    for ( int i = 0; i < dataCount; i++ ){
-        m_layers[i]->_renderDone();
-    }
-    m_repaintFrameQueued = false;
-    emit done( image, graphics );
-}
+//    }
+//    for ( int i = 0; i < dataCount; i++ ){
+//        m_layers[i]->_renderDone();
+//    }
+//    m_repaintFrameQueued = false;
+//    emit done( image, graphics );
+//}
 
 void DrawGroupSynchronizer::setCombineMode( const QString& mode ){
     m_combineMode = mode;

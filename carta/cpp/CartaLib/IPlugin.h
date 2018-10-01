@@ -4,7 +4,7 @@
 
 #include "CartaLib/Hooks/HookIDs.h"
 #include "IImage.h"
-#include <QImage>
+//#include <QImage>
 #include <QObject>
 #include <QDebug>
 #include <QJsonObject>
@@ -141,13 +141,13 @@ public:
 
     typedef FakeVoid ResultType;
     struct Params {
-        Params( QString p_viewName, QImage * p_imgPtr )
+        Params( QString p_viewName/*, QImage * p_imgPtr*/ )
         {
-            imgPtr = p_imgPtr;
+//            imgPtr = p_imgPtr;
             viewName = p_viewName;
         }
 
-        QImage * imgPtr;
+//        QImage * imgPtr;
         QString viewName;
     };
     PreRender( Params * pptr ) : BaseHook( staticId ), paramsPtr( pptr ) { }

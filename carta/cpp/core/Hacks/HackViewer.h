@@ -68,7 +68,7 @@ protected:
     Carta::Hacks::ImageViewController::UniquePtr m_imageViewController;
     std::vector < Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr > m_allColormaps;
 
-    LayeredViewDemo::UniquePtr m_lvDemo = nullptr;
+//    LayeredViewDemo::UniquePtr m_lvDemo = nullptr;
 
 };
 }

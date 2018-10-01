@@ -5,9 +5,9 @@
 #pragma once
 
 class IConnector;
-class QImage;
-class QMouseEvent;
-class QKeyEvent;
+//class QImage;
+//class QMouseEvent;
+//class QKeyEvent;
 class QString;
 class QSize;
 
@@ -59,8 +59,8 @@ public:
     /// \note strongly suggested format: QImage::Format_ARGB32_Premultiplied, as that is
     /// the most optimized version
     ///
-    virtual const QImage &
-    getBuffer() = 0;
+//    virtual const QImage &
+//    getBuffer() = 0;
 
     /// handle client resize request
     virtual void
@@ -68,13 +68,13 @@ public:
 
     /// handle mouse events
     /// \deprecated this is going away in the future, or at least will become optional
-    virtual void
-    handleMouseEvent( const QMouseEvent & event ) = 0;
+//    virtual void
+//    handleMouseEvent( const QMouseEvent & event ) = 0;
 
     /// handle keyboard events
     /// \deprecated this may be removed altogether, or become optional
-    virtual void
-    handleKeyEvent( const QKeyEvent & event ) = 0;
+//    virtual void
+//    handleKeyEvent( const QKeyEvent & event ) = 0;
 
     /// this is called when a view is refreshed in the GUI
     virtual void viewRefreshed( qint64 id) = 0;

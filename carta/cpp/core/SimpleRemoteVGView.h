@@ -9,8 +9,8 @@
 #include "IView.h"
 #include <QSize>
 #include <QString>
-#include <QColor>
-#include <QImage>
+//#include <QColor>
+//#include <QImage>
 
 class ServerConnector;
 class NewServerConnector;
@@ -33,20 +33,20 @@ class SimpleRemoteVGView
 
 public:
 
-    virtual const QSize &
-    getClientSize() override;
+//    virtual const QSize &
+//    getClientSize() override;
 
     virtual const QString &
     getRVGViewName() override;
 
-    virtual void
-    setRaster( const QImage & image ) override;
+//    virtual void
+//    setRaster( const QImage & image ) override;
 
-    virtual void
-    setVG( const VGList & vglist ) override;
+//    virtual void
+//    setVG( const VGList & vglist ) override;
 
-    virtual void
-    setRasterAndVG( const QImage & image, const VGList & vglist ) override;
+//    virtual void
+//    setRasterAndVG( const QImage & image, const VGList & vglist ) override;
 
     virtual void
     setVGrenderedOnServer( bool flag) override;
@@ -59,8 +59,8 @@ public:
 
 public slots:
 
-    virtual qint64
-    scheduleRepaint( qint64 id = - 1 ) override;
+//    virtual qint64
+//    scheduleRepaint( qint64 id = - 1 ) override;
 
 private:
 
@@ -72,10 +72,10 @@ private:
     QSize m_remoteSize = QSize( 1, 1 );
     QString m_viewName;
     IConnector * m_connector = nullptr;
-    QImage m_raster, m_buffer;
+//    QImage m_raster, m_buffer;
 
-    VGList m_vgList;
-    qint64 m_lastRepaintId = - 1;
+//    VGList m_vgList;
+//    qint64 m_lastRepaintId = - 1;
 
     // IView interface
 
@@ -85,26 +85,26 @@ private:
     virtual const QString &
     name() const override;
 
-    virtual QSize
-    size() override;
+//    virtual QSize
+//    size() override;
 
-    virtual const QImage &
-    getBuffer() override;
+//    virtual const QImage &
+//    getBuffer() override;
 
-    virtual void
-    handleResizeRequest( const QSize & size ) override;
+//    virtual void
+//    handleResizeRequest( const QSize & size ) override;
 
-    virtual void
-    handleMouseEvent( const QMouseEvent & event ) override;
+//    virtual void
+//    handleMouseEvent( const QMouseEvent & event ) override;
 
-    virtual void
-    handleKeyEvent( const QKeyEvent & event ) override;
+//    virtual void
+//    handleKeyEvent( const QKeyEvent & event ) override;
 
     virtual void
     viewRefreshed( qint64 id) override ;
 
     // for now this is how we handle input events... same for desktop and server
-    QString inputEventCB( const QString & cmd, const QString & params, const QString & sessionId);
+//    QString inputEventCB( const QString & cmd, const QString & params, const QString & sessionId);
 
 };
 }

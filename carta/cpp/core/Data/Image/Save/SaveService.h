@@ -73,9 +73,9 @@ signals:
 
 private slots:
 
-    void _scheduleSave(/*const QImage& qImage,
-            const Carta::Lib::VectorGraphics::VGList& vg, const QString& layerName*/
-            const std::shared_ptr<RenderResponse>& response);
+//    void _scheduleSave(/*const QImage& qImage,
+//            const Carta::Lib::VectorGraphics::VGList& vg, const QString& layerName*/
+//            const std::shared_ptr<RenderResponse>& response);
 
 private:
 

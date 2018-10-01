@@ -198,7 +198,7 @@ public:
      * @param valid - set to false if the returned point is invalid.
      * @return - the image coordinates of the point under the cursor.
      */
-    QPointF getImagePt( bool* valid ) const;
+//    QPointF getImagePt( bool* valid ) const;
 
     /**
      * Return a list of images that have been loaded.
@@ -296,7 +296,7 @@ public:
     /**
      * Get the dimensions of the image viewer (window size).
      */
-    QSize getOutputSize( ) const;
+//    QSize getOutputSize( ) const;
 
     /**
      * Return percentiles corresponding to the given intensities.
@@ -569,7 +569,7 @@ public:
      *  are grouped and should be ungrouped.
      * @return - an error message if the group/ungroup message could not be performed.
      */
-    QString setSelectedLayersGrouped( bool grouped );
+//    QString setSelectedLayersGrouped( bool grouped );
 
     /**
      * Set whether or not selection of layers in the stack should be based on the
@@ -592,7 +592,7 @@ public:
      * @param imgX the x-coordinate for the center of the pan.
      * @param imgY the y-coordinate for the center of the pan.
      */
-    void updatePan( double imgX , double imgY);
+//    void updatePan( double imgX , double imgY);
 
     /**
      * Update the pan and zoom level settings.
@@ -601,7 +601,7 @@ public:
      * @param zoomLevel zoom level
      * @param layerId specify the id of a layerData to update its Pan and Zoom level
      */
-    void updatePanZoomLevelJS( double centerX, double centerY, double zoomLevel, double layerId );
+//    void updatePanZoomLevelJS( double centerX, double centerY, double zoomLevel, double layerId );
 
     /**
      * Update the pan and zoom settings.
@@ -609,7 +609,7 @@ public:
      * @param centerY the screen y-coordinate where the zoom was centered.
      * @param z either positive or negative depending on the desired zoom direction.
      */
-    void updatePanZoom( double centerX, double centerY, double zoomFactor);
+//    void updatePanZoom( double centerX, double centerY, double zoomFactor);
 
     void updateZoom(double zoomFactor);
 
@@ -688,7 +688,7 @@ private slots:
 	void _contourSetRemoved( const QString setName );
 
 	// void _gridChanged( const Carta::State::StateInterface& state, bool applyAll );
-	void _onInputEvent( InputEvent ev );
+//	void _onInputEvent( InputEvent ev );
 
 	//Refresh the view based on the latest data selection information.
 	void _loadView(  );
@@ -732,16 +732,16 @@ private:
 	//Return the rectangle (in pixel coordinates scaled to the display size)
 	//that is currently being viewed in the main view.  Used to show a rectangle
 	//in the context view.
-	QRectF _getInputRectangle() const;
+//	QRectF _getInputRectangle() const;
 	QString _getPreferencesId() const;
 	QString _getRegionControlsId() const;
 	QString _getStackId() const;
 
 	//Provide default values for state.
 	void _initializeState();
-	void _initializeCallbacks();
+//	void _initializeCallbacks();
 
-	void _renderZoom( double factor );
+//	void _renderZoom( double factor );
 	void _renderContext( double zoomFactor );
 
     // Set the AxisMapper::axisMap to use
@@ -753,7 +753,7 @@ private:
 	 * @param axisType - the axis for which a frame is being set.
 	 * @param frameIndex  a frame index for the axis.
 	 */
-	void _setFrameAxis(int frameIndex, Carta::Lib::AxisInfo::KnownType axisType );
+//	void _setFrameAxis(int frameIndex, Carta::Lib::AxisInfo::KnownType axisType );
 
 	QString _setLayersSelected( const QStringList indices);
 
@@ -761,8 +761,8 @@ private:
 	void _setViewDrawContext( std::shared_ptr<DrawStackSynchronizer> stackDraw );
     void _setViewDrawZoom( std::shared_ptr<DrawStackSynchronizer> drawZoom );
 
-	void _updateCursor( int mouseX, int mouseY );
-	void _updateCursorText(bool notifyClients );
+//	void _updateCursor( int mouseX, int mouseY );
+//	void _updateCursorText(bool notifyClients );
 	void _updateDisplayAxes( /*int targetIndex*/ );
 
 	static bool m_registered;

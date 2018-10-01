@@ -7,7 +7,7 @@
 #include "CartaLib/IPlugin.h"
 #include "CartaLib/Nullable.h"
 
-#include <QImage>
+//#include <QImage>
 #include <QString>
 #include <vector>
 #include <functional>

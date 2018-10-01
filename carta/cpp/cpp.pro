@@ -9,9 +9,9 @@ SUBDIRS = \
     desktop \
     plugins \
     Tests \
-    testCache \
-    testRegion \
-    testPercentile
+#    testCache \
+#    testRegion \
+#    testPercentile
 
 # explicit dependencies, to make sure parallel make works (i.e. make -j4...)
 core.depends = CartaLib
