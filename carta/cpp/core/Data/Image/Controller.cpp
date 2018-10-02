@@ -73,26 +73,26 @@ Controller::Controller( const QString& path, const QString& id ) :
         		CartaObject( CLASS_NAME, path, id),
 				m_stateMouse(UtilState::getLookup(path, Util::VIEW)){
 
-	_initializeState();
+//	_initializeState();
 
 	Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
 
 	//Stack
-	Stack* layerGroupRoot = objMan->createObject<Stack>();
-	QString viewName = Carta::State::UtilState::getLookup( path, Util::VIEW);
-	layerGroupRoot->_setViewName( viewName );
-	m_stack.reset( layerGroupRoot );
-	connect( m_stack.get(), SIGNAL( frameChanged(Carta::Lib::AxisInfo::KnownType)),
-			this, SLOT(_notifyFrameChange( Carta::Lib::AxisInfo::KnownType)));
-	connect( m_stack.get(), SIGNAL( viewLoad()), this, SLOT(_loadViewQueued()));
+    Stack* layerGroupRoot = objMan->createObject<Stack>();
+//	QString viewName = Carta::State::UtilState::getLookup( path, Util::VIEW);
+//	layerGroupRoot->_setViewName( viewName );
+    m_stack.reset( layerGroupRoot ); // necessary !!
+//	connect( m_stack.get(), SIGNAL( frameChanged(Carta::Lib::AxisInfo::KnownType)),
+//			this, SLOT(_notifyFrameChange( Carta::Lib::AxisInfo::KnownType)));
+//	connect( m_stack.get(), SIGNAL( viewLoad()), this, SLOT(_loadViewQueued()));
 	connect( m_stack.get(), SIGNAL(contourSetAdded(Layer*,const QString&)),
 			this, SLOT(_contourSetAdded(Layer*, const QString&)));
 	connect( m_stack.get(), SIGNAL(contourSetRemoved(const QString&)),
 			this, SLOT(_contourSetRemoved(const QString&)));
-    connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT(_emitColorChanged()));
-	connect( m_stack.get(), SIGNAL(saveImageResult( bool)), this, SIGNAL(saveImageResult(bool)));
-	connect( m_stack.get(), SIGNAL(inputEvent(  InputEvent)), this,
-			SLOT( _onInputEvent( InputEvent )));
+//    connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT(_emitColorChanged()));
+//	connect( m_stack.get(), SIGNAL(saveImageResult( bool)), this, SIGNAL(saveImageResult(bool)));
+//	connect( m_stack.get(), SIGNAL(inputEvent(  InputEvent)), this,
+//			SLOT( _onInputEvent( InputEvent )));
 
 	// GridControls* gridObj = objMan->createObject<GridControls>();
 	// m_gridControls.reset( gridObj );
@@ -107,8 +107,8 @@ Controller::Controller( const QString& path, const QString& id ) :
 	connect( m_contourControls.get(), SIGNAL(drawContoursChanged()),
 			this, SLOT(_loadViewQueued()));
 
-	Settings* settingsObj = objMan->createObject<Settings>();
-	m_settings.reset( settingsObj );
+//	Settings* settingsObj = objMan->createObject<Settings>();
+//	m_settings.reset( settingsObj );
 
 //	_initializeCallbacks();
 
