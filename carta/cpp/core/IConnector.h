@@ -2,13 +2,14 @@
 #define ICONNECTOR_H
 
 #include "IView.h"
+#include "IPlatform.h"
 
 #include <memory>
 #include <functional>
 #include <cstdint>
 #include <QString>
-#include <QMouseEvent>
-#include <QKeyEvent>
+//#include <QMouseEvent>
+//#include <QKeyEvent>
 #include <google/protobuf/message_lite.h>
 
 namespace Carta {

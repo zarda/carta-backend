@@ -4,13 +4,9 @@
 
 #include "DesktopPlatform.h"
 #include "SessionDispatcher.h"
-// #include "MainWindow.h"
 #include "core/CmdLine.h"
 #include "core/Globals.h"
 
-#include <QtWidgets>
-//#include <QWebSettings>
-#include <QDesktopWidget>
 #include <unistd.h>
 
 std::string warningColor, criticalColor, fatalColor, resetColor;

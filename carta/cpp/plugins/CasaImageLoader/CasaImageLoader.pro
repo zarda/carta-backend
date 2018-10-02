@@ -2,7 +2,7 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT       += core gui
+QT       += core
 TARGET = plugin
 TEMPLATE = lib
 CONFIG += plugin
@@ -35,7 +35,6 @@ LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 INCLUDEPATH += $${CASACOREDIR}/include
 INCLUDEPATH += $${WCSLIBDIR}/include
 INCLUDEPATH += $${CFITSIODIR}/include
-#INCLUDEPATH += $$PWD/../../core
 DEPENDPATH += $$PWD/../../core
 
 OTHER_FILES += \

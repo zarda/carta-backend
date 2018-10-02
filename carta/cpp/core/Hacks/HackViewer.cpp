@@ -168,7 +168,7 @@ HackViewer::start()
     prefixedSetState( "knownSkyCS/count", "5" );
 
     // managed layer demo
-    m_lvDemo.reset( new LayeredViewDemo( this));
+//    m_lvDemo.reset( new LayeredViewDemo( this));
 
 #ifdef DONT_COMPILE
     // layered view 2 stuff

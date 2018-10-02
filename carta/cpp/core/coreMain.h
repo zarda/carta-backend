@@ -6,7 +6,7 @@
 
 #include "core/Viewer.h"
 #include "PluginManager.h"
-#include "core/Hacks/HackViewer.h"
+//#include "core/Hacks/HackViewer.h"
 #include "core/MyQApp.h"
 #include "core/CmdLine.h"
 #include "core/MainConfig.h"
@@ -145,14 +145,14 @@ coreMainCPP( QString platformString, int argc, char * * argv )
 
     // create the viewer
     // =================
-    Viewer viewer;
-    Hacks::HackViewer::UniquePtr hackViewer = nullptr;
-    if ( globals.mainConfig()-> hacksEnabled() ) {
-        hackViewer.reset( new Hacks::HackViewer );
-    }
-    if ( globals.mainConfig()->isDeveloperLayout() ) {
-        viewer.setDeveloperView();
-    }
+//    Viewer viewer;
+//    Hacks::HackViewer::UniquePtr hackViewer = nullptr;
+//    if ( globals.mainConfig()-> hacksEnabled() ) {
+//        hackViewer.reset( new Hacks::HackViewer );
+//    }
+//    if ( globals.mainConfig()->isDeveloperLayout() ) {
+//        viewer.setDeveloperView();
+//    }
 
     // prepare closure to execute when connector is initialized
 //    IConnector::InitializeCallback initCB = [&] ( const QString &sessionID) -> void {

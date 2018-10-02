@@ -2,7 +2,7 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT       += core gui
+QT       += core
 TARGET = plugin
 TEMPLATE = lib
 CONFIG += plugin

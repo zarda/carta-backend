@@ -28,7 +28,7 @@ class SaveViewLayered {
         /**
          * Combine the layers into an image.
          */
-        void paintLayers();
+//        void paintLayers();
 
         /**
          * Clear the layers.

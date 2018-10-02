@@ -55,7 +55,7 @@ public:
      * @param axisName - an identifier for the axis.
      * @param index - the index of the new axis frame.
      */
-    void changeFrame( int index, const QString& axisName );
+//    void changeFrame( int index, const QString& axisName );
 
     /**
      * Clear current state..
@@ -150,7 +150,7 @@ private slots:
     //Adjusts internal state based on the state in the child controllers.
     void _adjustStateController( Controller* controller);
     void _axesChanged();
-    void _frameChanged( int index, const QString& axisName );
+//    void _frameChanged( int index, const QString& axisName );
     void _regionsChanged( Controller* controller );
     void _updateFrame( Controller* controller, Carta::Lib::AxisInfo::KnownType type );
 

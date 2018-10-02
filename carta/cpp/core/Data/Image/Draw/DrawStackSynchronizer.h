@@ -48,7 +48,7 @@ public:
      * Return the client view size.
      * @return - the size of the stack view on the client.
      */
-    QSize getClientSize() const;
+//    QSize getClientSize() const;
 
     virtual ~DrawStackSynchronizer();
 
@@ -82,7 +82,7 @@ private slots:
     /**
     * Notification that a stack layer has changed its image or vector graphics.
     */
-    void _scheduleFrameRepaint( const std::shared_ptr<RenderResponse>& response );
+//    void _scheduleFrameRepaint( const std::shared_ptr<RenderResponse>& response );
 
 private:
 
@@ -91,7 +91,7 @@ private:
     //Return the list of data that can actually load the indicated frames.
     QList<std::shared_ptr<Layer> >  _getLoadableData( const std::shared_ptr<RenderRequest>& request );
 
-    void _render( const std::shared_ptr<RenderRequest>& request );
+//    void _render( const std::shared_ptr<RenderRequest>& request );
 
     //Data View
     std::unique_ptr<Carta::Lib::LayeredViewArbitrary> m_view;

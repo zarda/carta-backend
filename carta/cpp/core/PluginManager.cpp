@@ -11,7 +11,7 @@
 #include "Globals.h"
 #include "MainConfig.h"
 #include <QDirIterator>
-#include <QImage>
+//#include <QImage>
 #include <QPluginLoader>
 #include <QLibrary>
 #include <QtGlobal>

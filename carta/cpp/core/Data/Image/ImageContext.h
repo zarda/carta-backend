@@ -168,7 +168,7 @@ private slots:
     /**
      * Redraw the context image.
      */
-    void _contextChanged();
+//    void _contextChanged();
 
 private:
 
@@ -199,7 +199,7 @@ private:
             const QString& key, const QString& userID );
     QString _setLineWidth( const QString& key, const QString& userName, int width );
     void _setVisible( bool visible, const QString& key);
-    void _updateImageView( const QPointF& topLeft, const QPointF& bottomRight );
+//    void _updateImageView( const QPointF& topLeft, const QPointF& bottomRight );
     void _updateSelection( int mouseX, int mouseY );
 
     //Link management

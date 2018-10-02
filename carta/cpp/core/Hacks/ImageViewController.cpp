@@ -307,11 +307,11 @@ ImageViewController::size()
     return m_renderBuffer.size();
 }
 
-const QImage &
-ImageViewController::getBuffer()
-{
-    return m_renderBuffer;
-}
+//const QImage &
+//ImageViewController::getBuffer()
+//{
+//    return m_renderBuffer;
+//}
 
 void
 ImageViewController::setCmapInvert( bool flag )

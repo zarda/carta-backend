@@ -388,38 +388,38 @@ bool DataLoader::_getStatisticInfo(std::map<QString, QString>& infoMap,
     images.push_back(image);
     
     // regions is an empty setting so far
-    std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase>> regions;
+//    std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase>> regions;
     
     // get the statistical data of the whole image
     std::vector<int> frameIndices(image->dims().size(), -1);
 
-    if (images.size() > 0) { // [TODO]: do we really need this if statement?
-        // Prepare to use the ImageStats plugin.
-        auto result = Globals::instance()->pluginManager()
-                -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
+//    if (images.size() > 0) { // [TODO]: do we really need this if statement?
+//        // Prepare to use the ImageStats plugin.
+//        auto result = Globals::instance()->pluginManager()
+//                -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
 
-        // lamda function for traverse
-        auto lam = [&] (const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data) {
-            //An array for each image
-            for (int i = 0; i < data.size(); i++) {
-                // Each element of the image array contains an array of statistics.
-                // Go through each set of statistics for the image.
-                for (int j = 0; j < data[i].size(); j++) {
-                    for (int k = 0; k < data[i][j].size(); k++) {
-                        infoMap[data[i][j][k].getLabel()] = data[i][j][k].getValue();
-                    }
-                }
-            }
-        };
+//        // lamda function for traverse
+//        auto lam = [&] (const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data) {
+//            //An array for each image
+//            for (int i = 0; i < data.size(); i++) {
+//                // Each element of the image array contains an array of statistics.
+//                // Go through each set of statistics for the image.
+//                for (int j = 0; j < data[i].size(); j++) {
+//                    for (int k = 0; k < data[i][j].size(); k++) {
+//                        infoMap[data[i][j][k].getLabel()] = data[i][j][k].getValue();
+//                    }
+//                }
+//            }
+//        };
 
-        try {
-            result.forEach(lam);
-        } catch (char*& error) {
-            QString errorStr(error);
-            qDebug() << "[File Info] There is an error message: " << errorStr;
-            return false;
-        }
-    }
+//        try {
+//            result.forEach(lam);
+//        } catch (char*& error) {
+//            QString errorStr(error);
+//            qDebug() << "[File Info] There is an error message: " << errorStr;
+//            return false;
+//        }
+//    }
 
     return true;
 }

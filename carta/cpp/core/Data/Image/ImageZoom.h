@@ -118,7 +118,7 @@ public:
 
 private slots:
 
-    void _zoomChanged();
+//    void _zoomChanged();
 
 private:
 

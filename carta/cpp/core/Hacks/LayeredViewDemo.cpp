@@ -7,8 +7,8 @@
 #include "CartaLib/VectorGraphics/VGList.h"
 #include "CartaLib/Regions/IRegion.h"
 #include "InteractiveShapes.h"
-#include <QPainter>
-#include <QImage>
+//#include <QPainter>
+//#include <QImage>
 #include <QTimer>
 #include <QTime>
 #include <QVector2D>
@@ -65,68 +65,68 @@ private:
         p.drawEllipse( m_center,
                        40, 60 );
         p.end();
-        setRaster( img );
+//        setRaster( img );
     }
 
     QPointF m_center;
     QSize m_clientSize = QSize( 100, 100 );
 };
 
-class RepelLayer : public Carta::Hacks::ManagedLayerBase
-{
-    Q_OBJECT
+//class RepelLayer : public Carta::Hacks::ManagedLayerBase
+//{
+//    Q_OBJECT
 
-public:
+//public:
 
-    RepelLayer( Carta::Hacks::ManagedLayerView * mlv, QString layerName )
-        : Carta::Hacks::ManagedLayerBase( mlv, layerName )
-    {
-        onResize( { 100, 100 } );
-    }
+//    RepelLayer( Carta::Hacks::ManagedLayerView * mlv, QString layerName )
+//        : Carta::Hacks::ManagedLayerBase( mlv, layerName )
+//    {
+//        onResize( { 100, 100 } );
+//    }
 
-private:
+//private:
 
-    virtual void
-    onInputEvent( Carta::Lib::InputEvent & ev ) override
-    {
-        Carta::Lib::InputEvents::HoverEvent hover( ev );
-        double speed = 0.01;
-        if ( hover.isValid() ) {
-            m_center = ( 1 - speed ) * m_center + speed * hover.pos();
-            QVector2D dv = QVector2D( m_center ) - QVector2D( hover.pos() );
-            double dist = dv.length() / 100.0;
-            double dd = 10.0 / ( dist + 1 ) + 10;
-            m_size = QSize( dd, dd );
+//    virtual void
+//    onInputEvent( Carta::Lib::InputEvent & ev ) override
+//    {
+//        Carta::Lib::InputEvents::HoverEvent hover( ev );
+//        double speed = 0.01;
+//        if ( hover.isValid() ) {
+//            m_center = ( 1 - speed ) * m_center + speed * hover.pos();
+//            QVector2D dv = QVector2D( m_center ) - QVector2D( hover.pos() );
+//            double dist = dv.length() / 100.0;
+//            double dd = 10.0 / ( dist + 1 ) + 10;
+//            m_size = QSize( dd, dd );
 
-            rerender();
-        }
-    }
+//            rerender();
+//        }
+//    }
 
-    virtual void
-    onResize( const QSize & size ) override
-    {
-        m_clientSize = size;
-        m_center = QPointF( size.width() / 2.0, size.height() / 2.0 );
-        rerender();
-    }
+//    virtual void
+//    onResize( const QSize & size ) override
+//    {
+//        m_clientSize = size;
+//        m_center = QPointF( size.width() / 2.0, size.height() / 2.0 );
+//        rerender();
+//    }
 
-    void
-    rerender()
-    {
-        Carta::Lib::VectorGraphics::VGComposer comp;
+//    void
+//    rerender()
+//    {
+//        Carta::Lib::VectorGraphics::VGComposer comp;
 
-        comp.append < vge::SetPenColor > ( "yellow" );
-        comp.append < vge::SetPenWidth > ( 2.0 );
-        QRectF rect( m_center, m_size );
-        rect.moveCenter( m_center );
-        comp.append < vge::DrawRect > ( rect );
-        setVG( comp.vgList() );
-    }
+//        comp.append < vge::SetPenColor > ( "yellow" );
+//        comp.append < vge::SetPenWidth > ( 2.0 );
+//        QRectF rect( m_center, m_size );
+//        rect.moveCenter( m_center );
+//        comp.append < vge::DrawRect > ( rect );
+//        setVG( comp.vgList() );
+//    }
 
-    QPointF m_center;
-    QSizeF m_size = QSize( 10.0, 10.0 );
-    QSize m_clientSize = QSize( 100, 100 );
-};
+//    QPointF m_center;
+//    QSizeF m_size = QSize( 10.0, 10.0 );
+//    QSize m_clientSize = QSize( 100, 100 );
+//};
 
 class ControlPoint
 {
@@ -181,88 +181,88 @@ private:
     std::vector < ControlPoint::SharedPtr > m_cps;
 };
 
-class ControlPointLayer : public Carta::Hacks::ManagedLayerBase
-{
-    Q_OBJECT
+//class ControlPointLayer : public Carta::Hacks::ManagedLayerBase
+//{
+//    Q_OBJECT
 
-public:
+//public:
 
-    ControlPointLayer( Carta::Hacks::ManagedLayerView * mlv, QString layerName )
-        : Carta::Hacks::ManagedLayerBase( mlv, layerName )
-    {
-        onResize( { 100, 100 } );
-    }
+//    ControlPointLayer( Carta::Hacks::ManagedLayerView * mlv, QString layerName )
+//        : Carta::Hacks::ManagedLayerBase( mlv, layerName )
+//    {
+//        onResize( { 100, 100 } );
+//    }
 
-    void
-    setCPSet( ControlPointSet::SharedPtr set )
-    {
-        m_cpSet = set;
-        rerender();
-    }
+//    void
+//    setCPSet( ControlPointSet::SharedPtr set )
+//    {
+//        m_cpSet = set;
+//        rerender();
+//    }
 
-    ControlPointSet::SharedPtr
-    cpSet() { return m_cpSet; }
+//    ControlPointSet::SharedPtr
+//    cpSet() { return m_cpSet; }
 
-signals:
+//signals:
 
-private:
+//private:
 
-    ControlPointSet::SharedPtr m_cpSet = std::make_shared < ControlPointSet > ();
-    qint64 m_selectedPointIndex = - 1;
+//    ControlPointSet::SharedPtr m_cpSet = std::make_shared < ControlPointSet > ();
+//    qint64 m_selectedPointIndex = - 1;
 
-    virtual void
-    onInputEvent( Carta::Lib::InputEvent & ev ) override
-    {
-        Carta::Lib::InputEvents::HoverEvent hover( ev );
-        if ( hover.isValid() ) {
-            m_selectedPointIndex = - 1;
-            const auto & cpArray = m_cpSet-> pts();
-            for ( qint64 i = 0 ; i < qint64( cpArray.size() ) ; i++ ) {
-                const auto & p = cpArray[i];
-                QVector2D dv = QVector2D( p-> position() ) - QVector2D( hover.pos() );
-                double dist = dv.length();
-                if ( dist < 10 ) {
-                    m_selectedPointIndex = i;
-                }
-            }
-            rerender();
-        }
-    }
+//    virtual void
+//    onInputEvent( Carta::Lib::InputEvent & ev ) override
+//    {
+//        Carta::Lib::InputEvents::HoverEvent hover( ev );
+//        if ( hover.isValid() ) {
+//            m_selectedPointIndex = - 1;
+//            const auto & cpArray = m_cpSet-> pts();
+//            for ( qint64 i = 0 ; i < qint64( cpArray.size() ) ; i++ ) {
+//                const auto & p = cpArray[i];
+//                QVector2D dv = QVector2D( p-> position() ) - QVector2D( hover.pos() );
+//                double dist = dv.length();
+//                if ( dist < 10 ) {
+//                    m_selectedPointIndex = i;
+//                }
+//            }
+//            rerender();
+//        }
+//    }
 
-    virtual void
-    onResize( const QSize & size ) override
-    {
-        m_clientSize = size;
-        rerender();
-    } // onResize
+//    virtual void
+//    onResize( const QSize & size ) override
+//    {
+//        m_clientSize = size;
+//        rerender();
+//    } // onResize
 
-    void
-    rerender()
-    {
-        Carta::Lib::VectorGraphics::VGComposer comp;
+//    void
+//    rerender()
+//    {
+//        Carta::Lib::VectorGraphics::VGComposer comp;
 
-        comp.append < vge::SetPenColor > ( "red" );
-        const auto & cpArray = m_cpSet-> pts();
+//        comp.append < vge::SetPenColor > ( "red" );
+//        const auto & cpArray = m_cpSet-> pts();
 
-        for ( qint64 i = 0 ; i < qint64( cpArray.size() ) ; i++ ) {
-            if ( i == m_selectedPointIndex ) {
-                comp.append < vge::SetPenWidth > ( 2.0 );
-            }
-            else {
-                comp.append < vge::SetPenWidth > ( 1.0 );
-            }
-            const auto & p = cpArray[i];
-            QRectF rect( p-> position(), m_size );
-            rect.moveCenter( p-> position() );
-            comp.append < vge::DrawRect > ( rect );
-        }
+//        for ( qint64 i = 0 ; i < qint64( cpArray.size() ) ; i++ ) {
+//            if ( i == m_selectedPointIndex ) {
+//                comp.append < vge::SetPenWidth > ( 2.0 );
+//            }
+//            else {
+//                comp.append < vge::SetPenWidth > ( 1.0 );
+//            }
+//            const auto & p = cpArray[i];
+//            QRectF rect( p-> position(), m_size );
+//            rect.moveCenter( p-> position() );
+//            comp.append < vge::DrawRect > ( rect );
+//        }
 
-        setVG( comp.vgList() );
-    } // rerender
+//        setVG( comp.vgList() );
+//    } // rerender
 
-    QSizeF m_size = QSize( 10.0, 10.0 );
-    QSize m_clientSize = QSize( 100, 100 );
-};
+//    QSizeF m_size = QSize( 10.0, 10.0 );
+//    QSize m_clientSize = QSize( 100, 100 );
+//};
 
 namespace editable
 {
@@ -835,188 +835,188 @@ private:
 /// a region set
 ///
 /// All actual work is done via EditableRegionsController
-class RegionEditorLayer : public Carta::Hacks::ManagedLayerBase
-{
-    Q_OBJECT
-    CLASS_BOILERPLATE( RegionEditorLayer );
+//class RegionEditorLayer : public Carta::Hacks::ManagedLayerBase
+//{
+//    Q_OBJECT
+//    CLASS_BOILERPLATE( RegionEditorLayer );
 
-public:
+//public:
 
-    RegionEditorLayer( Carta::Hacks::ManagedLayerView * mlv, QString layerName )
-        : Carta::Hacks::ManagedLayerBase( mlv, layerName )
-    {
-        m_editableRegionsController.reset( new EditableRegionsController );
-    }
+//    RegionEditorLayer( Carta::Hacks::ManagedLayerView * mlv, QString layerName )
+//        : Carta::Hacks::ManagedLayerBase( mlv, layerName )
+//    {
+//        m_editableRegionsController.reset( new EditableRegionsController );
+//    }
 
-    /// set the region set model on which this layer will operate
-    void
-    setRegionSetModel( RegionSetModel::SharedPtr regionSetModel )
-    {
-        m_regionSetModel = regionSetModel;
+//    /// set the region set model on which this layer will operate
+//    void
+//    setRegionSetModel( RegionSetModel::SharedPtr regionSetModel )
+//    {
+//        m_regionSetModel = regionSetModel;
 
-        // disconnect the previous model (if any)
-        if ( m_regionSetModelConnection ) {
-            disconnect( m_regionSetModelConnection );
-        }
+//        // disconnect the previous model (if any)
+//        if ( m_regionSetModelConnection ) {
+//            disconnect( m_regionSetModelConnection );
+//        }
 
-        // connect the new model
-        m_regionSetModelConnection =
-            connect( regionSetModel.get(), & RegionSetModel::changed,
-                     this, & Me::regionSetModelCB );
+//        // connect the new model
+//        m_regionSetModelConnection =
+//            connect( regionSetModel.get(), & RegionSetModel::changed,
+//                     this, & Me::regionSetModelCB );
 
-        // tell the editable regions controller we have a new region set
-        m_editableRegionsController-> setRegionSet( m_regionSetModel-> regionSet() );
-    }
+//        // tell the editable regions controller we have a new region set
+//        m_editableRegionsController-> setRegionSet( m_regionSetModel-> regionSet() );
+//    }
 
-    /// get the region set model on which we are operating
-    RegionSetModel::SharedPtr
-    regionSetModel()
-    {
-        return m_regionSetModel;
-    }
+//    /// get the region set model on which we are operating
+//    RegionSetModel::SharedPtr
+//    regionSetModel()
+//    {
+//        return m_regionSetModel;
+//    }
 
-signals:
+//signals:
 
-private slots:
+//private slots:
 
-    // callback for region set model
-    void
-    regionSetModelCB( SourceID id )
-    {
-        // if we originated this update, ignore it
-        if ( id == m_sourceId ) { return; }
+//    // callback for region set model
+//    void
+//    regionSetModelCB( SourceID id )
+//    {
+//        // if we originated this update, ignore it
+//        if ( id == m_sourceId ) { return; }
 
-        // otherwise tell the controller about the new region set
-        m_editableRegionsController-> setRegionSet( m_regionSetModel-> regionSet() );
-    }
+//        // otherwise tell the controller about the new region set
+//        m_editableRegionsController-> setRegionSet( m_regionSetModel-> regionSet() );
+//    }
 
-private:
+//private:
 
-    virtual void
-    onResize( const QSize & size ) override
-    {
-        Q_UNUSED( size );
-        rerender();
-    }
+//    virtual void
+//    onResize( const QSize & size ) override
+//    {
+//        Q_UNUSED( size );
+//        rerender();
+//    }
 
-    void
-    rerender()
-    {
-        // display whatever the editable regions controller displays
-        Carta::Lib::VectorGraphics::VGList vgList
-            = m_editableRegionsController-> vgList();
+//    void
+//    rerender()
+//    {
+//        // display whatever the editable regions controller displays
+//        Carta::Lib::VectorGraphics::VGList vgList
+//            = m_editableRegionsController-> vgList();
 
-        setVG( vgList );
-    }
+//        setVG( vgList );
+//    }
 
-    virtual void
-    onInputEvent( Carta::Lib::InputEvent & ev ) override
-    {
-        // deliver the event to editable regions controller
-        m_editableRegionsController-> handleEvent( ev );
+//    virtual void
+//    onInputEvent( Carta::Lib::InputEvent & ev ) override
+//    {
+//        // deliver the event to editable regions controller
+//        m_editableRegionsController-> handleEvent( ev );
 
-        // check if we need to update vg
-        if ( m_editableRegionsController-> hasNewVG() ) {
-            setVG( m_editableRegionsController-> vgList() );
-        }
+//        // check if we need to update vg
+//        if ( m_editableRegionsController-> hasNewVG() ) {
+//            setVG( m_editableRegionsController-> vgList() );
+//        }
 
-        // was the region set updated? if yes, let the region set model signal the update
-        if ( m_editableRegionsController-> wasRegionSetUpdated() ) {
-            // set the source ID to us, so we can ignore this update
-            m_regionSetModel-> scheduleUpdateSignal( m_sourceId );
-        }
-    } // onInputEvent
+//        // was the region set updated? if yes, let the region set model signal the update
+//        if ( m_editableRegionsController-> wasRegionSetUpdated() ) {
+//            // set the source ID to us, so we can ignore this update
+//            m_regionSetModel-> scheduleUpdateSignal( m_sourceId );
+//        }
+//    } // onInputEvent
 
-    RegionSetModel::SharedPtr m_regionSetModel = nullptr;
-    QMetaObject::Connection m_regionSetModelConnection;
+//    RegionSetModel::SharedPtr m_regionSetModel = nullptr;
+//    QMetaObject::Connection m_regionSetModelConnection;
 
-    EditableRegionsController::UniquePtr m_editableRegionsController = nullptr;
-    SourceID m_sourceId = getUniqueSourceID();
-};
+//    EditableRegionsController::UniquePtr m_editableRegionsController = nullptr;
+//    SourceID m_sourceId = getUniqueSourceID();
+//};
 
-class EditableLayer : public Carta::Hacks::ManagedLayerBase
-{
-    Q_OBJECT
-    CLASS_BOILERPLATE( EditableLayer );
+//class EditableLayer : public Carta::Hacks::ManagedLayerBase
+//{
+//    Q_OBJECT
+//    CLASS_BOILERPLATE( EditableLayer );
 
-public:
+//public:
 
-    EditableLayer( Carta::Hacks::ManagedLayerView * mlv, QString layerName )
-        : Carta::Hacks::ManagedLayerBase( mlv, layerName )
-    {
-        onResize( QSize( 100, 100 ) );
-    }
+//    EditableLayer( Carta::Hacks::ManagedLayerView * mlv, QString layerName )
+//        : Carta::Hacks::ManagedLayerBase( mlv, layerName )
+//    {
+//        onResize( QSize( 100, 100 ) );
+//    }
 
-    void
-    setCPSet( ControlPointSet::SharedPtr set )
-    {
-        m_cpSet = set;
-        rerender();
-    }
+//    void
+//    setCPSet( ControlPointSet::SharedPtr set )
+//    {
+//        m_cpSet = set;
+//        rerender();
+//    }
 
-    ControlPointSet::SharedPtr
-    cpSet() { return m_cpSet; }
+//    ControlPointSet::SharedPtr
+//    cpSet() { return m_cpSet; }
 
-signals:
+//signals:
 
-private:
+//private:
 
-    ControlPointSet::SharedPtr m_cpSet = std::make_shared < ControlPointSet > ();
-    qint64 m_selectedPointIndex = - 1;
+//    ControlPointSet::SharedPtr m_cpSet = std::make_shared < ControlPointSet > ();
+//    qint64 m_selectedPointIndex = - 1;
 
-    virtual void
-    onInputEvent( Carta::Lib::InputEvent & ev ) override
-    {
-        Carta::Lib::InputEvents::HoverEvent hover( ev );
-        if ( hover.isValid() ) {
-            m_selectedPointIndex = - 1;
-            const auto & cpArray = m_cpSet-> pts();
-            for ( qint64 i = 0 ; i < qint64( cpArray.size() ) ; i++ ) {
-                const auto & p = cpArray[i];
-                QVector2D dv = QVector2D( p-> position() ) - QVector2D( hover.pos() );
-                double dist = dv.length();
-                if ( dist < 10 ) {
-                    m_selectedPointIndex = i;
-                }
-            }
-            rerender();
-        }
-    }
+//    virtual void
+//    onInputEvent( Carta::Lib::InputEvent & ev ) override
+//    {
+//        Carta::Lib::InputEvents::HoverEvent hover( ev );
+//        if ( hover.isValid() ) {
+//            m_selectedPointIndex = - 1;
+//            const auto & cpArray = m_cpSet-> pts();
+//            for ( qint64 i = 0 ; i < qint64( cpArray.size() ) ; i++ ) {
+//                const auto & p = cpArray[i];
+//                QVector2D dv = QVector2D( p-> position() ) - QVector2D( hover.pos() );
+//                double dist = dv.length();
+//                if ( dist < 10 ) {
+//                    m_selectedPointIndex = i;
+//                }
+//            }
+//            rerender();
+//        }
+//    }
 
-    virtual void
-    onResize( const QSize & size ) override
-    {
-        m_clientSize = size;
-        rerender();
-    } // onResize
+//    virtual void
+//    onResize( const QSize & size ) override
+//    {
+//        m_clientSize = size;
+//        rerender();
+//    } // onResize
 
-    void
-    rerender()
-    {
-        Carta::Lib::VectorGraphics::VGComposer comp;
+//    void
+//    rerender()
+//    {
+//        Carta::Lib::VectorGraphics::VGComposer comp;
 
-        comp.append < vge::SetPenColor > ( "red" );
-        const auto & cpArray = m_cpSet-> pts();
+//        comp.append < vge::SetPenColor > ( "red" );
+//        const auto & cpArray = m_cpSet-> pts();
 
-        for ( qint64 i = 0 ; i < qint64( cpArray.size() ) ; i++ ) {
-            if ( i == m_selectedPointIndex ) {
-                comp.append < vge::SetPenWidth > ( 2.0 );
-            }
-            else {
-                comp.append < vge::SetPenWidth > ( 1.0 );
-            }
-            const auto & p = cpArray[i];
-            QRectF rect( p-> position(), m_size );
-            rect.moveCenter( p-> position() );
-            comp.append < vge::DrawRect > ( rect );
-        }
+//        for ( qint64 i = 0 ; i < qint64( cpArray.size() ) ; i++ ) {
+//            if ( i == m_selectedPointIndex ) {
+//                comp.append < vge::SetPenWidth > ( 2.0 );
+//            }
+//            else {
+//                comp.append < vge::SetPenWidth > ( 1.0 );
+//            }
+//            const auto & p = cpArray[i];
+//            QRectF rect( p-> position(), m_size );
+//            rect.moveCenter( p-> position() );
+//            comp.append < vge::DrawRect > ( rect );
+//        }
 
-        setVG( comp.vgList() );
-    } // rerender
+//        setVG( comp.vgList() );
+//    } // rerender
 
-    QSizeF m_size = QSize( 10.0, 10.0 );
-    QSize m_clientSize = QSize( 100, 100 );
-};
+//    QSizeF m_size = QSize( 10.0, 10.0 );
+//    QSize m_clientSize = QSize( 100, 100 );
+//};
 
 void
 EditableCircle::do_editModeChanged()
@@ -1210,7 +1210,7 @@ private:
         p.setPen( QPen( QColor( "yellow" ), 1 ) );
         p.drawLine( m_center, a2p( time.second() / 60.0 * M_PI * 2, m_radius - 2 ) );
         p.end();
-        setRaster( img );
+//        setRaster( img );
     } // rerender
 
     static QVector2D
@@ -1370,102 +1370,102 @@ private:
     Carta::Hacks::ManagedLayerView * m_mlv = nullptr;
 };
 
-namespace Carta
-{
-namespace Hacks
-{
-struct LayeredViewDemo::Pimpl {
-    LayeredViewController::UniquePtr lvc = nullptr;
-    ManagedLayerView::UniquePtr mlv = nullptr;
-};
+//namespace Carta
+//{
+//namespace Hacks
+//{
+//struct LayeredViewDemo::Pimpl {
+//    LayeredViewController::UniquePtr lvc = nullptr;
+//    ManagedLayerView::UniquePtr mlv = nullptr;
+//};
 
-LayeredViewDemo::LayeredViewDemo( QObject * parent ) : QObject( parent )
-{
-    m_pimpl = new Pimpl;
+//LayeredViewDemo::LayeredViewDemo( QObject * parent ) : QObject( parent )
+//{
+//    m_pimpl = new Pimpl;
 
-    m_pimpl-> mlv.reset( new ManagedLayerView( "mlv1", Globals::instance()->connector(), this ) );
+//    m_pimpl-> mlv.reset( new ManagedLayerView( "mlv1", Globals::instance()->connector(), this ) );
 
-    auto mlvRaw = m_pimpl-> mlv.get();
+//    auto mlvRaw = m_pimpl-> mlv.get();
 
-//    EyesLayer * eyes1 = new EyesLayer( mlvRaw, "ellipse1" );
-    ClockLayer * clockLayer = new ClockLayer( mlvRaw, "clock" );
-    Q_UNUSED( clockLayer);
+////    EyesLayer * eyes1 = new EyesLayer( mlvRaw, "ellipse1" );
+//    ClockLayer * clockLayer = new ClockLayer( mlvRaw, "clock" );
+//    Q_UNUSED( clockLayer);
 
-//    RepelLayer * repel1 = new RepelLayer( mlvRaw, "Repel1" );
-//    EyesLayer * eyes2 = new EyesLayer( mlvRaw, "ellipse2" );
+////    RepelLayer * repel1 = new RepelLayer( mlvRaw, "Repel1" );
+////    EyesLayer * eyes2 = new EyesLayer( mlvRaw, "ellipse2" );
 
-    /*
-    ControlPointLayer * cplayer = new ControlPointLayer( mlvRaw, "cplayer" );
-    ControlPointSet::SharedPtr cpset = std::make_shared < ControlPointSet > ();
-    ControlPoint::SharedPtr cp1;
-    cp1 = std::make_shared < ControlPoint > ();
-    cp1-> setPosition( QPointF( 10, 20 ) );
-    cpset->addPoint( cp1 );
-    cp1 = std::make_shared < ControlPoint > ();
-    cp1-> setPosition( QPointF( 30, 10 ) );
-    cpset->addPoint( cp1 );
-    cplayer-> setCPSet( cpset );
-*/
+//    /*
+//    ControlPointLayer * cplayer = new ControlPointLayer( mlvRaw, "cplayer" );
+//    ControlPointSet::SharedPtr cpset = std::make_shared < ControlPointSet > ();
+//    ControlPoint::SharedPtr cp1;
+//    cp1 = std::make_shared < ControlPoint > ();
+//    cp1-> setPosition( QPointF( 10, 20 ) );
+//    cpset->addPoint( cp1 );
+//    cp1 = std::make_shared < ControlPoint > ();
+//    cp1-> setPosition( QPointF( 30, 10 ) );
+//    cpset->addPoint( cp1 );
+//    cplayer-> setCPSet( cpset );
+//*/
 
-    // ==================================================================================
-    // region demo
-    // ==================================================================================
+//    // ==================================================================================
+//    // region demo
+//    // ==================================================================================
 
-    struct RegionDemo {
-        editable::RegionSet::SharedPtr regionSet = nullptr;
-        editable::RegionSetModel::SharedPtr regionSetModel = nullptr;
-    };
+//    struct RegionDemo {
+//        editable::RegionSet::SharedPtr regionSet = nullptr;
+//        editable::RegionSetModel::SharedPtr regionSetModel = nullptr;
+//    };
 
-    // intentional memory leak to make sure our smart pointers don't go out of scope
-    RegionDemo & regionDemo = * new RegionDemo;
+//    // intentional memory leak to make sure our smart pointers don't go out of scope
+//    RegionDemo & regionDemo = * new RegionDemo;
 
-    {
-        // read in a region from a fixed filename
-        QString inputFname = "/scratch/regions.json";
-        qDebug() << "Trying to parse" << inputFname;
-        QFile fp( inputFname );
-        if ( ! fp.open( QIODevice::ReadOnly ) ) {
-            qWarning() << "Could not open " << fp.fileName();
-        }
-        else {
-            QByteArray contents = fp.readAll();
-            QJsonParseError jerr;
-            QJsonDocument jdoc = QJsonDocument::fromJson( contents, & jerr );
-            if ( jerr.error != QJsonParseError::NoError ) {
-                qWarning() << "Json parse error@" << jerr.offset << ":" << jerr.errorString();
-            }
-            else {
-                Carta::Lib::Regions::RegionBase * bb = Carta::Lib::Regions::fromJson( jdoc.object() );
-                regionDemo.regionSet.reset( bb );
-                qDebug() << "Read in region base";
-            }
-        }
-    }
-    regionDemo.regionSetModel =
-        std::make_shared < editable::RegionSetModel > ();
+//    {
+//        // read in a region from a fixed filename
+//        QString inputFname = "/scratch/regions.json";
+//        qDebug() << "Trying to parse" << inputFname;
+//        QFile fp( inputFname );
+//        if ( ! fp.open( QIODevice::ReadOnly ) ) {
+//            qWarning() << "Could not open " << fp.fileName();
+//        }
+//        else {
+//            QByteArray contents = fp.readAll();
+//            QJsonParseError jerr;
+//            QJsonDocument jdoc = QJsonDocument::fromJson( contents, & jerr );
+//            if ( jerr.error != QJsonParseError::NoError ) {
+//                qWarning() << "Json parse error@" << jerr.offset << ":" << jerr.errorString();
+//            }
+//            else {
+//                Carta::Lib::Regions::RegionBase * bb = Carta::Lib::Regions::fromJson( jdoc.object() );
+//                regionDemo.regionSet.reset( bb );
+//                qDebug() << "Read in region base";
+//            }
+//        }
+//    }
+//    regionDemo.regionSetModel =
+//        std::make_shared < editable::RegionSetModel > ();
 
-    editable::RegionEditorLayer * reditorlayer = new editable::RegionEditorLayer( mlvRaw, "regions" );
-    reditorlayer-> setRegionSetModel( regionDemo.regionSetModel );
+//    editable::RegionEditorLayer * reditorlayer = new editable::RegionEditorLayer( mlvRaw, "regions" );
+//    reditorlayer-> setRegionSetModel( regionDemo.regionSetModel );
 
-    // update region set model with our region set
-    regionDemo.regionSetModel-> setRegionSet( regionDemo.regionSet );
-    regionDemo.regionSetModel-> scheduleUpdateSignal();
+//    // update region set model with our region set
+//    regionDemo.regionSetModel-> setRegionSet( regionDemo.regionSet );
+//    regionDemo.regionSetModel-> scheduleUpdateSignal();
 
-    m_pimpl-> mlv-> setInputLayers( { reditorlayer-> layerID() }
-                                    );
+//    m_pimpl-> mlv-> setInputLayers( { reditorlayer-> layerID() }
+//                                    );
 
-    m_pimpl-> lvc.reset( new LayeredViewController( m_pimpl-> mlv.get() ) );
-}
+//    m_pimpl-> lvc.reset( new LayeredViewController( m_pimpl-> mlv.get() ) );
+//}
 
-LayeredViewDemo::~LayeredViewDemo()
-{
-    if ( m_pimpl ) {
-        delete m_pimpl;
-        m_pimpl = nullptr;
-    }
-}
-}
-}
+//LayeredViewDemo::~LayeredViewDemo()
+//{
+//    if ( m_pimpl ) {
+//        delete m_pimpl;
+//        m_pimpl = nullptr;
+//    }
+//}
+//}
+//}
 
 // hack for declaring qobject classes inside .cpp instead of headers. This will force
 // moc to process the .cpp file...

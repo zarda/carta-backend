@@ -6,7 +6,6 @@
 #include <casacore/coordinates/Coordinates.h>
 #include <casacore/measures/Measures/Stokes.h>
 #include <QDebug>
-// #include "UtilCASA.h"
 #include "CartaLib/UtilCASA.h"
 
 #ifdef DONT_COMPILE
