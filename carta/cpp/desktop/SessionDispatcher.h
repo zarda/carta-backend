@@ -64,12 +64,19 @@ protected:
 private:
 
     QMutex mutex;
+    QWebSocketServer *m_pWebSocketServer;
     // prevent being accessed by other to avoid thread-safety problem
+    std::map<QWebSocket*, NewServerConnector*> sessionList;
+
 //    uWS::Hub m_hub;
 //    std::map<uWS::WebSocket<uWS::SERVER>*, NewServerConnector*> sessionList;
 //    void loopPoll();
 
 private slots:
+
+    void onNewConnection();
+    //void onTextMessage(QString);
+    //void onBinaryMessage(QByteArray);
 /*
     void onNewConnection(uWS::WebSocket<uWS::SERVER> *ws);
     void onTextMessage(uWS::WebSocket<uWS::SERVER> *ws, char* message, size_t length);

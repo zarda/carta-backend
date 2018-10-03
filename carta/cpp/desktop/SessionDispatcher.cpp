@@ -17,9 +17,9 @@
 #include <QStringList>
 
 #include <thread>
-// #include "websocketclientwrapper.h"
-// #include "websockettransport.h"
-// #include "qwebchannel.h"
+//#include "websocketclientwrapper.h"
+//#include "websockettransport.h"
+//#include "qwebchannel.h"
 #include <QBuffer>
 #include <QThread>
 #include <QUuid>
@@ -44,6 +44,15 @@ void SessionDispatcher::startWebSocket(){
     else {
         qDebug() << "SessionDispatcher listening on port" << port;
     }
+
+    m_pWebSocketServer = new QWebSocketServer(QStringLiteral("New QWebServer start"), QWebSocketServer::NonSecureMode, this);
+
+    if (!m_pWebSocketServer->listen(QHostAddress::Any, port)) {
+        qFatal("Failed to open web socket server.");
+        return;
+    }
+
+    connect(m_pWebSocketServer, &QWebSocketServer::newConnection, this, &SessionDispatcher::onNewConnection);
 
     /*if (!m_hub.listen(port)){
         qFatal("Failed to open web socket server.");
@@ -83,6 +92,13 @@ SessionDispatcher::SessionDispatcher() {
 SessionDispatcher::~SessionDispatcher() {
 
 }
+
+void SessionDispatcher::onNewConnection() {
+    QWebSocket* socket = m_pWebSocketServer->nextPendingConnection();
+    //connect(socket, &QWebSocket::textMessageReceived, this, &SessionDispatcher::onTextMessage);
+    //connect(socket, &QWebSocket::binaryMessageReceived, this, &SessionDispatcher::onBinaryMessage);
+}
+
 /*
 void SessionDispatcher::onNewConnection(uWS::WebSocket<uWS::SERVER> *socket) {
     qDebug() << "A new connection!!";
