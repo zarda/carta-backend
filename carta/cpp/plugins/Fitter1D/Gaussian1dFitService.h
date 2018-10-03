@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QVector>
 #include <QThread>
-#include <QImage>
 #include <QTextStream>
 
 #include <stdexcept>

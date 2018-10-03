@@ -32,9 +32,9 @@ void SaveView::setRaster( const QImage & image ){
     m_raster = image;
 }
 
-void SaveView::setVectorGraphics( const Lib::IRemoteVGView::VGList & vglist ){
-    m_vgList = vglist;
-}
+//void SaveView::setVectorGraphics( const Lib::IRemoteVGView::VGList & vglist ){
+//    m_vgList = vglist;
+//}
 
 
 SaveView::~SaveView(){

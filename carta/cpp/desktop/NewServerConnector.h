@@ -63,8 +63,7 @@ public:
     void unregisterView( const QString& viewName ) override;
     virtual qint64 refreshView( IView * view) override;
     virtual void removeStateCallback( const CallbackID & id) override;
-    virtual Carta::Lib::IRemoteVGView *
-    makeRemoteVGView( QString viewName) override;
+    virtual Carta::Lib::IRemoteVGView * makeRemoteVGView( QString viewName) override;
 
     /// Return the location where the state is saved.
     virtual QString getStateLocation( const QString& saveName ) const override;

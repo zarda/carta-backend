@@ -3,7 +3,6 @@
 #include "CartaLib/Hooks/Initialize.h"
 #include "CartaLib/Hooks/LoadAstroImage.h"
 #include <QDebug>
-#include <QPainter>
 #include <QTime>
 #include <casacore/casa/Exceptions/Error.h>
 #include <casacore/images/Images/FITSImage.h>

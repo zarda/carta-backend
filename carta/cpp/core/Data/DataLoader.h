@@ -20,7 +20,7 @@
 
 // File_Info implementation needs
 #include "CartaLib/Hooks/LoadAstroImage.h"
-#include "CartaLib/Hooks/ImageStatisticsHook.h"
+//#include "CartaLib/Hooks/ImageStatisticsHook.h"
 #include "Globals.h"
 
 namespace Carta {

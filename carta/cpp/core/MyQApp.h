@@ -2,14 +2,14 @@
 
 /// \todo move this all into carta::core namespace
 
-#include <QApplication>
+#include <QCoreApplication>
 #include <functional>
 
 /// The only code that should go into this class is Qt specific stuff that needs
 /// access to the internals of QApplication.
 ///
 /// @todo For server side this should be QGuiApplication
-class MyQApp : public QApplication
+class MyQApp : public QCoreApplication
 {
     Q_OBJECT
 

@@ -53,31 +53,31 @@ LayerData::LayerData(const QString& path, const QString& id) :
     m_drawSync( nullptr ),
     m_stateColor( nullptr ){
 
-        m_renderQueued = false;
+//        m_renderQueued = false;
 
-        _initializeState();
+//        _initializeState();
 
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        ColorState* colorObj = objMan->createObject<ColorState>();
-        m_stateColor.reset( colorObj );
-        connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
+//        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+//        ColorState* colorObj = objMan->createObject<ColorState>();
+//        m_stateColor.reset( colorObj );
+//        connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
 
 
-        DataGrid* gridObj = objMan->createObject<DataGrid>();
-        m_dataGrid.reset( gridObj );
-        m_dataGrid->_initializeGridRenderer();
-        _colorChanged();
+//        DataGrid* gridObj = objMan->createObject<DataGrid>();
+//        m_dataGrid.reset( gridObj );
+//        m_dataGrid->_initializeGridRenderer();
+//        _colorChanged();
 
-        std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
-        std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
+//        std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
+//        std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
 
         // create the synchronizer
-        m_drawSync.reset( new DrawSynchronizer( imageService, gridService, this ) );
+//        m_drawSync.reset( new DrawSynchronizer( imageService, gridService, this ) );
 
 
         // connect its done() slot to our renderingSlot()
-        connect( m_drawSync.get(), & DrawSynchronizer::done,
-                         this, & LayerData::_renderingDone );
+//        connect( m_drawSync.get(), & DrawSynchronizer::done,
+//                         this, & LayerData::_renderingDone );
 
 }
 

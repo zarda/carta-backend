@@ -10,6 +10,9 @@
 #include "State/UtilState.h"
 #include <QDir>
 #include <QDebug>
+#include <QPoint>
+#include <QPointF>
+#include <QSize>
 
 namespace Carta {
 
@@ -35,7 +38,7 @@ Plot2DManager::Plot2DManager( const QString& path, const QString& id ):
     _initializeDefaultState();
     _initializeCallbacks();
 
-    m_view.reset( new ImageView( path, QColor("yellow"), QImage(), &m_stateMouse));
+//    m_view.reset( new ImageView( path, QColor("yellow"), QImage(), &m_stateMouse));
     connect( m_view.get(), SIGNAL(resize(const QSize&)), this, SLOT(_updateSize(const QSize&)));
     registerView(m_view.get());
     m_selectionEnabled = false;
@@ -356,12 +359,12 @@ void Plot2DManager::setAxisXRange( double min, double max ){
 }
 
 
-void Plot2DManager::setColor( QColor curveColor, const QString& id ){
-    // if ( m_plotGenerator ){
-    //     m_plotGenerator->setColor( curveColor, id);
-    //     updatePlot();
-    // }
-}
+//void Plot2DManager::setColor( QColor curveColor, const QString& id ){
+//     if ( m_plotGenerator ){
+//         m_plotGenerator->setColor( curveColor, id);
+//         updatePlot();
+//     }
+//}
 
 
 void Plot2DManager::setColored( bool colored, const QString& id, int index ){

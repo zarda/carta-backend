@@ -1,10 +1,3 @@
-//#include "common.h"
-
-//#include "FitsParser.h"
-//#include "RaiCache.h"
-//#include "Optimization/LMGaussFitter1d.h"
-//#include "Optimization/LBTAGauss1dFitter.h"
-//#include "Optimization/HeuristicGauss1dFitter.h"
 #include "Gaussian1dFitService.h"
 #include "HeuristicGauss1dFitter.h"
 #include "LBTAGauss1dFitter.h"

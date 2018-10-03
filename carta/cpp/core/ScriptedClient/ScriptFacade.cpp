@@ -455,7 +455,7 @@ QStringList ScriptFacade::setImage( const QString& animatorId, int index ) {
     if ( obj != nullptr ){
         Carta::Data::Animator* animator = dynamic_cast<Carta::Data::Animator*>(obj);
         if ( animator != nullptr){
-            animator->changeFrame( index, Carta::Data::Selection::IMAGE );
+//            animator->changeFrame( index, Carta::Data::Selection::IMAGE );
         }
         else {
             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );
@@ -824,14 +824,14 @@ QStringList ScriptFacade::getOutputSize( const QString& controlId ) {
     if ( obj != nullptr ){
         Carta::Data::Controller* controller = dynamic_cast<Carta::Data::Controller*>(obj);
         if ( controller != nullptr ){
-            QSize size = controller->getOutputSize( );
-            if ( size.isEmpty() ) {
-                resultList = _logErrorMessage( ERROR, "Could not obtain output size." );
-            }
-            else {
-                resultList.append( QString::number( size.width() ));
-                resultList.append( QString::number( size.height() ));
-            }
+//            QSize size = controller->getOutputSize( );
+//            if ( size.isEmpty() ) {
+//                resultList = _logErrorMessage( ERROR, "Could not obtain output size." );
+//            }
+//            else {
+//                resultList.append( QString::number( size.width() ));
+//                resultList.append( QString::number( size.height() ));
+//            }
         }
         else {
             resultList = _logErrorMessage( ERROR, UNKNOWN_ERROR );

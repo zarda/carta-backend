@@ -75,7 +75,7 @@ private slots:
     /**
     * Notification that a stack layer has finished rendering its image.
     */
-    void _scheduleFrameRepaint( const std::shared_ptr<RenderResponse>& );
+//    void _scheduleFrameRepaint( const std::shared_ptr<RenderResponse>& );
 
 private:
 

@@ -2705,7 +2705,7 @@ QStringList Profiler::setCurveColor( const QString& name, int redAmount, int gre
                 m_plotCurves[index]->setColor( curveColor );
                 _saveCurveState( index );
                 m_stateData.flushState();
-                m_plotManager->setColor( curveColor, name );
+//                m_plotManager->setColor( curveColor, name );
             }
         }
         else {
@@ -3596,7 +3596,7 @@ QString Profiler::setZoomRangePercent( double zoomMinPercent, double zoomMaxPerc
 void Profiler::timerEvent( QTimerEvent* /*event*/ ){
     Controller* controller = _getControllerSelected();
     if ( controller ){
-        controller->_setFrameAxis( m_oldFrame, Carta::Lib::AxisInfo::KnownType::SPECTRAL );
+//        controller->_setFrameAxis( m_oldFrame, Carta::Lib::AxisInfo::KnownType::SPECTRAL );
         _updateChannel( controller, Carta::Lib::AxisInfo::KnownType::SPECTRAL );
         if ( m_oldFrame < m_currentFrame ){
             m_oldFrame++;

@@ -5,7 +5,7 @@
 INCLUDEPATH += $$PROJECT_ROOT
 DEPENDPATH += $$PROJECT_ROOT
 
-QT       += core gui
+QT       += core
 LIBS += -L$$OUT_PWD/../../CartaLib/ -lCartaLib
 
 TARGET = plugin

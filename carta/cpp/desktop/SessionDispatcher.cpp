@@ -7,8 +7,6 @@
 #include "core/MyQApp.h"
 #include "core/SimpleRemoteVGView.h"
 #include <iostream>
-#include <QImage>
-#include <QPainter>
 #include <QXmlInputSource>
 #include <cmath>
 #include <QTime>

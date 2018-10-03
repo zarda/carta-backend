@@ -227,7 +227,7 @@ public:
      * @param id - an identifier for a particular data set.
      */
     //Note:  this refers to using a single color for the entire data set.
-    void setColor( QColor curveColor, const QString& id = QString() );
+//    void setColor( QColor curveColor, const QString& id = QString() );
 
     /**
      * Set whether or not the graph should be colored.
