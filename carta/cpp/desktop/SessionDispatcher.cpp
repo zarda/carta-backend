@@ -45,7 +45,7 @@ void SessionDispatcher::startWebSocket(){
         qDebug() << "SessionDispatcher listening on port" << port;
     }
 
-    if (!m_hub.listen(port)){
+    /*if (!m_hub.listen(port)){
         qFatal("Failed to open web socket server.");
         return;
     }
@@ -64,17 +64,17 @@ void SessionDispatcher::startWebSocket(){
     });
 
     // repeat calling non-blocking poll() in qt event loop
-    loopPoll();
+    loopPoll();*/
 }
 
-void SessionDispatcher::loopPoll(){
+/*void SessionDispatcher::loopPoll(){
     m_hub.poll();
     // submit a queue into qt eventloop
     defer([this](){
         QThread::msleep(10); // sleep for 10 ms in order to ease the loading of CPU
         loopPoll();
     });
-}
+}*/
 
 SessionDispatcher::SessionDispatcher() {
 
@@ -83,7 +83,7 @@ SessionDispatcher::SessionDispatcher() {
 SessionDispatcher::~SessionDispatcher() {
 
 }
-
+/*
 void SessionDispatcher::onNewConnection(uWS::WebSocket<uWS::SERVER> *socket) {
     qDebug() << "A new connection!!";
 }
@@ -330,7 +330,7 @@ void SessionDispatcher::forwardBinaryMessageResult(QString respName, uint32_t ev
         qDebug() << "[SessionDispatcher] ERROR! Cannot find the corresponding websocket!";
     }
 }
-
+*/
 IConnector* SessionDispatcher::getConnectorInMap(const QString & sessionID) {
     mutex.lock();
     auto iter = clientList.find(sessionID);
