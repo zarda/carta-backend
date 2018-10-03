@@ -299,17 +299,6 @@ void NewServerConnector::onBinaryMessageSignalSlot(const char *message, size_t l
         qFatal("Illegal request in NewServerConnector. Please handle it in SessionDispatcher.");
         return;
 
-    } else if (eventName == "FILE_INFO_REQUEST") {
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
-
-        CARTA::FileInfoRequest fileInfoRequest;
-        fileInfoRequest.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-        msg = dataLoader->getFileInfo(fileInfoRequest);
-
-        // send the serialized message to the frontend
-        sendSerializedMessage("FILE_INFO_RESPONSE", eventId, msg);
-        return;
     } else if (eventName == "CLOSE_FILE") {
 
         CARTA::CloseFile closeFile;
@@ -343,13 +332,23 @@ void NewServerConnector::onBinaryMessageSignalSlot(const char *message, size_t l
 }
 
 void NewServerConnector::fileListRequestSignalSlot(uint32_t eventId, CARTA::FileListRequest fileListRequest) {
-    // get the DataLoader
+    // get DataLoader obj
     Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
     Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
     PBMSharedPtr msg = dataLoader->getFileList(fileListRequest);
 
     // send the serialized message to the frontend
     sendSerializedMessage("FILE_LIST_RESPONSE", eventId, msg);
+}
+
+void NewServerConnector::fileInfoRequestSignalSlot(uint32_t eventId, CARTA::FileInfoRequest fileInfoRequest) {
+    // get DataLoader obj
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
+    PBMSharedPtr msg = dataLoader->getFileInfo(fileInfoRequest);
+
+    // send the serialized message to the frontend
+    sendSerializedMessage("FILE_INFO_RESPONSE", eventId, msg);
 }
 
 void NewServerConnector::openFileSignalSlot(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId) {

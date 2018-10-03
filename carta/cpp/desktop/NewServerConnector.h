@@ -87,6 +87,7 @@ public slots:
     void setCursorSignalSlot(uint32_t eventId, int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs);
 
     void fileListRequestSignalSlot(uint32_t eventId, CARTA::FileListRequest fileListRequest);
+    void fileInfoRequestSignalSlot(uint32_t eventId, CARTA::FileInfoRequest fileInfoRequest);
 
 signals:
 
@@ -107,6 +108,7 @@ signals:
     void setCursorSignal(uint32_t eventId, int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs);
 
     void fileListRequestSignal(uint32_t eventId, CARTA::FileListRequest fileListRequest);
+    void fileInfoRequestSignal(uint32_t eventId, CARTA::FileInfoRequest fileInfoRequest);
 
     // /// we emit this signal when state is changed (either by c++ or by javascript)
     // /// we listen to this signal, and so does javascript
