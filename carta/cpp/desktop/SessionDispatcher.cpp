@@ -151,8 +151,8 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
                     connector, SLOT(startViewerSlot(const QString &)));
 
             // general commands
-            connect(connector, SIGNAL(onBinaryMessageSignal(const char*, size_t)),
-                    connector, SLOT(onBinaryMessageSignalSlot(const char*, size_t)));
+            //connect(connector, SIGNAL(onBinaryMessageSignal(const char*, size_t)),
+            //        connector, SLOT(onBinaryMessageSignalSlot(const char*, size_t)));
 
             // file list request
             connect(connector, SIGNAL(fileListRequestSignal(uint32_t, CARTA::FileListRequest)),
@@ -304,7 +304,8 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
             emit connector->setCursorSignal(eventId, fileId, point, spatialReqs);
 
         } else {
-            emit connector->onBinaryMessageSignal(message, length);
+            qCritical() << "[SessionDispatcher] There is no event handler:" << eventName;
+            //emit connector->onBinaryMessageSignal(message, length);
         }
     }
 }
