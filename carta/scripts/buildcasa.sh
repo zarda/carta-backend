@@ -172,6 +172,12 @@ cd $cartawork/CARTAvis-externals/ThirdParty
 # casa
 # cartabuild(cartawork) / CARTAvis(carta, git root folder)
 # but we put casa inside $cartawork/CARTAvis-externals/ThirdParty
+DIR="$cartawork/CARTAvis-externals/ThirdParty/casa"
+if [ -d $DIR ]; then
+    echo "$DIR Exists! Remove and clone again."
+    rm -rf $DIR
+fi
+
 mkdir casa
 cd casa
 
@@ -324,6 +330,18 @@ fi
 
 # it may build fail due to no official parallel build support of casa
 make -j2
+
+DIR="$cartawork/CARTAvis-externals/ThirdParty/casacore"
+if [ -d $DIR ]; then
+    echo "$DIR Exists! Remove & create again."
+    rm -rf $DIR
+fi
+
+DIR="$cartawork/CARTAvis-externals/ThirdParty/imageanalysis"
+if [ -d $DIR ]; then
+    echo "$DIR Exists! Remove & create again."
+    rm -rf $DIR
+fi
 
 mkdir -p $cartawork/CARTAvis-externals/ThirdParty/casacore
 mkdir -p $cartawork/CARTAvis-externals/ThirdParty/imageanalysis
