@@ -116,7 +116,7 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
     // get the message Id
     uint32_t eventId = *((uint32_t*) (message + EVENT_NAME_LENGTH));
 
-    qDebug() << "[SessionDispatcher] Event received: Name=" << eventName << ", Id=" << eventId << ", Time=" << QTime::currentTime().toString();
+    qDebug() << "[SessionDispatcher] Event received: Name=" << eventName << ", Id=" << eventId << ", length=" << length << ", Time=" << QTime::currentTime().toString();
 
     if (eventName == "REGISTER_VIEWER") {
 
