@@ -77,7 +77,7 @@ public slots:
 
     void startViewerSlot(const QString & sessionID);
     void onTextMessage(QString message);
-    void onBinaryMessageSignalSlot(char* message, size_t length);
+    void onBinaryMessageSignalSlot(const char* message, size_t length);
     void sendSerializedMessage(QString respName, uint32_t eventId, PBMSharedPtr msg);
 
     void imageChannelUpdateSignalSlot(uint32_t eventId, int fileId, int channel, int stoke);
@@ -93,7 +93,7 @@ signals:
     //new arch
     void startViewerSignal(const QString & sessionID);
     void onTextMessageSignal(QString message);
-    void onBinaryMessageSignal(char* message, size_t length);
+    void onBinaryMessageSignal(const char* message, size_t length);
 
     void jsTextMessageResultSignal(QString result);
     void jsBinaryMessageResultSignal(QString respName, uint32_t eventId, PBMSharedPtr message);

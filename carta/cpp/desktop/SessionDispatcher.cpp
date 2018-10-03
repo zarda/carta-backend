@@ -53,37 +53,7 @@ void SessionDispatcher::startWebSocket(){
     }
 
     connect(m_pWebSocketServer, &QWebSocketServer::newConnection, this, &SessionDispatcher::onNewConnection);
-
-    /*if (!m_hub.listen(port)){
-        qFatal("Failed to open web socket server.");
-        return;
-    }
-
-    m_hub.onConnection([this](uWS::WebSocket<uWS::SERVER> *ws, uWS::HttpRequest req){
-        onNewConnection(ws);
-    });
-
-    m_hub.onMessage([this](uWS::WebSocket<uWS::SERVER> *ws, char* message, size_t length, uWS::OpCode opcode){
-        if (opcode == uWS::OpCode::TEXT){
-            onTextMessage(ws, message, length);
-        }
-        else if (opcode == uWS::OpCode::BINARY){
-            onBinaryMessage(ws, message, length);
-        }
-    });
-
-    // repeat calling non-blocking poll() in qt event loop
-    loopPoll();*/
 }
-
-/*void SessionDispatcher::loopPoll(){
-    m_hub.poll();
-    // submit a queue into qt eventloop
-    defer([this](){
-        QThread::msleep(10); // sleep for 10 ms in order to ease the loading of CPU
-        loopPoll();
-    });
-}*/
 
 SessionDispatcher::SessionDispatcher() {
     m_pWebSocketServer = nullptr;
@@ -92,9 +62,9 @@ SessionDispatcher::SessionDispatcher() {
 SessionDispatcher::~SessionDispatcher() {
     m_pWebSocketServer->close();
 
-        if (m_pWebSocketServer != nullptr) {
-            delete m_pWebSocketServer;
-        }
+    if (m_pWebSocketServer != nullptr) {
+        delete m_pWebSocketServer;
+    }
 }
 
 void SessionDispatcher::onNewConnection() {
@@ -105,6 +75,7 @@ void SessionDispatcher::onNewConnection() {
 }
 
 void SessionDispatcher::onTextMessage(QString message) {
+    // get the source of websocket
     QWebSocket* ws = qobject_cast<QWebSocket*>(sender());
     NewServerConnector* connector= sessionList[ws];
     if (connector != nullptr) {
@@ -113,6 +84,9 @@ void SessionDispatcher::onTextMessage(QString message) {
 }
 
 void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
+    // get the source of websocket
+    QWebSocket* ws = qobject_cast<QWebSocket*>(sender());
+
     // convert QByteArray to char* message
     const char* message = qByteMessage.constData();
 
@@ -138,43 +112,6 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
     uint32_t eventId = *((uint32_t*) (message + EVENT_NAME_LENGTH));
 
     qDebug() << "[SessionDispatcher] Event received: Name=" << eventName << ", Id=" << eventId << ", length=" << length << ", Time=" << QTime::currentTime().toString();
-
-}
-
-/*
-void SessionDispatcher::onNewConnection(uWS::WebSocket<uWS::SERVER> *socket) {
-    qDebug() << "A new connection!!";
-}
-
-void SessionDispatcher::onTextMessage(uWS::WebSocket<uWS::SERVER> *ws, char* message, size_t length) {
-    NewServerConnector* connector= sessionList[ws];
-    QString cmd = QString::fromStdString(std::string(message, length));
-    if (connector != nullptr){
-        emit connector->onTextMessageSignal(cmd);
-    }
-}
-
-void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* message, size_t length) {
-
-    if (length < EVENT_NAME_LENGTH + EVENT_ID_LENGTH) {
-        qFatal("[SessionDispatcher] Illegal message.");
-        return;
-    }
-
-    // get the message Name
-    size_t nullIndex = 0;
-    for (size_t i = 0; i < EVENT_NAME_LENGTH; i++) {
-        if (!message[i]) {
-            nullIndex = i;
-            break;
-        }
-    }
-    QString eventName = QString::fromStdString(std::string(message, nullIndex));
-
-    // get the message Id
-    uint32_t eventId = *((uint32_t*) (message + EVENT_NAME_LENGTH));
-
-    qDebug() << "[SessionDispatcher] Event received: Name=" << eventName << ", Id=" << eventId << ", Time=" << QTime::currentTime().toString();
 
     if (eventName == "REGISTER_VIEWER") {
 
@@ -212,8 +149,8 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
                     connector, SLOT(startViewerSlot(const QString &)));
 
             // general commands
-            connect(connector, SIGNAL(onBinaryMessageSignal(char*, size_t)),
-                    connector, SLOT(onBinaryMessageSignalSlot(char*, size_t)));
+            connect(connector, SIGNAL(onBinaryMessageSignal(const char*, size_t)),
+                    connector, SLOT(onBinaryMessageSignalSlot(const char*, size_t)));
 
             // open file
             connect(connector, SIGNAL(openFileSignal(uint32_t, QString, QString, int, int)),
@@ -273,14 +210,17 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
         PBMSharedPtr msg = ack;
         bool success = false;
         size_t requiredSize = 0;
-        std::vector<char> result = serializeToArray(respName, eventId, msg, success, requiredSize);
+        std::vector<char> tmpResult = serializeToArray(respName, eventId, msg, success, requiredSize);
         if (success) {
-            ws->send(result.data(), requiredSize, uWS::OpCode::BINARY);
-            qDebug() << "[SessionDispatcher] Send event:" << respName << QTime::currentTime().toString();
+            // convert the std::vector<char> to QByteArray
+            char* tmpMessage = &tmpResult[0];
+            QByteArray result = QByteArray::fromRawData(tmpMessage, sizeof(tmpMessage)/*requiredSize*/);
+            ws->sendBinaryMessage(result);
+            qDebug() << "[SessionDispatcher] Send event:" << respName<< ", Id=" << eventId << ", length=" << sizeof(tmpMessage) << QTime::currentTime().toString();
         }
 
         return;
-    }
+    } // end of "REGISTER_VIEWER" block
 
     NewServerConnector* connector= sessionList[ws];
 
@@ -348,9 +288,9 @@ void SessionDispatcher::onBinaryMessage(uWS::WebSocket<uWS::SERVER> *ws, char* m
 }
 
 void SessionDispatcher::forwardTextMessageResult(QString result) {
-    uWS::WebSocket<uWS::SERVER> *ws = nullptr;
+    QWebSocket* ws = nullptr;
     NewServerConnector* connector = qobject_cast<NewServerConnector*>(sender());
-    std::map<uWS::WebSocket<uWS::SERVER>*, NewServerConnector*>::iterator iter;
+    std::map<QWebSocket*, NewServerConnector*>::iterator iter;
     for (iter = sessionList.begin(); iter != sessionList.end(); ++iter) {
         if (iter->second == connector) {
             ws = iter->first;
@@ -358,17 +298,16 @@ void SessionDispatcher::forwardTextMessageResult(QString result) {
         }
     }
     if (ws) {
-        char *message = result.toUtf8().data();
-        ws->send(message, result.toUtf8().length(), uWS::OpCode::TEXT);
+        ws->sendTextMessage(result);
     } else {
         qDebug() << "ERROR! Cannot find the corresponding websocket!";
     }
 }
 
 void SessionDispatcher::forwardBinaryMessageResult(QString respName, uint32_t eventId, PBMSharedPtr protoMsg) {
-    uWS::WebSocket<uWS::SERVER> *ws = nullptr;
+    QWebSocket* ws = nullptr;
     NewServerConnector* connector = qobject_cast<NewServerConnector*>(sender());
-    std::map<uWS::WebSocket<uWS::SERVER>*, NewServerConnector*>::iterator iter;
+    std::map<QWebSocket*, NewServerConnector*>::iterator iter;
     for (iter = sessionList.begin(); iter != sessionList.end(); ++iter){
         if (iter->second == connector){
             ws = iter->first;
@@ -381,14 +320,17 @@ void SessionDispatcher::forwardBinaryMessageResult(QString respName, uint32_t ev
         size_t requiredSize = 0;
         std::vector<char> message = serializeToArray(respName, eventId, protoMsg, success, requiredSize);
         if (success) {
-            ws->send(message.data(), requiredSize, uWS::OpCode::BINARY);
-            qDebug() << "[SessionDispatcher] Send event: Name=" << respName << ", Id=" << eventId << ", Time=" << QTime::currentTime().toString();
+            // convert the std::vector<char> to QByteArray
+            char* tmpMessage = &message[0];
+            QByteArray result = QByteArray::fromRawData(tmpMessage, requiredSize);
+            ws->sendBinaryMessage(result);
+            qDebug() << "[SessionDispatcher] Send event: Name=" << respName << ", Id=" << eventId << ", length=" << requiredSize << ", Time=" << QTime::currentTime().toString();
         }
     } else {
         qDebug() << "[SessionDispatcher] ERROR! Cannot find the corresponding websocket!";
     }
 }
-*/
+
 IConnector* SessionDispatcher::getConnectorInMap(const QString & sessionID) {
     mutex.lock();
     auto iter = clientList.find(sessionID);
