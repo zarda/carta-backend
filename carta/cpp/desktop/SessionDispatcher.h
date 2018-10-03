@@ -67,6 +67,8 @@ private:
     // prevent being accessed by other to avoid thread-safety problem
     std::map<QWebSocket*, NewServerConnector*> sessionList;
 
+    std::vector<char> _serializeToArray(QString respName, uint32_t eventId, PBMSharedPtr msg, bool &success, size_t &requiredSize);
+
 private slots:
 
     void onNewConnection();

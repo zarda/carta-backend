@@ -210,13 +210,13 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
         PBMSharedPtr msg = ack;
         bool success = false;
         size_t requiredSize = 0;
-        std::vector<char> tmpResult = serializeToArray(respName, eventId, msg, success, requiredSize);
+        std::vector<char> tmpResult = _serializeToArray(respName, eventId, msg, success, requiredSize);
         if (success) {
             // convert the std::vector<char> to QByteArray
             char* tmpMessage = &tmpResult[0];
-            QByteArray result = QByteArray::fromRawData(tmpMessage, sizeof(tmpMessage)/*requiredSize*/);
+            QByteArray result = QByteArray::fromRawData(tmpMessage, requiredSize);
             ws->sendBinaryMessage(result);
-            qDebug() << "[SessionDispatcher] Send event:" << respName<< ", Id=" << eventId << ", length=" << sizeof(tmpMessage) << QTime::currentTime().toString();
+            qDebug() << "[SessionDispatcher] Send event:" << respName<< ", Id=" << eventId << ", length=" << requiredSize << QTime::currentTime().toString();
         }
 
         return;
@@ -318,7 +318,7 @@ void SessionDispatcher::forwardBinaryMessageResult(QString respName, uint32_t ev
         // send serialized message to the frontend
         bool success = false;
         size_t requiredSize = 0;
-        std::vector<char> message = serializeToArray(respName, eventId, protoMsg, success, requiredSize);
+        std::vector<char> message = _serializeToArray(respName, eventId, protoMsg, success, requiredSize);
         if (success) {
             // convert the std::vector<char> to QByteArray
             char* tmpMessage = &message[0];
@@ -349,6 +349,26 @@ void SessionDispatcher::setConnectorInMap(const QString & sessionID, IConnector 
     mutex.lock();
     clientList[sessionID] = connector;
     mutex.unlock();
+}
+
+std::vector<char> SessionDispatcher::_serializeToArray(QString respName, uint32_t eventId, PBMSharedPtr msg, bool &success, size_t &requiredSize) {
+    success = false;
+    std::vector<char> result;
+    size_t messageLength = msg->ByteSize();
+    requiredSize = EVENT_NAME_LENGTH + EVENT_ID_LENGTH + messageLength;
+    if (result.size() < requiredSize) {
+        result.resize(requiredSize);
+    }
+    memset(result.data(), 0, EVENT_NAME_LENGTH);
+    memcpy(result.data(), respName.toStdString().c_str(), std::min<size_t>(respName.length(), EVENT_NAME_LENGTH));
+    memcpy(result.data() + EVENT_NAME_LENGTH, &eventId, EVENT_ID_LENGTH);
+    if (msg) {
+        msg->SerializeToArray(result.data() + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, messageLength);
+        success = true;
+        //emit jsBinaryMessageResultSignal(result.data(), requiredSize);
+        //qDebug() << "Send event:" << respName << QTime::currentTime().toString();
+    }
+    return result;
 }
 
 // //TODO implement later
