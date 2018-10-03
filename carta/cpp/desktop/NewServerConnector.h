@@ -77,7 +77,7 @@ public slots:
 
     void startViewerSlot(const QString & sessionID);
     void onTextMessage(QString message);
-    void onBinaryMessageSignalSlot(char* message, size_t length);
+    void onBinaryMessageSignalSlot(const char* message, size_t length);
     void sendSerializedMessage(QString respName, uint32_t eventId, PBMSharedPtr msg);
 
     void imageChannelUpdateSignalSlot(uint32_t eventId, int fileId, int channel, int stoke);
@@ -86,6 +86,9 @@ public slots:
     void openFileSignalSlot(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId);
     void setCursorSignalSlot(uint32_t eventId, int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs);
 
+    void fileListRequestSignalSlot(uint32_t eventId, CARTA::FileListRequest fileListRequest);
+    void fileInfoRequestSignalSlot(uint32_t eventId, CARTA::FileInfoRequest fileInfoRequest);
+
 signals:
 
     //grimmer: newArch will not use stateChange mechanism anymore
@@ -93,7 +96,7 @@ signals:
     //new arch
     void startViewerSignal(const QString & sessionID);
     void onTextMessageSignal(QString message);
-    void onBinaryMessageSignal(char* message, size_t length);
+    void onBinaryMessageSignal(const char* message, size_t length);
 
     void jsTextMessageResultSignal(QString result);
     void jsBinaryMessageResultSignal(QString respName, uint32_t eventId, PBMSharedPtr message);
@@ -103,6 +106,9 @@ signals:
                             bool isZFP, int precision, int numSubsets);
     void openFileSignal(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId);
     void setCursorSignal(uint32_t eventId, int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs);
+
+    void fileListRequestSignal(uint32_t eventId, CARTA::FileListRequest fileListRequest);
+    void fileInfoRequestSignal(uint32_t eventId, CARTA::FileInfoRequest fileInfoRequest);
 
     // /// we emit this signal when state is changed (either by c++ or by javascript)
     // /// we listen to this signal, and so does javascript
