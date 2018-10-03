@@ -174,7 +174,7 @@ cd $cartawork/CARTAvis-externals/ThirdParty
 # but we put casa inside $cartawork/CARTAvis-externals/ThirdParty
 DIR="$cartawork/CARTAvis-externals/ThirdParty/casa"
 if [ -d $DIR ]; then
-    echo "$DIR/ Exists! Remove and clone again."
+    echo "$DIR Exists! Remove and clone again."
     rm -rf $DIR
 fi
 
