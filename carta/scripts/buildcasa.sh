@@ -2,7 +2,6 @@
 
 ## TODO: remove installinging
 ## java/jre, pgplot, dbus, qt4.
-## qwt has been removed
 
 echo "execute buildcasa.sh"
 
@@ -168,29 +167,6 @@ fi
 
 cd $cartawork/CARTAvis-externals/ThirdParty
 
-### Qwt: for casa-submodue-code, by using Qt4.8.5
-# curl -O -L http://downloads.sourceforge.net/project/qwt/qwt/6.1.0/qwt-6.1.0.tar.bz2
-# tar xvfj qwt-6.1.0.tar.bz2 && mv qwt-6.1.0 qwt-6.1.0-src
-# cd qwt-6.1.0-src # can use qwt 6.1.3 Pavol uses
-# # for unix part
-# if [ "$(uname)" == "Darwin" ]; then
-#     perl -i -pe 's/.*/ QWT_INSTALL_PREFIX    = $ENV{cartawork}\/CARTAvis-externals\/ThirdParty\/qwt-6.1.0\/ / if $.==22' qwtconfig.pri
-# else
-#     sed -i "22,22c QWT_INSTALL_PREFIX    = $cartawork/CARTAvis-externals/ThirdParty/qwt-6.1.0" qwtconfig.pri
-# fi
-# qmake qwt.pro
-# make && make install
-# # export PATH=$cartawork/CARTAvis-externals/ThirdParty/qwt-6.1.0/include:$PATH
-# # export PATH=$cartawork/CARTAvis-externals/ThirdParty/qwt-6.1.0/lib:$PATH
-# cd ..
-# if [ "$(uname)" == "Darwin" ]; then
-# 	cd qwt-6.1.0
-#     mkdir include
-# 	ln -s ../lib/qwt.framework/Versions/6/Headers include/qwt
-#     ln -s ../lib/qwt.framework/Versions/6/qwt ./lib/qwt
-# 	cd ..
-# fi
-
 #### cascore and code
 # in the other instruction to build carta + casa, usually
 # casa
@@ -199,23 +175,8 @@ cd $cartawork/CARTAvis-externals/ThirdParty
 mkdir casa
 cd casa
 
-### old svn way:
-# it seems that its svn external link, casa submodule - casacore will checkout its latest one
-# svn co --ignore-externals -r 38314 https://svn.cv.nrao.edu/svn/casa/trunk
-# cd trunk
-# # may switch to use git clone, https://safe.nrao.edu/wiki/bin/view/Software/CASA/CasaBuildInstructions
-# # git clone https://github.com/casacore/casacore.git
-# # git checkout 5f4ffede19d6dbeb296e4db2ebe467db842e7b46 (= svn 105506, 20160919, can not find 105507 on Svn client now)
-# # no need to rename for git way
-# svn co -r 105507 https://github.com/casacore/casacore/trunk
-# mv trunk casacore
-### new git way: total git way + only clone casacore without asap part
-git clone --recursive https://github.com/cartavis/casa.git trunk
+git clone --recursive https://github.com/CARTAvis/New-casa.git trunk
 cd trunk
-#git checkout 77a3c0170c895142883dc1b69c4996f430c9e8ec ## = 5.0.0-mas-193, 20170506
-# git checkout tags/5.1.0-mas-40 # 4fd04f0965d27f188264080f9d7f3d70f934835b, 20170725
-# git submodule update --init casacore
-###
 
 ############################ casacore
 
