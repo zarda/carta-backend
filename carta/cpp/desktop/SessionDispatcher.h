@@ -75,8 +75,8 @@ private:
 private slots:
 
     void onNewConnection();
-    //void onTextMessage(QString);
-    //void onBinaryMessage(QByteArray);
+    void onTextMessage(QString);
+    void onBinaryMessage(QByteArray qByteMessage);
 /*
     void onNewConnection(uWS::WebSocket<uWS::SERVER> *ws);
     void onTextMessage(uWS::WebSocket<uWS::SERVER> *ws, char* message, size_t length);

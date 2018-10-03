@@ -86,17 +86,59 @@ void SessionDispatcher::startWebSocket(){
 }*/
 
 SessionDispatcher::SessionDispatcher() {
-
+    m_pWebSocketServer = nullptr;
 }
 
 SessionDispatcher::~SessionDispatcher() {
+    m_pWebSocketServer->close();
 
+        if (m_pWebSocketServer != nullptr) {
+            delete m_pWebSocketServer;
+        }
 }
 
 void SessionDispatcher::onNewConnection() {
-    QWebSocket* socket = m_pWebSocketServer->nextPendingConnection();
-    //connect(socket, &QWebSocket::textMessageReceived, this, &SessionDispatcher::onTextMessage);
-    //connect(socket, &QWebSocket::binaryMessageReceived, this, &SessionDispatcher::onBinaryMessage);
+    qDebug() << "[SessionDispatcher] A new connection!!";
+    QWebSocket* ws = m_pWebSocketServer->nextPendingConnection();
+    connect(ws, &QWebSocket::textMessageReceived, this, &SessionDispatcher::onTextMessage);
+    connect(ws, &QWebSocket::binaryMessageReceived, this, &SessionDispatcher::onBinaryMessage);
+}
+
+void SessionDispatcher::onTextMessage(QString message) {
+    QWebSocket* ws = qobject_cast<QWebSocket*>(sender());
+    NewServerConnector* connector= sessionList[ws];
+    if (connector != nullptr) {
+        emit connector->onTextMessageSignal(message);
+    }
+}
+
+void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
+    // convert QByteArray to char* message
+    const char* message = qByteMessage.constData();
+
+    size_t length = qByteMessage.size();
+
+    if (length < EVENT_NAME_LENGTH + EVENT_ID_LENGTH) {
+        qDebug() << "message length=" << length << "is not valid!!";
+        qFatal("[SessionDispatcher] Illegal message.");
+        return;
+    }
+
+    // get the message Name
+    size_t nullIndex = 0;
+    for (size_t i = 0; i < EVENT_NAME_LENGTH; i++) {
+        if (!message[i]) {
+            nullIndex = i;
+            break;
+        }
+    }
+    QString eventName = QString::fromStdString(std::string(message, nullIndex));
+
+    // get the message Id
+    uint32_t eventId = *((uint32_t*) (message + EVENT_NAME_LENGTH));
+
+    qDebug() << "[SessionDispatcher] Event received: Name=" << eventName << ", Id=" << eventId << ", length=" << length << ", Time=" << QTime::currentTime().toString();
+
 }
 
 /*
