@@ -299,20 +299,6 @@ void NewServerConnector::onBinaryMessageSignalSlot(const char *message, size_t l
         qFatal("Illegal request in NewServerConnector. Please handle it in SessionDispatcher.");
         return;
 
-    } else if (eventName == "FILE_LIST_REQUEST") {
-        respName = "FILE_LIST_RESPONSE";
-
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
-
-        CARTA::FileListRequest fileListRequest;
-        fileListRequest.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-        msg = dataLoader->getFileList(fileListRequest);
-
-        // send the serialized message to the frontend
-        sendSerializedMessage(respName, eventId, msg);
-        return;
-
     } else if (eventName == "FILE_INFO_REQUEST") {
         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
         Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
@@ -354,6 +340,16 @@ void NewServerConnector::onBinaryMessageSignalSlot(const char *message, size_t l
     // socket->send(binaryPayloadCache.data(), requiredSize, uWS::BINARY);
     // emit jsTextMessageResultSignal(result);
     return;
+}
+
+void NewServerConnector::fileListRequestSignalSlot(uint32_t eventId, CARTA::FileListRequest fileListRequest) {
+    // get the DataLoader
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
+    PBMSharedPtr msg = dataLoader->getFileList(fileListRequest);
+
+    // send the serialized message to the frontend
+    sendSerializedMessage("FILE_LIST_RESPONSE", eventId, msg);
 }
 
 void NewServerConnector::openFileSignalSlot(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId) {

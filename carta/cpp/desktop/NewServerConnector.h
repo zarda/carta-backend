@@ -86,6 +86,8 @@ public slots:
     void openFileSignalSlot(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId);
     void setCursorSignalSlot(uint32_t eventId, int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs);
 
+    void fileListRequestSignalSlot(uint32_t eventId, CARTA::FileListRequest fileListRequest);
+
 signals:
 
     //grimmer: newArch will not use stateChange mechanism anymore
@@ -103,6 +105,8 @@ signals:
                             bool isZFP, int precision, int numSubsets);
     void openFileSignal(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId);
     void setCursorSignal(uint32_t eventId, int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs);
+
+    void fileListRequestSignal(uint32_t eventId, CARTA::FileListRequest fileListRequest);
 
     // /// we emit this signal when state is changed (either by c++ or by javascript)
     // /// we listen to this signal, and so does javascript

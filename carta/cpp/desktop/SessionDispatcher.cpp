@@ -143,6 +143,7 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
             qRegisterMetaType<PBMSharedPtr>("PBMSharedPtr");
             qRegisterMetaType<CARTA::Point>("CARTA::Point");
             qRegisterMetaType<CARTA::SetSpatialRequirements>("CARTA::SetSpatialRequirements");
+            qRegisterMetaType<CARTA::FileListRequest>("CARTA::FileListRequest");
 
             // start the image viewer
             connect(connector, SIGNAL(startViewerSignal(const QString &)),
@@ -151,6 +152,10 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
             // general commands
             connect(connector, SIGNAL(onBinaryMessageSignal(const char*, size_t)),
                     connector, SLOT(onBinaryMessageSignalSlot(const char*, size_t)));
+
+            // file list request
+            connect(connector, SIGNAL(fileListRequestSignal(uint32_t, CARTA::FileListRequest)),
+                    connector, SLOT(fileListRequestSignalSlot(uint32_t, CARTA::FileListRequest)));
 
             // open file
             connect(connector, SIGNAL(openFileSignal(uint32_t, QString, QString, int, int)),
@@ -230,7 +235,13 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
     }
 
     if (connector != nullptr) {
-        if (eventName == "OPEN_FILE") {
+        if (eventName == "FILE_LIST_REQUEST") {
+
+            CARTA::FileListRequest fileListRequest;
+            fileListRequest.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+            emit connector->fileListRequestSignal(eventId, fileListRequest);
+
+        } else if (eventName == "OPEN_FILE") {
 
             CARTA::OpenFile openFile;
             openFile.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
