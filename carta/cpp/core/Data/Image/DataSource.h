@@ -17,6 +17,14 @@
 #include "CartaLib/Proto/raster_image.pb.h"
 #include "CartaLib/Proto/spatial_profile.pb.h"
 
+//#include "CartaLib/Regions/IRegion.h"
+//#include "CartaLib/Regions/Ellipse.h"
+//#include "CartaLib/Regions/Point.h"
+//#include "CartaLib/Regions/Rectangle.h"
+
+#include "CartaLib/ProfileInfo.h"
+#include "CartaLib/Hooks/ProfileHook.h"
+
 typedef Carta::Lib::RegionHistogramData RegionHistogramData;
 typedef std::shared_ptr<google::protobuf::MessageLite> PBMSharedPtr;
 
@@ -586,6 +594,9 @@ private:
     void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames );
 
+    // calculate spectral profile (z-profile)
+    void _getSpectralProfile();
+
     /**
      *  Constructor.
      */
@@ -600,6 +611,15 @@ private:
     //Pointer to image interface.
     std::shared_ptr<Carta::Lib::Image::ImageInterface> m_image;
     std::shared_ptr<Carta::Lib::Image::ImageInterface> m_permuteImage;
+
+    // region
+    //std::shared_ptr<Carta::Lib::Regions::RegionBase> m_region;
+
+    // profile info
+    Carta::Lib::ProfileInfo m_profileInfo;
+
+    // profile calculation result
+    Carta::Lib::Hooks::ProfileResult m_profileResult;
 
     /// coordinate formatter
     std::shared_ptr<CoordinateFormatterInterface> m_coordinateFormatter;

@@ -1901,6 +1901,27 @@ void DataSource::_viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
 }
 
+void DataSource::_getSpectralProfile() {
+
+    auto result = Globals::instance()->pluginManager()
+        -> prepare <Carta::Lib::Hooks::ProfileHook>(m_image, nullptr/*region info (nullptr is for all region)*/, m_profileInfo);
+
+    auto lam = [=] (const Carta::Lib::Hooks::ProfileResult &data) {
+        m_profileResult = data;
+    };
+
+    try {
+        result.forEach(lam);
+    }
+    catch (char*& error) {
+        qDebug() << "[DataSource] ProfileRenderWorker::run: caught error: " << error;
+        m_profileResult.setError( QString(error) );
+    }
+
+    // ********* std::pair<double,double> profileData(xValues[i], jyValues[i]);
+    std::vector< std::pair<double,double> > profileData = m_profileResult.getData();
+
+}
 
 DataSource::~DataSource() {
 
