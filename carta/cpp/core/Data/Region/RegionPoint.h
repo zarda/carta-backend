@@ -40,19 +40,19 @@ public:
 	 * Handle a touch event.
 	 * @param pt - the touch event.
 	 */
-	virtual void handleTouch( const QPointF & pt ) Q_DECL_OVERRIDE;
+//	virtual void handleTouch( const QPointF & pt ) Q_DECL_OVERRIDE;
 
 	/**
 	 * Set the underlying model for the region.
 	 * @param model - the region model.
 	 */
-    virtual void setModel( Carta::Lib::Regions::RegionBase* model ) Q_DECL_OVERRIDE;
+//    virtual void setModel( Carta::Lib::Regions::RegionBase* model ) Q_DECL_OVERRIDE;
 
     /**
      * Set the center of the rectangle.
      * @param pt - the center of the rectangle.
      */
-    virtual bool setCenter( const QPointF& pt ) Q_DECL_OVERRIDE;
+//    virtual bool setCenter( const QPointF& pt ) Q_DECL_OVERRIDE;
 
 
     /**
@@ -73,15 +73,15 @@ private:
 
     void _initializeState();
 
-    static bool m_registered;
+//    static bool m_registered;
 
     /**
      * Construct a region.
      */
-    RegionPoint( const QString& path, const QString& id );
+//    RegionPoint( const QString& path, const QString& id );
     class Factory;
 
-    RegionPoint( const RegionPoint& other);
+//    RegionPoint( const RegionPoint& other);
     RegionPoint& operator=( const RegionPoint& other );
 };
 }

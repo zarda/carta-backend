@@ -12,7 +12,7 @@ namespace Carta {
 namespace Data {
 
 using Carta::Shape::ShapeBase;
-using Carta::Shape::ShapePoint;
+//using Carta::Shape::ShapePoint;
 
 const QString RegionPoint::CLASS_NAME = "RegionPoint";
 
@@ -20,34 +20,35 @@ const QString RegionPoint::CLASS_NAME = "RegionPoint";
 class RegionPoint::Factory : public Carta::State::CartaObjectFactory {
 public:
 
-    Carta::State::CartaObject * create (const QString & path, const QString & id)
-    {
-        return new RegionPoint (path, id);
-    }
+//    Carta::State::CartaObject * create (const QString & path, const QString & id)
+//    {
+//        return new RegionPoint (path, id);
+//    }
 };
 
-bool RegionPoint::m_registered =
-        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new RegionPoint::Factory());
+//bool RegionPoint::m_registered =
+//        Carta::State::ObjectManager::objectManager()->registerClass ( CLASS_NAME, new RegionPoint::Factory());
 
 
-RegionPoint::RegionPoint(const QString& path, const QString& id )
-    :Region( CLASS_NAME, path, id ){
-	m_shape.reset( new ShapePoint() );
-	 connect( m_shape.get(), SIGNAL(shapeChanged( const QJsonObject&)),
-			 this, SLOT(_updateStateFromJson(const QJsonObject&)));
-    _initializeState();
-    _updateShapeFromState();
-}
+//RegionPoint::RegionPoint(const QString& path, const QString& id )
+//    :Region( CLASS_NAME, path, id ){
+//	m_shape.reset( new ShapePoint() );
+//	 connect( m_shape.get(), SIGNAL(shapeChanged( const QJsonObject&)),
+//			 this, SLOT(_updateStateFromJson(const QJsonObject&)));
+//    _initializeState();
+//    _updateShapeFromState();
+//}
 
 
 std::shared_ptr<Carta::Lib::Regions::RegionBase> RegionPoint::getModel() const {
-    std::shared_ptr<Carta::Lib::Regions::RegionBase> info( new Carta::Lib::Regions::Point() );
-    QJsonObject jsonObject = toJSON();
-       bool jsonValid = info->initFromJson( jsonObject );
-       if ( !jsonValid ){
-           qWarning()<<"Invalid json string: "<<jsonObject;
-       }
-    return info;
+//    std::shared_ptr<Carta::Lib::Regions::RegionBase> info( new Carta::Lib::Regions::Point() );
+//    QJsonObject jsonObject = toJSON();
+//       bool jsonValid = info->initFromJson( jsonObject );
+//       if ( !jsonValid ){
+//           qWarning()<<"Invalid json string: "<<jsonObject;
+//       }
+//    return info;
+    return nullptr;
 }
 
 
@@ -74,49 +75,49 @@ void RegionPoint::handleDragDone( const QPointF & pt ) {
 	}
 }
 
-void RegionPoint::handleTouch( const QPointF & pt ){
-	Region::handleTouch( pt );
-	if ( isEditMode() ){
-		//Set the location of the point
-		setCenter( pt );
-		emit editDone();
-	}
-}
+//void RegionPoint::handleTouch( const QPointF & pt ){
+//	Region::handleTouch( pt );
+//	if ( isEditMode() ){
+//		//Set the location of the point
+//		setCenter( pt );
+//		emit editDone();
+//	}
+//}
 
 void RegionPoint::_initializeState(){
-    m_state.setValue<QString>( REGION_TYPE, Carta::Lib::Regions::Point::TypeName );
+//    m_state.setValue<QString>( REGION_TYPE, Carta::Lib::Regions::Point::TypeName );
     m_state.insertValue<double>( Util::XCOORD, 0 );
     m_state.insertValue<double>( Util::YCOORD, 0 );
 }
 
 
-void RegionPoint::setModel( Carta::Lib::Regions::RegionBase* model ){
-	if ( model ){
-		QString regionType = model->typeName();
-		CARTA_ASSERT( regionType == Carta::Lib::Regions::Point::TypeName );
-		QJsonObject modelJson = model->toJson();
-		m_shape->setModel( modelJson );
-		_updateStateFromJson( modelJson );
-	}
-}
+//void RegionPoint::setModel( Carta::Lib::Regions::RegionBase* model ){
+//	if ( model ){
+//		QString regionType = model->typeName();
+//		CARTA_ASSERT( regionType == Carta::Lib::Regions::Point::TypeName );
+//		QJsonObject modelJson = model->toJson();
+//		m_shape->setModel( modelJson );
+//		_updateStateFromJson( modelJson );
+//	}
+//}
 
 
-bool RegionPoint::setCenter( const QPointF& pt ){
-	bool centerChanged = false;
-	double oldX = m_state.getValue<double>( Util::XCOORD );
-	double oldY = m_state.getValue<double>( Util::YCOORD );
-	double errorMargin = _getErrorMargin();
-	double centerX = Util::roundToDigits( pt.x(), SIGNIFICANT_DIGITS );
-	double centerY = Util::roundToDigits( pt.y(), SIGNIFICANT_DIGITS );
-	if ( qAbs( oldX - centerX ) > errorMargin || qAbs( oldY - centerY ) > errorMargin ){
-		centerChanged = true;
-		m_state.setValue<double>( Util::XCOORD, centerX );
-		m_state.setValue<double>( Util::YCOORD, centerY );
-		m_shape->setModel( toJSON() );
-		_updateName();
-	}
-	return centerChanged;
-}
+//bool RegionPoint::setCenter( const QPointF& pt ){
+//	bool centerChanged = false;
+//	double oldX = m_state.getValue<double>( Util::XCOORD );
+//	double oldY = m_state.getValue<double>( Util::YCOORD );
+//	double errorMargin = _getErrorMargin();
+//	double centerX = Util::roundToDigits( pt.x(), SIGNIFICANT_DIGITS );
+//	double centerY = Util::roundToDigits( pt.y(), SIGNIFICANT_DIGITS );
+//	if ( qAbs( oldX - centerX ) > errorMargin || qAbs( oldY - centerY ) > errorMargin ){
+//		centerChanged = true;
+//		m_state.setValue<double>( Util::XCOORD, centerX );
+//		m_state.setValue<double>( Util::YCOORD, centerY );
+//		m_shape->setModel( toJSON() );
+//		_updateName();
+//	}
+//	return centerChanged;
+//}
 
 
 QJsonObject RegionPoint::toJSON() const {
@@ -136,7 +137,7 @@ void RegionPoint::_updateStateFromJson( const QJsonObject& json ){
 	double yCoord = Util::roundToDigits( json[Util::YCOORD].toDouble(), SIGNIFICANT_DIGITS );
 	m_state.setValue<double>( Util::YCOORD, yCoord );
 
-	_updateName();
+//	_updateName();
 	emit regionShapeChanged();
 }
 

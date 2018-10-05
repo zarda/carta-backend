@@ -45,9 +45,9 @@ double Ellipse::getRadiusMinor() const {
 }
 
 bool Ellipse::initFromJson( QJsonObject obj ){
-	if ( ! RegionBase::initFromJson( obj ) ) {
-		return false;
-	}
+//	if ( ! RegionBase::initFromJson( obj ) ) {
+//		return false;
+//	}
 	if ( ! obj[CENTER_X].isDouble() ) {
 		return false;
 	}
@@ -123,31 +123,31 @@ void Ellipse::setRadiusMinor( double radius ) {
 }
 
 QJsonObject Ellipse::toJson() const {
-	// get the common properties
-	QJsonObject doc = RegionBase::toJson();
+    // get the common properties
+    QJsonObject doc = RegionBase::toJson();
 
-	// and add our own
-	doc[CENTER_X] = m_center.x();
-	doc[CENTER_Y] = m_center.y();
-	doc[RADIUS_MAJOR] = m_radiusMajor;
-	doc[RADIUS_MINOR] = m_radiusMinor;
-	doc[ANGLE] = m_angle;
-	doc["type"] = TypeName;
-	return doc;
+    // and add our own
+    doc[CENTER_X] = m_center.x();
+    doc[CENTER_Y] = m_center.y();
+    doc[RADIUS_MAJOR] = m_radiusMajor;
+    doc[RADIUS_MINOR] = m_radiusMinor;
+    doc[ANGLE] = m_angle;
+    doc["type"] = TypeName;
+    return doc;
 }
 
 QString Ellipse::typeName() const {
 	return TypeName;
 }
 
-VectorGraphics::VGList Ellipse::vgList() const {
-	VectorGraphics::VGComposer composer;
-	composer.append < VectorGraphics::Entries::SetPenColor > ( getLineColor() );
-	composer.append < VectorGraphics::Entries::SetBrush > ( getFillColor() );
-	QRectF rect = outlineBox();
-	composer.append < VectorGraphics::Entries::DrawEllipse > ( rect );
-	return composer.vgList();
-}
+//VectorGraphics::VGList Ellipse::vgList() const {
+//	VectorGraphics::VGComposer composer;
+//	composer.append < VectorGraphics::Entries::SetPenColor > ( getLineColor() );
+//	composer.append < VectorGraphics::Entries::SetBrush > ( getFillColor() );
+//	QRectF rect = outlineBox();
+//	composer.append < VectorGraphics::Entries::DrawEllipse > ( rect );
+//	return composer.vgList();
+//}
 
 }
 }

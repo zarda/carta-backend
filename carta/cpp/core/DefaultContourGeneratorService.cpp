@@ -16,7 +16,7 @@ DefaultContourGeneratorService::DefaultContourGeneratorService( QObject * parent
 {
     m_timer.setInterval( 1 );
     m_timer.setSingleShot( true );
-    connect( & m_timer, & QTimer::timeout, this, & Me::timerCB );
+//    connect( & m_timer, & QTimer::timeout, this, & Me::timerCB );
 }
 
 void
@@ -52,35 +52,35 @@ DefaultContourGeneratorService::start( Lib::IContourGeneratorService::JobId jobI
     return m_lastJobId;
 }
 
-void
-DefaultContourGeneratorService::timerCB()
-{
-    // add timer
-    QElapsedTimer timer;
-    timer.start();
+//void
+//DefaultContourGeneratorService::timerCB()
+//{
+//    // add timer
+//    QElapsedTimer timer;
+//    timer.start();
 
-    // set the output result
-    Result result;
+//    // set the output result
+//    Result result;
 
-    // run the contour algorithm
-    for (int i = 0; i < m_contourTypesVector.size(); i++) {
-        qDebug() << "++++++++ [contour] build the contour for" << m_contourTypesVector.size() << "smoothness type(s)";
-        Carta::Lib::Algorithms::ContourConrec cc;
-        cc.setLevels(m_levelsVector[i]);
-        auto rawContours = cc.compute(m_rawView.get(), m_contourTypesVector[i]);
-        for (size_t j = 0; j < m_levelsVector[i].size(); ++ j) {
-            Carta::Lib::Contour contour( m_levelsVector[i][j], rawContours[j]);
-            result.add(contour);
-        }
-    }
+//    // run the contour algorithm
+//    for (int i = 0; i < m_contourTypesVector.size(); i++) {
+//        qDebug() << "++++++++ [contour] build the contour for" << m_contourTypesVector.size() << "smoothness type(s)";
+//        Carta::Lib::Algorithms::ContourConrec cc;
+//        cc.setLevels(m_levelsVector[i]);
+//        auto rawContours = cc.compute(m_rawView.get(), m_contourTypesVector[i]);
+//        for (size_t j = 0; j < m_levelsVector[i].size(); ++ j) {
+//            Carta::Lib::Contour contour( m_levelsVector[i][j], rawContours[j]);
+//            result.add(contour);
+//        }
+//    }
 
-    int elapsedTime = timer.elapsed();
-    if (CARTA_RUNTIME_CHECKS) {
-        // stop the timer and print out the elapsed time
-        qDebug() << "++++++++ [contour] Spending time for calculating contours:" << elapsedTime << "ms";
-    }
+//    int elapsedTime = timer.elapsed();
+//    if (CARTA_RUNTIME_CHECKS) {
+//        // stop the timer and print out the elapsed time
+//        qDebug() << "++++++++ [contour] Spending time for calculating contours:" << elapsedTime << "ms";
+//    }
 
-    emit done( result, m_lastJobId );
-}
+//    emit done( result, m_lastJobId );
+//}
 }
 }

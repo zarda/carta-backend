@@ -31,12 +31,12 @@ BinData::BinData( const QString& path, const QString& id):
 }
 
 
-QColor BinData::getColor() const {
-    int red = m_state.getValue<int>( Util::RED );
-    int green = m_state.getValue<int>( Util::GREEN );
-    int blue = m_state.getValue<int>( Util::BLUE );
-    return QColor( red, green, blue );
-}
+//QColor BinData::getColor() const {
+//    int red = m_state.getValue<int>( Util::RED );
+//    int green = m_state.getValue<int>( Util::GREEN );
+//    int blue = m_state.getValue<int>( Util::BLUE );
+//    return QColor( red, green, blue );
+//}
 
 Carta::Lib::Hooks::HistogramResult BinData::getHistogramResult() const {
 	return m_result;
@@ -62,11 +62,11 @@ void BinData::_initializeDefaultState(){
 }
 
 
-void BinData::setColor( QColor color ){
-    m_state.setValue<int>( Util::RED, color.red() );
-    m_state.setValue<int>( Util::GREEN, color.green() );
-    m_state.setValue<int>( Util::BLUE, color.blue() );
-}
+//void BinData::setColor( QColor color ){
+//    m_state.setValue<int>( Util::RED, color.red() );
+//    m_state.setValue<int>( Util::GREEN, color.green() );
+//    m_state.setValue<int>( Util::BLUE, color.blue() );
+//}
 
 
 void BinData::setHistogramResult( const Carta::Lib::Hooks::HistogramResult& result  ){

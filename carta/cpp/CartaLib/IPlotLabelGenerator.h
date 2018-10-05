@@ -10,6 +10,7 @@
 #include <QString>
 #include <vector>
 #include <memory>
+#include <functional>
 
 /// \brief Interface for generating labels for 2d plots along an axis from image metadata.
 /// Dual labels are supported, in case we want to display both pixel and wcs

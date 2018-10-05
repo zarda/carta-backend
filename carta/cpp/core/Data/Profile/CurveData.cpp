@@ -175,12 +175,12 @@ QString CurveData::_generatePeakLabel( int index, const QString& xUnit, const QS
     return label;
 }
 
-QColor CurveData::getColor() const {
-    int red = m_state.getValue<int>( Util::RED );
-    int green = m_state.getValue<int>( Util::GREEN );
-    int blue = m_state.getValue<int>( Util::BLUE );
-    return QColor( red, green, blue );
-}
+//QColor CurveData::getColor() const {
+//    int red = m_state.getValue<int>( Util::RED );
+//    int green = m_state.getValue<int>( Util::GREEN );
+//    int blue = m_state.getValue<int>( Util::BLUE );
+//    return QColor( red, green, blue );
+//}
 
 QString CurveData::getCursorText( double x, double y, double* error ) const {
     int dataCount = m_plotDataX.size();
@@ -543,11 +543,11 @@ bool CurveData::setActive( bool active ){
 }
 
 
-void CurveData::setColor( QColor color ){
-    m_state.setValue<int>( Util::RED, color.red() );
-    m_state.setValue<int>( Util::GREEN, color.green() );
-    m_state.setValue<int>( Util::BLUE, color.blue() );
-}
+//void CurveData::setColor( QColor color ){
+//    m_state.setValue<int>( Util::RED, color.red() );
+//    m_state.setValue<int>( Util::GREEN, color.green() );
+//    m_state.setValue<int>( Util::BLUE, color.blue() );
+//}
 
 
 void CurveData::setData( const std::vector<double>& valsX, const std::vector<double>& valsY  ){

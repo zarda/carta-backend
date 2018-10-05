@@ -295,7 +295,7 @@ public:
      * @param blueAmount - the amount of blue in the color [0,255].
      * @return - one or more error messages if the color of the data set cannot be set.
      */
-    QStringList setCurveColor( const QString& name, int redAmount, int greenAmount, int blueAmount );
+//    QStringList setCurveColor( const QString& name, int redAmount, int greenAmount, int blueAmount );
 
     /**
      * Change the name of a profile curve.
@@ -653,7 +653,7 @@ private:
         std::shared_ptr<Region> region, Carta::Lib::ProfileInfo profInfo);
 
     //Assign a color to the curve.
-    void _assignColor( std::shared_ptr<CurveData> curveData );
+//    void _assignColor( std::shared_ptr<CurveData> curveData );
 
     void _clearData();
 

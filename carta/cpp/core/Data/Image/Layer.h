@@ -10,10 +10,10 @@
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/AxisLabelInfo.h"
 #include "CartaLib/IntensityUnitConverter.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+//#include "CartaLib/VectorGraphics/VGList.h"
 #include "Data/Image/Render/RenderRequest.h"
 #include "Data/Image/Render/RenderResponse.h"
-#include <QImage>
+//#include <QImage>
 #include <QStack>
 #include <set>
 #include "CartaLib/IPercentileCalculator.h"
@@ -235,7 +235,7 @@ protected:
 
 
     //Return grid state.
-    virtual Carta::State::StateInterface _getGridState() const = 0;
+//    virtual Carta::State::StateInterface _getGridState() const = 0;
 
 
     /**
@@ -269,7 +269,7 @@ protected:
      * @param size - the size of the displayed image.
      * @return - the portion of the image that is visible.
      */
-    virtual QRectF _getInputRect( const QSize& size ) const = 0;
+//    virtual QRectF _getInputRect( const QSize& size ) const = 0;
 
 
     /**
@@ -363,7 +363,7 @@ protected:
      * Return the color filter for the layer.
      * @return - a color filter for the layer.
      */
-    virtual quint32 _getMaskColor() const;
+//    virtual quint32 _getMaskColor() const;
 
 
     /**
@@ -418,7 +418,7 @@ protected:
      * Return the graphics for drawing regions.
      * @return - a list of graphics for drawing regions.
      */
-    virtual Carta::Lib::VectorGraphics::VGList _getRegionGraphics() const = 0;
+//    virtual Carta::Lib::VectorGraphics::VGList _getRegionGraphics() const = 0;
 
     /**
      * Return the rest frequency and units for the image.
@@ -527,7 +527,7 @@ protected:
     /**
      * Start the render.
      */
-    virtual void _renderStart() = 0;
+//    virtual void _renderStart() = 0;
 
     /**
      * Center the image.
@@ -637,7 +637,7 @@ protected:
      * Set a list of graphics for drawing the current regions.
      * @param regionVGList - graphics for drawing the current regions.
      */
-    virtual void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ) = 0;
+//    virtual void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ) = 0;
 
     /**
      * Set this data source selected.

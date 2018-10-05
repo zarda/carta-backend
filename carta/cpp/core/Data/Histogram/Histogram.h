@@ -383,7 +383,7 @@ public:
 
 	private:
 
-	void _assignColor( std::shared_ptr<BinData> binData );
+//	void _assignColor( std::shared_ptr<BinData> binData );
 
 	void _finishClips();
 	void _finishColor();

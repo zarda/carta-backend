@@ -22,13 +22,13 @@ RegionCASA::RegionCASA(QObject *parent) :
 }
 
 
-void RegionCASA::_addCorners( Carta::Lib::Regions::Polygon* rInfo,
-        const std::vector<QPointF >& corners ){
-    if ( rInfo ){
-        QPolygonF polygonF = QPolygonF::fromStdVector( corners );
-        rInfo->setqpolyf( polygonF );
-    }
-}
+//void RegionCASA::_addCorners( Carta::Lib::Regions::Polygon* rInfo,
+//        const std::vector<QPointF >& corners ){
+//    if ( rInfo ){
+//        QPolygonF polygonF = QPolygonF::fromStdVector( corners );
+//        rInfo->setqpolyf( polygonF );
+//    }
+//}
 
 
 bool RegionCASA::handleHook(BaseHook & hookData){
@@ -208,21 +208,21 @@ RegionCASA::_loadRegion( const QString & fname,
 				case casa::AnnotationBase::POLYGON : {
 					Carta::Lib::Regions::Polygon* poly = new Carta::Lib::Regions::Polygon();
 					rInfo = poly;
-					_addCorners( poly, corners );
+//					_addCorners( poly, corners );
 				}
 				break;
 				//Point????
-				case casa::AnnotationBase::SYMBOL : {
-					if ( corners.size() == 1 ){
-						Carta::Lib::Regions::Point* point = new Carta::Lib::Regions::Point();
-						point->setPoint( corners[0] );
-						rInfo = point;
-					}
-					else {
-						qWarning()<<"Point incorrectly specified with "<<corners.size()<<" corners.";
-					}
-				}
-				break;
+//				case casa::AnnotationBase::SYMBOL : {
+//					if ( corners.size() == 1 ){
+//						Carta::Lib::Regions::Point* point = new Carta::Lib::Regions::Point();
+//						point->setPoint( corners[0] );
+//						rInfo = point;
+//					}
+//					else {
+//						qWarning()<<"Point incorrectly specified with "<<corners.size()<<" corners.";
+//					}
+//				}
+//				break;
 				}
 				regionInfos.push_back( rInfo );
 

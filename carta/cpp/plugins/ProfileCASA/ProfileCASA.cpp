@@ -116,16 +116,16 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casacore::ImageI
     		regionRecord = _getRegionRecord( shape, cSys, x, y );
     	}
     	else {
-			QPolygonF regionCorners = regionInfo->outlineBox();
-			int cornerCount = regionCorners.size();
-			casacore::Vector<casacore::Double> x(cornerCount);
-			casacore::Vector<casacore::Double> y(cornerCount);
-			for ( int i = 0; i < cornerCount; i++ ){
-				QPointF corner = regionCorners.value( i );
-				x[i] = corner.x();
-				y[i] = corner.y();
-			}
-			regionRecord = _getRegionRecord( shape, cSys, x, y);
+//			QPolygonF regionCorners = regionInfo->outlineBox();
+//			int cornerCount = regionCorners.size();
+//			casacore::Vector<casacore::Double> x(cornerCount);
+//			casacore::Vector<casacore::Double> y(cornerCount);
+//			for ( int i = 0; i < cornerCount; i++ ){
+//				QPointF corner = regionCorners.value( i );
+//				x[i] = corner.x();
+//				y[i] = corner.y();
+//			}
+//			regionRecord = _getRegionRecord( shape, cSys, x, y);
     	}
 
 
@@ -327,8 +327,8 @@ casacore::Record ProfileCASA::_getRegionRecord( const QString& shape, const casa
     if ( directionIndex >= 0 ){
         casacore::Vector<casacore::Int> dirPixelAxis = cSys.pixelAxes(directionIndex);
         casacore::RegionManager regMan;
-        if ( shape == Carta::Lib::Regions::Rectangle::TypeName ||
-        		shape == Carta::Lib::Regions::Point::TypeName ){
+        if ( shape == Carta::Lib::Regions::Rectangle::TypeName /*||
+                shape == Carta::Lib::Regions::Point::TypeName */){
             int ptCount = x.size();
             if ( ptCount == 2 ){
                 casacore::Vector<casacore::Quantity> blc(2);

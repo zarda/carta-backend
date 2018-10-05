@@ -11,11 +11,11 @@ namespace Carta
 {
 namespace Core
 {
-//const QSize &
-//SimpleRemoteVGView::getClientSize()
-//{
-//    return m_remoteSize;
-//}
+const QSize &
+SimpleRemoteVGView::getClientSize()
+{
+    return m_remoteSize;
+}
 
 const QString &
 SimpleRemoteVGView::getRVGViewName()
@@ -64,24 +64,24 @@ SimpleRemoteVGView::isVGrenderedOnServer()
     return true;
 }
 
-//qint64
-//SimpleRemoteVGView::scheduleRepaint( qint64 id )
-//{
-//    // indicate m_buffer needs to be repainted
+qint64
+SimpleRemoteVGView::scheduleRepaint( qint64 id )
+{
+    // indicate m_buffer needs to be repainted
 //    m_buffer = QImage();
 
-//    // remember the ID of the job
-//    if ( id == - 1 ) {
-//        id = m_lastRepaintId + 1;
-//    }
-//    m_lastRepaintId = id;
+    // remember the ID of the job
+    if ( id == - 1 ) {
+        id = m_lastRepaintId + 1;
+    }
+    m_lastRepaintId = id;
 
-//    // ask the connector for a repaint
-//    m_connector-> refreshView( this );
+    // ask the connector for a repaint
+    m_connector-> refreshView( this );
 
-//    // return the id
-//    return id;
-//}
+    // return the id
+    return id;
+}
 
 SimpleRemoteVGView::SimpleRemoteVGView( QObject * parent,
                                         QString viewName,
@@ -98,9 +98,9 @@ SimpleRemoteVGView::SimpleRemoteVGView( QObject * parent,
 
     using namespace std::placeholders;
 
-//    m_connector->addCommandCallback(
-//        QString( "vgview/inputEvent/%1" ).arg( viewName ),
-//        std::bind( & Me::inputEventCB, this, _1, _2, _3 ) );
+    m_connector->addCommandCallback(
+        QString( "vgview/inputEvent/%1" ).arg( viewName ),
+        std::bind( & Me::inputEventCB, this, _1, _2, _3 ) );
 }
 
 void
@@ -117,9 +117,9 @@ SimpleRemoteVGView::name() const
     return m_viewName;
 }
 
-//QSize
-//SimpleRemoteVGView::size()
-//{
+QSize
+SimpleRemoteVGView::size()
+{
 //    if ( m_buffer.isNull() ) {
 //        m_buffer = m_raster;
 //        QPainter painter( & m_buffer );
@@ -130,7 +130,8 @@ SimpleRemoteVGView::name() const
 //        }
 //    }
 //    return m_buffer.size();
-//}
+    return QSize();
+}
 
 //const QImage &
 //SimpleRemoteVGView::getBuffer()
@@ -139,12 +140,12 @@ SimpleRemoteVGView::name() const
 //    return m_buffer;
 //}
 
-//void
-//SimpleRemoteVGView::handleResizeRequest( const QSize & size )
-//{
-//    m_remoteSize = size;
-//    emit sizeChanged();
-//}
+void
+SimpleRemoteVGView::handleResizeRequest( const QSize & size )
+{
+    m_remoteSize = size;
+    emit sizeChanged();
+}
 
 //void
 //SimpleRemoteVGView::handleMouseEvent( const QMouseEvent & /*event*/ )
@@ -160,19 +161,19 @@ SimpleRemoteVGView::viewRefreshed( qint64 id )
     Q_UNUSED( id );
 }
 
-//QString
-//SimpleRemoteVGView::inputEventCB( const QString & cmd,
-//                                  const QString & params,
-//                                  const QString & sessionId )
-//{
-//    Q_UNUSED( cmd );
-//    Q_UNUSED( sessionId );
-//    qDebug() << "Input event[" << this->m_viewName << "]:" << params;
+QString
+SimpleRemoteVGView::inputEventCB( const QString & cmd,
+                                  const QString & params,
+                                  const QString & sessionId )
+{
+    Q_UNUSED( cmd );
+    Q_UNUSED( sessionId );
+    qDebug() << "Input event[" << this->m_viewName << "]:" << params;
 
-////    emit inputEvent( Carta::Lib::InputEvent( Carta::Lib::InputEvent::Type::Custom, "tap"));
-//    emit inputEvent( Carta::Lib::InputEvent( QJsonDocument::fromJson( params.toLatin1() ).object() ) );
-//    return QString();
-//}
+//    emit inputEvent( Carta::Lib::InputEvent( Carta::Lib::InputEvent::Type::Custom, "tap"));
+    emit inputEvent( Carta::Lib::InputEvent( QJsonDocument::fromJson( params.toLatin1() ).object() ) );
+    return QString();
+}
 
 }
 }

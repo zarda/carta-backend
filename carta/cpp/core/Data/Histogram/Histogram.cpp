@@ -77,8 +77,8 @@ const QString Histogram::RESTRICT_SIZE_MAX = "cubeSizeMax";
 Clips*  Histogram::m_clips = nullptr;
 PlotStyles* Histogram::m_graphStyles = nullptr;
 ChannelUnits* Histogram::m_channelUnits = nullptr;
-QList<QColor> Histogram::m_curveColors = {Qt::blue, Qt::green, Qt::black, Qt::cyan,
-        Qt::magenta, Qt::yellow, Qt::gray };
+//QList<QColor> Histogram::m_curveColors = {Qt::blue, Qt::green, Qt::black, Qt::cyan,
+//        Qt::magenta, Qt::yellow, Qt::gray };
 
 class Histogram::Factory : public Carta::State::CartaObjectFactory {
 public:
@@ -174,37 +174,37 @@ QString Histogram::addLink( CartaObject*  target){
     return result;
 }
 
-void Histogram::_assignColor( std::shared_ptr<BinData> binData ){
-    //First go through list of fixed colors & see if there is one available.
-    int fixedColorCount = m_curveColors.size();
-    int curveCount = m_binDatas.size();
-    bool colorAssigned = false;
-    for ( int i = 0; i < fixedColorCount; i++ ){
-        bool colorAvailable = true;
-        QString fixedColorName = m_curveColors[i].name();
-        for ( int j = 0; j < curveCount; j++ ){
-            if ( m_binDatas[j]->getColor().name() == fixedColorName ){
-                colorAvailable = false;
-                break;
-            }
-        }
-        if ( colorAvailable ){
-            binData->setColor( m_curveColors[i] );
-            colorAssigned = true;
-            break;
-        }
-    }
+//void Histogram::_assignColor( std::shared_ptr<BinData> binData ){
+//    //First go through list of fixed colors & see if there is one available.
+//    int fixedColorCount = m_curveColors.size();
+//    int curveCount = m_binDatas.size();
+//    bool colorAssigned = false;
+//    for ( int i = 0; i < fixedColorCount; i++ ){
+//        bool colorAvailable = true;
+//        QString fixedColorName = m_curveColors[i].name();
+//        for ( int j = 0; j < curveCount; j++ ){
+//            if ( m_binDatas[j]->getColor().name() == fixedColorName ){
+//                colorAvailable = false;
+//                break;
+//            }
+//        }
+//        if ( colorAvailable ){
+//            binData->setColor( m_curveColors[i] );
+//            colorAssigned = true;
+//            break;
+//        }
+//    }
 
-    //If there is no color in the fixed list, assign a random one.
-    if ( !colorAssigned ){
-        const int MAX_COLOR = 255;
-        int redAmount = qrand() % MAX_COLOR;
-        int greenAmount = qrand() % MAX_COLOR;
-        int blueAmount = qrand() % MAX_COLOR;
-        QColor randomColor( redAmount, greenAmount, blueAmount );
-        binData->setColor( randomColor.name());
-    }
-}
+//    //If there is no color in the fixed list, assign a random one.
+//    if ( !colorAssigned ){
+//        const int MAX_COLOR = 255;
+//        int redAmount = qrand() % MAX_COLOR;
+//        int greenAmount = qrand() % MAX_COLOR;
+//        int blueAmount = qrand() % MAX_COLOR;
+//        QColor randomColor( redAmount, greenAmount, blueAmount );
+//        binData->setColor( randomColor.name());
+//    }
+//}
 
 void Histogram::applyClips(){
    //Get percentiles and normalize to [0,1].
@@ -476,7 +476,7 @@ void Histogram::_histogramRendered(const Carta::Lib::Hooks::HistogramResult& res
 			Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
 			CartaObject* binObj = objMan->createObject<BinData>();
 			std::shared_ptr<BinData> binData(dynamic_cast<BinData*>(binObj));
-			_assignColor( binData );
+//			_assignColor( binData );
 			binData->setName( resultName );
 			m_binDatas.append( binData );
 			targetIndex = m_binDatas.size() - 1;

@@ -105,24 +105,24 @@ RawVar::internalCb( const QString &, const QString & newValue )
 struct V3d {
     double x, y, z;
 };
-template < >
-struct ConverterHelper < V3d > {
-    static QString
-    convertValToString( const V3d & val )
-    {
-        return QString( "%1 %2 %3" ).arg( val.x ).arg( val.y ).arg( val.z );
-    }
+//template < >
+//struct ConverterHelper < V3d > {
+//    static QString
+//    convertValToString( const V3d & val )
+//    {
+//        return QString( "%1 %2 %3" ).arg( val.x ).arg( val.y ).arg( val.z );
+//    }
 
-    static V3d
-    convertStringToVal( const QString & s )
-    {
-        QString copy = s;
-        QTextStream inp( & copy );
-        V3d res;
-        inp >> res.x >> res.y >> res.z;
-        return res;
-    }
-};
+//    static V3d
+//    convertStringToVal( const QString & s )
+//    {
+//        QString copy = s;
+//        QTextStream inp( & copy );
+//        V3d res;
+//        inp >> res.x >> res.y >> res.z;
+//        return res;
+//    }
+//};
 
 #ifdef DONT_COMPILE
 

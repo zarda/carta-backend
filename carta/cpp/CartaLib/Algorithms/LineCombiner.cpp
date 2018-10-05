@@ -6,6 +6,7 @@
 #include "CartaLib/CartaLib.h"
 
 #include <QLinkedList>
+#include <QPointF>
 
 #ifdef qDebug
 #undef qDebug
@@ -20,7 +21,7 @@ namespace Algorithms
 {
 LineCombiner::LineCombiner( const QRectF & rect, int rows, int cols, double threshold )
 {
-    m_rect = rect;
+//    m_rect = rect;
     m_nRows = rows;
     m_nCols = cols;
     m_thresholdSq = threshold * threshold;
@@ -40,20 +41,20 @@ LineCombiner::~LineCombiner()
     }
 }
 
-//void LineCombiner::setColsRows(int cols, int rows)
-//{
-//    CARTA_ASSERT( m_grid.size() == 0);
+void LineCombiner::setColsRows(int cols, int rows)
+{
+    CARTA_ASSERT( m_grid.size() == 0);
 
-//    m_nCols = cols;
-//    m_nRows = rows;
+    m_nCols = cols;
+    m_nRows = rows;
 
-//    Cell * rawPtr = new Cell[ m_nRows * m_nCols];
+    Cell * rawPtr = new Cell[ m_nRows * m_nCols];
 
-//    m_grid.resize( m_nRows);
-//    for( int row = 0 ; row < m_nRows ; ++ row){
-//        m_grid[row] = rawPtr + row * m_nCols;
-//    }
-//}
+    m_grid.resize( m_nRows);
+    for( int row = 0 ; row < m_nRows ; ++ row){
+        m_grid[row] = rawPtr + row * m_nCols;
+    }
+}
 
 void
 LineCombiner::add( QPointF p1, QPointF p2 )
@@ -153,9 +154,9 @@ LineCombiner::add( QPointF p1, QPointF p2 )
         // make it a closed polyline
         poly->append( poly->first() );
 
-        QPolygonF polygon = poly2polygon( poly );
-        m_polygons.push_back( polygon );
-        delete poly;
+//        QPolygonF polygon = poly2polygon( poly );
+//        m_polygons.push_back( polygon );
+//        delete poly;
 
         return;
     }
@@ -225,35 +226,35 @@ LineCombiner::add( QPointF p1, QPointF p2 )
     findCell( ip1c.poly->last() )->pts.append( ip2c );
 } // add
 
-std::vector < QPolygonF >
-LineCombiner::getPolygons()
-{
-    // collect all polylines that are still in grid cells
-    for ( int row = 0 ; row < m_nRows ; ++row ) {
-        for ( int col = 0 ; col < m_nCols ; ++col ) {
-            for ( IndexPt & ipt : cell( row, col ).pts ) {
-                // only consider non-flipped pts, since there will always be 2 per polyline
-                if ( ipt.flipped ) {
-                    qDebug() << "Skipping " << ipt.poly;
-                    continue;
-                }
+//std::vector < QPolygonF >
+//LineCombiner::getPolygons()
+//{
+//    // collect all polylines that are still in grid cells
+//    for ( int row = 0 ; row < m_nRows ; ++row ) {
+//        for ( int col = 0 ; col < m_nCols ; ++col ) {
+//            for ( IndexPt & ipt : cell( row, col ).pts ) {
+//                // only consider non-flipped pts, since there will always be 2 per polyline
+//                if ( ipt.flipped ) {
+//                    qDebug() << "Skipping " << ipt.poly;
+//                    continue;
+//                }
 
-                // convert the polyline to QPolygonF
-                QPolygonF pf = poly2polygon( ipt.poly );
+//                // convert the polyline to QPolygonF
+//                QPolygonF pf = poly2polygon( ipt.poly );
 
-                // delete the polyline
-                qDebug() << "Deleting poly" << ipt.poly;
+//                // delete the polyline
+//                qDebug() << "Deleting poly" << ipt.poly;
 
-                delete ipt.poly;
+//                delete ipt.poly;
 
-                // add the new polygon to our list
-                m_polygons.push_back( pf );
-            }
-            cell( row, col ).pts.clear();
-        }
-    }
-    return m_polygons;
-} // add
+//                // add the new polygon to our list
+//                m_polygons.push_back( pf );
+//            }
+//            cell( row, col ).pts.clear();
+//        }
+//    }
+//    return m_polygons;
+//} // add
 
 void
 LineCombiner::pt2rowcol( const QPointF & p, int & row, int & col )
@@ -296,15 +297,15 @@ LineCombiner::cell( int row, int col )
     return m_grid[row][col];
 }
 
-QPolygonF
-LineCombiner::poly2polygon( LineCombiner::Poly * poly )
-{
-    QPolygonF pf;
-    for ( QPointF & pt : * poly ) {
-        pf.append( pt );
-    }
-    return pf;
-}
+//QPolygonF
+//LineCombiner::poly2polygon( LineCombiner::Poly * poly )
+//{
+//    QPolygonF pf;
+//    for ( QPointF & pt : * poly ) {
+//        pf.append( pt );
+//    }
+//    return pf;
+//}
 
 LineCombiner::IndexPt *
 LineCombiner::_findClosestPt( const QPointF & p )

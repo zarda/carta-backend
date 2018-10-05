@@ -146,7 +146,7 @@ DataGrid::DataGrid( const QString& path, const QString& id):
     CartaObject( CLASS_NAME, path, id ),
     m_wcsGridRenderer( nullptr){
     m_errorMargin = 0.000001;
-    m_borderColor = QColor( 0, 255, 0, 255 );
+//    m_borderColor = QColor( 0, 255, 0, 255 );
 
     _initializeSingletons();
     _initializeDefaultState();
@@ -249,21 +249,21 @@ Carta::Lib::KnownSkyCS DataGrid::_getSkyCS() const {
 }
 
 
-QPen DataGrid::_getPen( const QString& key, const Carta::State::StateInterface& state  ){
-    QString redLookup = Carta::State::UtilState::getLookup( key, Util::RED );
-    int redAmount = state.getValue<int>( redLookup );
-    QString greenLookup = Carta::State::UtilState::getLookup( key, Util::GREEN );
-    int greenAmount = state.getValue<int>( greenLookup );
-    QString blueLookup = Carta::State::UtilState::getLookup( key, Util::BLUE );
-    int blueAmount = state.getValue<int>( blueLookup );
-    QString alphaLookup = Carta::State::UtilState::getLookup( key, Util::ALPHA );
-    int alphaAmount = state.getValue<int>( alphaLookup );
-    QString widthLookup = Carta::State::UtilState::getLookup( key, Util::WIDTH );
-    int widthAmount = state.getValue<int>( widthLookup );
-    QPen pen( QColor(redAmount, greenAmount, blueAmount, alphaAmount));
-    pen.setWidth( widthAmount);
-    return pen;
-}
+//QPen DataGrid::_getPen( const QString& key, const Carta::State::StateInterface& state  ){
+//    QString redLookup = Carta::State::UtilState::getLookup( key, Util::RED );
+//    int redAmount = state.getValue<int>( redLookup );
+//    QString greenLookup = Carta::State::UtilState::getLookup( key, Util::GREEN );
+//    int greenAmount = state.getValue<int>( greenLookup );
+//    QString blueLookup = Carta::State::UtilState::getLookup( key, Util::BLUE );
+//    int blueAmount = state.getValue<int>( blueLookup );
+//    QString alphaLookup = Carta::State::UtilState::getLookup( key, Util::ALPHA );
+//    int alphaAmount = state.getValue<int>( alphaLookup );
+//    QString widthLookup = Carta::State::UtilState::getLookup( key, Util::WIDTH );
+//    int widthAmount = state.getValue<int>( widthLookup );
+//    QPen pen( QColor(redAmount, greenAmount, blueAmount, alphaAmount));
+//    pen.setWidth( widthAmount);
+//    return pen;
+//}
 
 std::shared_ptr<Carta::Lib::IWcsGridRenderService> DataGrid::_getRenderer(){
     return m_wcsGridRenderer;
@@ -289,7 +289,7 @@ void DataGrid::_initializeGridRenderer(){
         m_wcsGridRenderer.reset( new Carta::Core::DummyGridRenderer() );
     }
 
-    _resetGridRenderer();
+//    _resetGridRenderer();
     m_wcsGridRenderer-> setEmptyGrid( false );
 }
 
@@ -429,107 +429,107 @@ void DataGrid::_resetCoordinateSystem( const QString& coordSystem ){
     }
 }
 
-void DataGrid::_resetGridRenderer(){
-    if ( m_wcsGridRenderer.get() != nullptr){
+//void DataGrid::_resetGridRenderer(){
+//    if ( m_wcsGridRenderer.get() != nullptr){
 
-        bool showCoords = m_state.getValue<bool>( SHOW_COORDS );
-        m_wcsGridRenderer-> setEmptyGrid( !showCoords );
+//        bool showCoords = m_state.getValue<bool>( SHOW_COORDS );
+//        m_wcsGridRenderer-> setEmptyGrid( !showCoords );
 
-        //Internal Labels
-        bool internalLabels = m_state.getValue<bool>( SHOW_INTERNAL_LABELS );
-        m_wcsGridRenderer->setInternalLabels( internalLabels );
+//        //Internal Labels
+//        bool internalLabels = m_state.getValue<bool>( SHOW_INTERNAL_LABELS );
+//        m_wcsGridRenderer->setInternalLabels( internalLabels );
 
-        //Grid Spacing seems to go from 0.25 to 1.75
-        double spacing = m_state.getValue<double>(SPACING);
-        double densityModifier = 0.25 + spacing * 1.5;
-        m_wcsGridRenderer-> setGridDensityModifier( densityModifier );
+//        //Grid Spacing seems to go from 0.25 to 1.75
+//        double spacing = m_state.getValue<double>(SPACING);
+//        double densityModifier = 0.25 + spacing * 1.5;
+//        m_wcsGridRenderer-> setGridDensityModifier( densityModifier );
 
-        //Grid
-        bool showGrid = m_state.getValue<bool>(SHOW_GRID_LINES);
-        m_wcsGridRenderer->setGridLinesVisible( showGrid );
+//        //Grid
+//        bool showGrid = m_state.getValue<bool>(SHOW_GRID_LINES);
+//        m_wcsGridRenderer->setGridLinesVisible( showGrid );
 
-        QPen gridPen = _getPen( GRID, m_state );
-        QColor penColor = gridPen.color();
-        gridPen.setColor( penColor );
-        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::GridLines1,
-                                            gridPen);
-        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::GridLines2,
-                                           gridPen);
+//        QPen gridPen = _getPen( GRID, m_state );
+//        QColor penColor = gridPen.color();
+//        gridPen.setColor( penColor );
+//        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::GridLines1,
+//                                            gridPen);
+//        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::GridLines2,
+//                                           gridPen);
 
-        //Border
-        QPen borderPen( m_borderColor );
-        m_wcsGridRenderer->setPen( Carta::Lib::IWcsGridRenderService::Element::MarginDim, borderPen );
+//        //Border
+//        QPen borderPen( m_borderColor );
+//        m_wcsGridRenderer->setPen( Carta::Lib::IWcsGridRenderService::Element::MarginDim, borderPen );
 
-        //Ticks
-        bool showTick = m_state.getValue<bool>( SHOW_TICKS );
-        m_wcsGridRenderer->setTicksVisible( showTick );
-        QPen tickPen = _getPen( TICK, m_state );
-        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::TickLines1,
-                                    tickPen );
-        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::TickLines2,
-                                    tickPen);
-        int tickLength = m_state.getValue<int>(TICK_LENGTH);
-        double gridTickLength = tickLength / 1000.0;
-        m_wcsGridRenderer->setTickLength( gridTickLength );
+//        //Ticks
+//        bool showTick = m_state.getValue<bool>( SHOW_TICKS );
+//        m_wcsGridRenderer->setTicksVisible( showTick );
+//        QPen tickPen = _getPen( TICK, m_state );
+//        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::TickLines1,
+//                                    tickPen );
+//        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::TickLines2,
+//                                    tickPen);
+//        int tickLength = m_state.getValue<int>(TICK_LENGTH);
+//        double gridTickLength = tickLength / 1000.0;
+//        m_wcsGridRenderer->setTickLength( gridTickLength );
 
-        //AXES
-        bool showAxes = m_state.getValue<bool>( SHOW_AXIS );
-        m_wcsGridRenderer->setAxesVisible( showAxes );
+//        //AXES
+//        bool showAxes = m_state.getValue<bool>( SHOW_AXIS );
+//        m_wcsGridRenderer->setAxesVisible( showAxes );
 
-        QPen axesPen = _getPen( AXES, m_state );
-        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::AxisLines1,
-                                    axesPen);
-        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::AxisLines2,
-                                    axesPen);
-        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::BorderLines,
-                                    axesPen );
+//        QPen axesPen = _getPen( AXES, m_state );
+//        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::AxisLines1,
+//                                    axesPen);
+//        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::AxisLines2,
+//                                    axesPen);
+//        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::BorderLines,
+//                                    axesPen );
 
-        //Label
-        QPen labelPen = _getPen( LABEL_COLOR, m_state );
-        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::NumText1,
-                                    labelPen);
-        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::NumText2,
-                                    labelPen );
-        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::LabelText1,
-                                    labelPen );
-        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::LabelText2,
-                                    labelPen );
+//        //Label
+//        QPen labelPen = _getPen( LABEL_COLOR, m_state );
+//        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::NumText1,
+//                                    labelPen);
+//        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::NumText2,
+//                                    labelPen );
+//        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::LabelText1,
+//                                    labelPen );
+//        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::LabelText2,
+//                                    labelPen );
 
-        QPen shadowPen( QColor( 0,0,0,64));
-        shadowPen.setWidth(3);
-        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::Shadow,
-                                        shadowPen);
+//        QPen shadowPen( QColor( 0,0,0,64));
+//        shadowPen.setWidth(3);
+//        m_wcsGridRenderer-> setPen( Carta::Lib::IWcsGridRenderService::Element::Shadow,
+//                                        shadowPen);
 
-        QString familyLookup = Carta::State::UtilState::getLookup( FONT, Fonts::FONT_FAMILY );
-        QString fontFamily = m_state.getValue<QString>( familyLookup );
-        int fontIndex = m_fonts->getIndex( fontFamily );
-        if ( fontIndex >= 0 ){
-            QString sizeLookup = Carta::State::UtilState::getLookup( FONT, Fonts::FONT_SIZE );
-            int fontSize = m_state.getValue<int>( sizeLookup );
-            m_wcsGridRenderer-> setFont( Carta::Lib::IWcsGridRenderService::Element::NumText1,
-                                     fontIndex, fontSize);
-            m_wcsGridRenderer-> setFont( Carta::Lib::IWcsGridRenderService::Element::NumText2,
-                                     fontIndex, fontSize);
-            m_wcsGridRenderer-> setFont( Carta::Lib::IWcsGridRenderService::Element::LabelText1,
-                                     fontIndex, fontSize);
-            m_wcsGridRenderer-> setFont( Carta::Lib::IWcsGridRenderService::Element::LabelText2,
-                                     fontIndex, fontSize);
-        }
+//        QString familyLookup = Carta::State::UtilState::getLookup( FONT, Fonts::FONT_FAMILY );
+//        QString fontFamily = m_state.getValue<QString>( familyLookup );
+//        int fontIndex = m_fonts->getIndex( fontFamily );
+//        if ( fontIndex >= 0 ){
+//            QString sizeLookup = Carta::State::UtilState::getLookup( FONT, Fonts::FONT_SIZE );
+//            int fontSize = m_state.getValue<int>( sizeLookup );
+//            m_wcsGridRenderer-> setFont( Carta::Lib::IWcsGridRenderService::Element::NumText1,
+//                                     fontIndex, fontSize);
+//            m_wcsGridRenderer-> setFont( Carta::Lib::IWcsGridRenderService::Element::NumText2,
+//                                     fontIndex, fontSize);
+//            m_wcsGridRenderer-> setFont( Carta::Lib::IWcsGridRenderService::Element::LabelText1,
+//                                     fontIndex, fontSize);
+//            m_wcsGridRenderer-> setFont( Carta::Lib::IWcsGridRenderService::Element::LabelText2,
+//                                     fontIndex, fontSize);
+//        }
 
-        // coordinate system
-        QString coordSystem = m_state.getValue<QString>( COORD_SYSTEM );
-        Carta::Lib::KnownSkyCS index = m_coordSystems->getIndex( coordSystem);
-        m_wcsGridRenderer-> setSkyCS( index );
+//        // coordinate system
+//        QString coordSystem = m_state.getValue<QString>( COORD_SYSTEM );
+//        Carta::Lib::KnownSkyCS index = m_coordSystems->getIndex( coordSystem);
+//        m_wcsGridRenderer-> setSkyCS( index );
 
-    }
-}
+//    }
+//}
 
 
 
 void DataGrid::_resetState( const Carta::State::StateInterface& otherState ){
     if ( otherState.getValue<QString>( Carta::State::StateInterface::OBJECT_TYPE).length() > 0 ){
         m_state = otherState;
-        _resetGridRenderer();
+//        _resetGridRenderer();
     }
 }
 
@@ -663,19 +663,19 @@ bool DataGrid::_setAxisInfos( std::vector<AxisInfo> supportedAxes){
     m_state.resizeArray( SUPPORTED_AXES, axisCount );
 
     int axisIndex = 0;
-    for( int i=0; i<axisCount; i++ ){
-        QString name = supportedAxes[i].longLabel().plain();
-        Carta::Lib::AxisInfo::KnownType type = supportedAxes[i].knownType();
-        QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, axisIndex );
+//    for( int i=0; i<axisCount; i++ ){
+//        QString name = supportedAxes[i].longLabel().plain();
+//        Carta::Lib::AxisInfo::KnownType type = supportedAxes[i].knownType();
+//        QString lookup = Carta::State::UtilState::getLookup( SUPPORTED_AXES, axisIndex );
 
-        axisTypesChanged = true;
-        if ( type == Carta::Lib::AxisInfo::KnownType::STOKES ){
-            m_state.resizeArray( SUPPORTED_AXES, axisCount-1, Carta::State::StateInterface::PreserveAll);
-            continue;
-        }
-        m_state.setValue<QString>( lookup, name );
-        axisIndex++;
-    }
+//        axisTypesChanged = true;
+//        if ( type == Carta::Lib::AxisInfo::KnownType::STOKES ){
+//            m_state.resizeArray( SUPPORTED_AXES, axisCount-1, Carta::State::StateInterface::PreserveAll);
+//            continue;
+//        }
+//        m_state.setValue<QString>( lookup, name );
+//        axisIndex++;
+//    }
     // Deprecated. This part is designed for GridControls
     // int oldCount = m_state.getArraySize( SUPPORTED_AXES );
     // m_state.resizeArray( SUPPORTED_AXES, axisCount, Carta::State::StateInterface::PreserveAll );
@@ -713,12 +713,12 @@ bool DataGrid::_setAxisInfos( std::vector<AxisInfo> supportedAxes){
     return axisTypesChanged;
 }
 
-void DataGrid::_setBorderColor( QColor borderColor ){
-    if ( m_borderColor != borderColor ){
-        m_borderColor = borderColor;
-        _resetGridRenderer();
-    }
-}
+//void DataGrid::_setBorderColor( QColor borderColor ){
+//    if ( m_borderColor != borderColor ){
+//        m_borderColor = borderColor;
+//        _resetGridRenderer();
+//    }
+//}
 
 QStringList DataGrid::_setColor( const QString& key, int redAmount, int greenAmount, int blueAmount,
         bool* colorChanged ){
@@ -763,7 +763,7 @@ QString DataGrid::_setCoordinateSystem( const QString& coordSystem, bool* coordC
 
     *coordChanged = true;
     m_state.setValue<QString>( COORD_SYSTEM, coordSystem );
-    _resetGridRenderer();
+//    _resetGridRenderer();
     return m_state.toString();
 }
 
@@ -1096,7 +1096,7 @@ QString DataGrid::_setState( const QString stateName, const QString stateValue )
             qCritical() << "Unknown type to convert.";
         break;
     }
-    _resetGridRenderer();
+//    _resetGridRenderer();
     return m_state.toString();
 }
 

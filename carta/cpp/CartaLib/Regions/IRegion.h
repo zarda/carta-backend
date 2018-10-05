@@ -5,7 +5,7 @@
 #pragma once
 
 #include "CartaLib/CartaLib.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+//#include "CartaLib/VectorGraphics/VGList.h"
 #include "CartaLib/Nullable.h"
 #include "CartaLib/Regions/ICoordSystem.h"
 
@@ -19,8 +19,8 @@ namespace Lib
 {
 namespace Regions
 {
-static const QColor DEFAULT_LINE_COLOR = QColor( "pink" );
-static const QColor DEFAULT_FILL_COLOR = QColor( "blue" );
+//static const QColor DEFAULT_LINE_COLOR = QColor( "pink" );
+//static const QColor DEFAULT_FILL_COLOR = QColor( "blue" );
 
 /// for now we use 2D points for all region related operations, but this could
 /// change in the future to add support fo 3D or even higher dimensional regions
@@ -112,8 +112,8 @@ public:
         GUI, Print
     };
 
-    //    virtual QString
-    //    name() const { return Name; }
+//        virtual QString
+//        name() const { return Name; }
 
     RegionBase( RegionBase * parent = nullptr )
     {
@@ -135,7 +135,7 @@ public:
         m_kids.push_back( region );
         region-> setParent( this );
 
-//        region-> m_parent = this;
+        region-> m_parent = this;
     }
 
     /// return a list of all children
@@ -166,18 +166,18 @@ public:
     {
         // get the line color
         QJsonValue lineColor = json["lineColor"];
-        if ( lineColor.isString() && QColor::isValidColor( lineColor.toString() ) ) {
-            m_lineColor = QColor( lineColor.toString() );
-        }
+//        if ( lineColor.isString() && QColor::isValidColor( lineColor.toString() ) ) {
+//            m_lineColor = QColor( lineColor.toString() );
+//        }
 
         // get the fill color
         QJsonValue fillColor = json["fillColor"];
-        if ( fillColor.isString() && QColor::isValidColor( fillColor.toString() ) ) {
-            m_fillColor = QColor( fillColor.toString() );
-        }
-        else if ( fillColor.isBool() && fillColor.toBool() == false ) {
-            m_fillColor = QColor( 0, 0, 0, 0 );
-        }
+//        if ( fillColor.isString() && QColor::isValidColor( fillColor.toString() ) ) {
+//            m_fillColor = QColor( fillColor.toString() );
+//        }
+//        else if ( fillColor.isBool() && fillColor.toBool() == false ) {
+//            m_fillColor = QColor( 0, 0, 0, 0 );
+//        }
 
         if ( json.contains( "kids" ) ) {
             QJsonValue jval = json["kids"];
@@ -260,15 +260,15 @@ public:
     }
 
     /// returns a VG list of this region
-    virtual VectorGraphics::VGList
-    vgList() const
-    {
-        VectorGraphics::VGComposer comp;
-        for ( auto kid : m_kids ) {
-            comp.appendList( kid-> vgList() );
-        }
-        return comp.vgList();
-    }
+//    virtual VectorGraphics::VGList
+//    vgList() const
+//    {
+//        VectorGraphics::VGComposer comp;
+//        for ( auto kid : m_kids ) {
+//            comp.appendList( kid-> vgList() );
+//        }
+//        return comp.vgList();
+//    }
 
     /// returns a list of rectangles that contain points in the region, non-overlapping
     /// you will need to scan all points in these rectangles to get a list of all
@@ -285,58 +285,58 @@ public:
     parent() const { return m_parent; }
 
     /// set line color
-    void
-    setLineColor( const QColor & color )
-    {
-        m_lineColor = color;
-    }
+//    void
+//    setLineColor( const QColor & color )
+//    {
+//        m_lineColor = color;
+//    }
 
     /// get line color
     /// our own if defined
     /// otherwise parent's color (if parent defined)
     /// otherwise default color
-    const QColor &
-    getLineColor() const
-    {
-        if ( m_lineColor.isSet() ) {
-            return m_lineColor.val();
-        }
-        if ( m_parent ) {
-            return m_parent-> getLineColor();
-        }
-        return DEFAULT_LINE_COLOR;
-    }
+//    const QColor &
+//    getLineColor() const
+//    {
+//        if ( m_lineColor.isSet() ) {
+//            return m_lineColor.val();
+//        }
+//        if ( m_parent ) {
+//            return m_parent-> getLineColor();
+//        }
+//        return DEFAULT_LINE_COLOR;
+//    }
 
     /// do we have our own line color
-    bool
-    hasOwnLineColor() const
-    {
-        return m_lineColor.isSet();
-    }
+//    bool
+//    hasOwnLineColor() const
+//    {
+//        return m_lineColor.isSet();
+//    }
 
-    void
-    setFillColor( QColor color )
-    {
-        m_fillColor = color;
-    }
+//    void
+//    setFillColor( QColor color )
+//    {
+//        m_fillColor = color;
+//    }
 
-    QColor
-    getFillColor() const
-    {
-        if ( m_fillColor.isSet() ) {
-            return m_fillColor.val();
-        }
-        if ( parent() ) {
-            return parent()-> getFillColor();
-        }
-        return DEFAULT_FILL_COLOR;
-    }
+//    QColor
+//    getFillColor() const
+//    {
+//        if ( m_fillColor.isSet() ) {
+//            return m_fillColor.val();
+//        }
+//        if ( parent() ) {
+//            return parent()-> getFillColor();
+//        }
+//        return DEFAULT_FILL_COLOR;
+//    }
 
-    bool
-    hasOwnFillColor() const
-    {
-        return m_fillColor.isSet();
-    }
+//    bool
+//    hasOwnFillColor() const
+//    {
+//        return m_fillColor.isSet();
+//    }
 
     /// serialize to json
     virtual QJsonObject
@@ -345,12 +345,12 @@ public:
         QJsonObject json;
 
         // output line color if it's set, or this is root
-        if ( m_lineColor.isSet() || parent() == nullptr ) {
-            json["lineColor"] = getLineColor().name();
-        }
-        if ( m_fillColor.isSet() || parent() == nullptr ) {
-            json["fillColor"] = getFillColor().name();
-        }
+//        if ( m_lineColor.isSet() || parent() == nullptr ) {
+//            json["lineColor"] = getLineColor().name();
+//        }
+//        if ( m_fillColor.isSet() || parent() == nullptr ) {
+//            json["fillColor"] = getFillColor().name();
+//        }
 
         if ( m_kids.size() > 0 ) {
             QJsonArray arr;
@@ -405,8 +405,8 @@ protected:
 private:
 
     RegionBase * m_parent = nullptr;
-    Nullable < QColor > m_lineColor;
-    Nullable < QColor > m_fillColor;
+//    Nullable < QColor > m_lineColor;
+//    Nullable < QColor > m_fillColor;
 
     std::vector < RegionBase * > m_kids;
 
@@ -452,24 +452,24 @@ public:
                        m_radius * 2, m_radius * 2 );
     }
 
-    virtual VectorGraphics::VGList
-    vgList() const override
-    {
-        VectorGraphics::VGComposer composer;
+//    virtual VectorGraphics::VGList
+//    vgList() const override
+//    {
+//        VectorGraphics::VGComposer composer;
 
 //        if ( hasOwnLineColor() ) {
-        composer.append < VectorGraphics::Entries::SetPenColor > ( getLineColor() );
+//        composer.append < VectorGraphics::Entries::SetPenColor > ( getLineColor() );
 //        }
 //        if ( hasOwnFillColor() ) {
-        composer.append < VectorGraphics::Entries::SetBrush > ( getFillColor() );
+//        composer.append < VectorGraphics::Entries::SetBrush > ( getFillColor() );
 
 //        }
-        QRectF rect( m_center.x() - m_radius, m_center.y() - m_radius,
-                     2 * m_radius, 2 * m_radius );
-        composer.append < VectorGraphics::Entries::DrawEllipse > ( rect );
+//        QRectF rect( m_center.x() - m_radius, m_center.y() - m_radius,
+//                     2 * m_radius, 2 * m_radius );
+//        composer.append < VectorGraphics::Entries::DrawEllipse > ( rect );
 
-        return composer.vgList();
-    } // vgList
+//        return composer.vgList();
+//    } // vgList
 
     virtual QJsonObject
     toJson() const override
@@ -541,12 +541,12 @@ public:
 
     Polygon( RegionBase * parent = nullptr ) : RegionBase( parent ) { }
 
-    virtual bool
-    isPointInside( const RegionPointV & pts ) const override
-    {
-        const auto & p = pts[csId()];
-        return m_qpolyf.containsPoint( p, Qt::WindingFill );
-    }
+//    virtual bool
+//    isPointInside( const RegionPointV & pts ) const override
+//    {
+//        const auto & p = pts[csId()];
+//        return m_qpolyf.containsPoint( p, Qt::WindingFill );
+//    }
 
     virtual bool
     isPointInsideUnion( const RegionPointV & pts ) const override
@@ -554,29 +554,29 @@ public:
         return isPointInside( pts );
     }
 
-    virtual QRectF
-    outlineBox() const override
-    {
-        return m_qpolyf.boundingRect();
-    }
+//    virtual QRectF
+//    outlineBox() const override
+//    {
+//        return m_qpolyf.boundingRect();
+//    }
 
-    virtual VectorGraphics::VGList
-    vgList() const override
-    {
-        VectorGraphics::VGComposer composer;
+//    virtual VectorGraphics::VGList
+//    vgList() const override
+//    {
+//        VectorGraphics::VGComposer composer;
 
 //        if ( hasOwnLineColor() ) {
-        composer.append < VectorGraphics::Entries::SetPenColor > ( getLineColor() );
+//        composer.append < VectorGraphics::Entries::SetPenColor > ( getLineColor() );
 
 //        }
 //        if ( hasOwnFillColor() ) {
-        composer.append < VectorGraphics::Entries::SetBrush > ( getFillColor() );
+//        composer.append < VectorGraphics::Entries::SetBrush > ( getFillColor() );
 
 //        }
-        composer.append < VectorGraphics::Entries::DrawPolygon > ( m_qpolyf );
+//        composer.append < VectorGraphics::Entries::DrawPolygon > ( m_qpolyf );
 
-        return composer.vgList();
-    } // vgList
+//        return composer.vgList();
+//    } // vgList
 
     virtual QJsonObject
     toJson() const override
@@ -587,12 +587,12 @@ public:
         // and add our own
         doc[POINTS] = QJsonArray();
         QJsonArray pts;
-        for ( auto & pt : m_qpolyf ) {
-            QJsonObject o;
-            o[POINT_X] = pt.x();
-            o[POINT_Y] = pt.y();
-            pts.push_back( o );
-        }
+//        for ( auto & pt : m_qpolyf ) {
+//            QJsonObject o;
+//            o[POINT_X] = pt.x();
+//            o[POINT_Y] = pt.y();
+//            pts.push_back( o );
+//        }
         doc[POINTS] = pts;
         doc[RegionBase::REGION_TYPE] = TypeName;
 
@@ -605,27 +605,27 @@ public:
         if ( ! RegionBase::initFromJson( obj ) ) { return false; }
         if ( ! obj[POINTS].isArray() ) { return false; }
         QJsonArray pts = obj[POINTS].toArray();
-        m_qpolyf.clear();
+//        m_qpolyf.clear();
         for ( const auto & jv : pts ) {
             QJsonObject o = jv.toObject();
             if ( ! o[POINT_X].isDouble() ) { return false; }
             if ( ! o[POINT_Y].isDouble() ) { return false; }
             double x = o[POINT_X].toDouble();
             double y = o[POINT_Y].toDouble();
-            m_qpolyf.append( QPointF( x, y ) );
+//            m_qpolyf.append( QPointF( x, y ) );
         }
         return true;
     }
 
-    const QPolygonF &
-    qpolyf() const { return m_qpolyf; }
+//    const QPolygonF &
+//    qpolyf() const { return m_qpolyf; }
 
-    void
-    setqpolyf( const QPolygonF & poly ) { m_qpolyf = poly; }
+//    void
+//    setqpolyf( const QPolygonF & poly ) { m_qpolyf = poly; }
 
 private:
 
-    QPolygonF m_qpolyf;
+//    QPolygonF m_qpolyf;
 };
 
 class Union : public RegionBase

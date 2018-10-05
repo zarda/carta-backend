@@ -54,64 +54,64 @@ public:
                  QObject * parent = nullptr )
         : QObject( parent )
     {
-        if ( ! connect( imageRendererService.get(), & IRS::done, this, & Me::irsDoneSlot ) ) {
-            qCritical() << "Could not connect imageRenderService done slot";
-        }
-        if ( ! connect( gridRendererService.get(), & GRS::done, this, & Me::wcsGridSlot ) ) {
-            qCritical() << "Could not connect gridRenderService done slot";
-        }
-        if ( ! connect( contourController.get(), & CEC::done, this, & Me::contourSlot ) ) {
-            qCritical() << "Could not connect contour editor controller done slot";
-        }
+//        if ( ! connect( imageRendererService.get(), & IRS::done, this, & Me::irsDoneSlot ) ) {
+//            qCritical() << "Could not connect imageRenderService done slot";
+//        }
+//        if ( ! connect( gridRendererService.get(), & GRS::done, this, & Me::wcsGridSlot ) ) {
+//            qCritical() << "Could not connect gridRenderService done slot";
+//        }
+//        if ( ! connect( contourController.get(), & CEC::done, this, & Me::contourSlot ) ) {
+//            qCritical() << "Could not connect contour editor controller done slot";
+//        }
 
-        m_irs = imageRendererService;
-        m_grs = gridRendererService;
-        m_cec = contourController;
-    }
+//        m_irs = imageRendererService;
+//        m_grs = gridRendererService;
+//        m_cec = contourController;
+//    }
 
-    JobId
-    startAll()
-    {
-        startImage();
-        startGrid();
-        startContour();
-        return m_myJobId;
-    }
+//    JobId
+//    startAll()
+//    {
+//        startImage();
+//        startGrid();
+//        startContour();
+//        return m_myJobId;
+//    }
 
-    JobId
-    startImage()
-    {
-        m_irsDone = false;
-        m_irsJobId = m_irs-> render();
-        m_myJobId++;
-        return m_myJobId;
-    }
+//    JobId
+//    startImage()
+//    {
+//        m_irsDone = false;
+//        m_irsJobId = m_irs-> render();
+//        m_myJobId++;
+//        return m_myJobId;
+//    }
 
-    JobId
-    startGrid()
-    {
-        m_grsDone = false;
-        m_grsJobId = m_grs-> startRendering();
-        m_myJobId++;
-        return m_myJobId;
-    }
+//    JobId
+//    startGrid()
+//    {
+//        m_grsDone = false;
+//        m_grsJobId = m_grs-> startRendering();
+//        m_myJobId++;
+//        return m_myJobId;
+//    }
 
-    JobId
-    startContour()
-    {
-        m_cecDone = false;
-        m_cecJobId = m_cec-> startRendering();
-        m_myJobId++;
-        return m_myJobId;
-    }
+//    JobId
+//    startContour()
+//    {
+//        m_cecDone = false;
+//        m_cecJobId = m_cec-> startRendering();
+//        m_myJobId++;
+//        return m_myJobId;
+//    }
 
-    void
-    checkAndEmit()
-    {
-        // emit done only if all three are finished
-        if ( m_grsDone && m_irsDone && m_cecDone ) {
-            emit done( m_irsImage, m_grsVGList, m_cecVGList, m_myJobId );
-        }
+//    void
+//    checkAndEmit()
+//    {
+//        // emit done only if all three are finished
+//        if ( m_grsDone && m_irsDone && m_cecDone ) {
+//            emit done( m_irsImage, m_grsVGList, m_cecVGList, m_myJobId );
+//        }
     }
 
     virtual
@@ -120,50 +120,50 @@ public:
 signals:
 
     /// this will be emitted when all services report done with their respective job ids
-    void
-    done( QImage img, Carta::Lib::VectorGraphics::VGList, Carta::Lib::VectorGraphics::VGList, JobId );
+//    void
+//    done( QImage img, Carta::Lib::VectorGraphics::VGList, Carta::Lib::VectorGraphics::VGList, JobId );
 
 private slots:
 
     /// slot for receiving updates from the rendering service
-    void
-    irsDoneSlot( QImage img, Carta::Core::ImageRenderService::JobId jobId )
-    {
-        qDebug() << "irsDone xyz" << jobId;
+//    void
+//    irsDoneSlot( QImage img, Carta::Core::ImageRenderService::JobId jobId )
+//    {
+//        qDebug() << "irsDone xyz" << jobId;
 
-        // if this is not the expected job, do nothing
-        if ( jobId != m_irsJobId ) { return; }
-        m_irsDone = true;
-        m_irsImage = img;
-        checkAndEmit();
-    }
+//        // if this is not the expected job, do nothing
+//        if ( jobId != m_irsJobId ) { return; }
+//        m_irsDone = true;
+//        m_irsImage = img;
+//        checkAndEmit();
+//    }
 
     /// slot for grid
-    void
-    wcsGridSlot( Carta::Lib::VectorGraphics::VGList vgList,
-                 Carta::Lib::IWcsGridRenderService::JobId jobId )
-    {
-        qDebug() << "grsDone xyz" << jobId;
+//    void
+//    wcsGridSlot( Carta::Lib::VectorGraphics::VGList vgList,
+//                 Carta::Lib::IWcsGridRenderService::JobId jobId )
+//    {
+//        qDebug() << "grsDone xyz" << jobId;
 
-        // if this is not the expected job, do nothing
-        if ( jobId != m_grsJobId ) { return; }
-        m_grsDone = true;
-        m_grsVGList = vgList;
-        checkAndEmit();
-    }
+//        // if this is not the expected job, do nothing
+//        if ( jobId != m_grsJobId ) { return; }
+//        m_grsDone = true;
+//        m_grsVGList = vgList;
+//        checkAndEmit();
+//    }
 
-    void
-    contourSlot( Carta::Lib::VectorGraphics::VGList vgList,
-                 ContourEditorController::JobId jobId )
-    {
-        qDebug() << "contourDone xyz" << jobId;
+//    void
+//    contourSlot( Carta::Lib::VectorGraphics::VGList vgList,
+//                 ContourEditorController::JobId jobId )
+//    {
+//        qDebug() << "contourDone xyz" << jobId;
 
-        // if this is not the expected job, do nothing
-        if ( jobId != m_cecJobId ) { return; }
-        m_cecDone = true;
-        m_cecVGList = vgList;
-        checkAndEmit();
-    }
+//        // if this is not the expected job, do nothing
+//        if ( jobId != m_cecJobId ) { return; }
+//        m_cecDone = true;
+//        m_cecVGList = vgList;
+//        checkAndEmit();
+//    }
 
 private:
 
@@ -175,9 +175,9 @@ private:
     bool m_irsDone = false;
     bool m_grsDone = false;
     bool m_cecDone = false;
-    QImage m_irsImage;
-    Carta::Lib::VectorGraphics::VGList m_grsVGList;
-    Carta::Lib::VectorGraphics::VGList m_cecVGList;
+//    QImage m_irsImage;
+//    Carta::Lib::VectorGraphics::VGList m_grsVGList;
+//    Carta::Lib::VectorGraphics::VGList m_cecVGList;
 
 //    IRS::Service::SharedPtr m_irs = nullptr;
     IRS::SharedPtr m_irs = nullptr;
@@ -201,24 +201,24 @@ public:
     ~ImageViewController();
 
     /// IView interface
-    virtual void
-    registration( IConnector * ) override { }
+//    virtual void
+//    registration( IConnector * ) override { }
 
     /// IView interface
-    virtual const QString &
-    name() const override { return m_rawViewName; }
+//    virtual const QString &
+//    name() const override { return m_rawViewName; }
 
     /// IView interface
-    virtual QSize
-    size() override;
+//    virtual QSize
+//    size() override;
 
     /// IView interface
 //    virtual const QImage &
 //    getBuffer() override;
 
     /// IView interface
-    virtual void
-    handleResizeRequest( const QSize & size ) override;
+//    virtual void
+//    handleResizeRequest( const QSize & size ) override;
 
 //    /// IView interface
 //    virtual void
@@ -232,27 +232,27 @@ public:
     virtual void
     viewRefreshed( qint64 id) override;
 
-    void setColormap( Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr );
-    void
-    setPPCsettings( PPCsettings settings );
+//    void setColormap( Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr );
+//    void
+//    setPPCsettings( PPCsettings settings );
 
-    PPCsettings
-    getPPCsettings();
+//    PPCsettings
+//    getPPCsettings();
 
 public slots:
 
     /// load the requested image from a local file
-    void
-    loadImage( QString filePath );
+//    void
+//    loadImage( QString filePath );
 
-    void
-    setCmapInvert( bool flag );
+//    void
+//    setCmapInvert( bool flag );
 
-    void
-    setCmapReverse( bool flag );
+//    void
+//    setCmapReverse( bool flag );
 
-    void
-    loadFrame( int frame );
+//    void
+//    loadFrame( int frame );
 
     void
     loadNextFrame();
@@ -265,23 +265,23 @@ private slots:
     playMovieToggleCB( );
 
     /// combined slot for results from image & grid & contour
-    void
-    imageAndGridDoneSlot( QImage image,
-                          Carta::Lib::VectorGraphics::VGList gridVG,
-                          Carta::Lib::VectorGraphics::VGList contourVG,
-                          ServiceSync::JobId jobId );
+//    void
+//    imageAndGridDoneSlot( QImage image,
+//                          Carta::Lib::VectorGraphics::VGList gridVG,
+//                          Carta::Lib::VectorGraphics::VGList contourVG,
+//                          ServiceSync::JobId jobId );
 
     /// schedule a grid update after pan/zoom were modified
-    void
-    requestImageAndGridUpdate();
+//    void
+//    requestImageAndGridUpdate();
 
     /// when client changes zoom, this gets called
-    QString
-    zoomCB( const QString &, const QString & params, const QString & );
+//    QString
+//    zoomCB( const QString &, const QString & params, const QString & );
 
     /// when client changes pan, this gets called
-    QString
-    panCB( const QString &, const QString & params, const QString & );
+//    QString
+//    panCB( const QString &, const QString & params, const QString & );
 
     /// callback for m_frameVar shared state
     void
@@ -311,7 +311,7 @@ private:
     IConnector * m_connector = nullptr;
 
     /// image rendering + grid rendering
-    QImage m_renderBuffer;
+//    QImage m_renderBuffer;
 
     /// raw view name for the connector
     QString m_rawViewName;

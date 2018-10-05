@@ -1,4 +1,4 @@
-#include "LayerGroup.h"
+﻿#include "LayerGroup.h"
 #include "Data/Image/DataSource.h"
 #include "Data/Image/LayerCompositionModes.h"
 #include "Data/Image/Draw/DrawStackSynchronizer.h"
@@ -85,34 +85,34 @@ bool Stack::_addGroup( ){
 bool Stack::_closeData( const QString& id ){
     // remove the fileId
     bool dataClosed = LayerGroup::_closeData( id );
-//    if ( dataClosed ){
-//        int selectedImage = m_selectImage->getIndex();
-//        int visibleImageCount = _getStackSizeVisible();
-//        m_selectImage->setUpperBound( visibleImageCount );
-//        if ( selectedImage >= visibleImageCount ){
-//            m_selectImage->setIndex(visibleImageCount - 1);
-//        }
-//        //Update the channel upper bound and index if necessary
-//        int targetData = _getIndexCurrent();
-//        int selectCount = m_selects.size();
-//        for ( int i = 0; i < selectCount; i++ ){
-//            int frameCount = 1;
-//            AxisInfo::KnownType axisType= static_cast<AxisInfo::KnownType>( i );
-//            if ( targetData >= 0 ){
-//                frameCount = m_children[targetData]->_getFrameCount( axisType );
-//            }
-//            int oldIndex = m_selects[i]->getIndex();
-//            if ( oldIndex >= frameCount && frameCount > 0){
-//                _setFrameAxis( frameCount - 1, axisType );
-//            }
-//            else {
-//                _setFrameAxis( 0, axisType );
-//            }
-//            m_selects[i]->setUpperBound( frameCount );
-//        }
-//        emit viewLoad( );
-//        _saveState();
-//    }
+    if ( dataClosed ){
+        int selectedImage = m_selectImage->getIndex();
+        int visibleImageCount = _getStackSizeVisible();
+        m_selectImage->setUpperBound( visibleImageCount );
+        if ( selectedImage >= visibleImageCount ){
+            m_selectImage->setIndex(visibleImageCount - 1);
+        }
+        //Update the channel upper bound and index if necessary
+        int targetData = _getIndexCurrent();
+        int selectCount = m_selects.size();
+        for ( int i = 0; i < selectCount; i++ ){
+            int frameCount = 1;
+            AxisInfo::KnownType axisType= static_cast<AxisInfo::KnownType>( i );
+            if ( targetData >= 0 ){
+                frameCount = m_children[targetData]->_getFrameCount( axisType );
+            }
+            int oldIndex = m_selects[i]->getIndex();
+            if ( oldIndex >= frameCount && frameCount > 0){
+                _setFrameAxis( frameCount - 1, axisType );
+            }
+            else {
+                _setFrameAxis( 0, axisType );
+            }
+            m_selects[i]->setUpperBound( frameCount );
+        }
+        emit viewLoad( );
+        _saveState();
+    }
     return dataClosed;
 }
 
@@ -175,17 +175,17 @@ QString Stack::_getCurrentId() const {
     return id;
 }
 
-//QString Stack::_getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY) {
-//    int dataIndex = _getIndexCurrent();
-//    QString cursorText;
-//    if ( dataIndex >= 0 ){
-//        std::vector<int> frameIndices = _getFrameIndices();
-//        QSize outputSize = m_stackDraw->getClientSize();
-//        cursorText = m_children[dataIndex]->_getCursorText( isAutoClip, minPercent, maxPercent, mouseX, mouseY,
-//                frameIndices, outputSize );
-//    }
-//    return cursorText;
-//}
+QString Stack::_getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY) {
+    int dataIndex = _getIndexCurrent();
+    QString cursorText;
+    if ( dataIndex >= 0 ){
+        std::vector<int> frameIndices = _getFrameIndices();
+        QSize outputSize = m_stackDraw->getClientSize();
+        cursorText = m_children[dataIndex]->_getCursorText( isAutoClip, minPercent, maxPercent, mouseX, mouseY,
+                frameIndices, outputSize );
+    }
+    return cursorText;
+}
 
 Carta::State::StateInterface Stack::_getDataGridState(){
     std::shared_ptr<DataGrid> dataGrid = _getDataGrid();
@@ -290,20 +290,20 @@ int Stack::_getIndex( const QString& layerId) const {
 
 int Stack::_getIndexCurrent( ) const {
     int dataIndex = 0;
-//    if ( m_selectImage ){
-//        int index = m_selectImage->getIndex();
-//        int visibleIndex = -1;
-//        int dataCount = m_children.size();
-//        for ( int i = 0; i < dataCount; i++ ){
-//            if ( m_children[i]->_isVisible() && !m_children[i]->_isEmpty()){
-//                visibleIndex++;
-//                if ( visibleIndex == index ){
-//                    dataIndex = i;
-//                    break;
-//                }
-//            }
-//        }
-//    }
+    if ( m_selectImage ){
+        int index = m_selectImage->getIndex();
+        int visibleIndex = -1;
+        int dataCount = m_children.size();
+        for ( int i = 0; i < dataCount; i++ ){
+            if ( m_children[i]->_isVisible() && !m_children[i]->_isEmpty()){
+                visibleIndex++;
+                if ( visibleIndex == index ){
+                    dataIndex = i;
+                    break;
+                }
+            }
+        }
+    }
     // get the private parameter of fileId here
     if (m_fileId >= 0 && m_fileId < m_children.size()) {
         dataIndex = m_fileId;
@@ -316,11 +316,12 @@ int Stack::_getIndexCurrent( ) const {
     return dataIndex;
 }
 
-//QRectF Stack::_getInputRectangle( ) const {
-//    QSize output = m_stackDraw->getClientSize();
+QRectF Stack::_getInputRectangle( ) const {
+    QSize output = m_stackDraw->getClientSize();
 //    QRectF rect = _getInputRect( output );
 //    return rect;
-//}
+    return QRectF();
+}
 
 QStringList Stack::_getLayerIds( ) const {
     QStringList idList;
@@ -330,9 +331,9 @@ QStringList Stack::_getLayerIds( ) const {
     return idList;
 }
 
-//QSize Stack::_getOutputSize() const {
-//    return m_stackDraw->getClientSize();
-//}
+QSize Stack::_getOutputSize() const {
+    return m_stackDraw->getClientSize();
+}
 
 QString Stack::_getPixelVal( double x, double y) const {
     std::vector<int> frames = _getFrameIndices();
@@ -509,33 +510,33 @@ void Stack::_renderContext( double zoomFactor ){
     }
 }
 
-//void Stack::_renderZoom( int mouseX, int mouseY, double zoomFactor ){
-//    if ( m_imageDraws->isZoomView()){
-//        bool validPt = false;
-//        QPointF screenPt( mouseX, mouseY );
-//        QSize outputSize = m_stackDraw->getClientSize();
-//        QPointF panPt = _getImagePt( screenPt, outputSize, &validPt );
-//        std::vector<int> frames =_getFrameIndices();
-//        const Carta::Lib::KnownSkyCS& cs = _getCoordinateSystem();
-//        std::shared_ptr<RenderRequest> request( new RenderRequest( frames, cs));
-//        int gridIndex = _getIndexCurrent();
-//        request->setTopIndex( gridIndex );
-//        request->setRequestZoom( true );
-//        request->setPan( panPt);
-//        request->setZoom( zoomFactor );
-//        if ( validPt ){
-//            QList<std::shared_ptr<Layer> > datas = _getDrawChildren();
-//            request->setData( datas );
-//            m_imageDraws->render( request);
-//        }
-//        else {
-//            //Clear the screen.
-//            QList<std::shared_ptr<Layer> > datas;
-//            request->setData( datas );
-//            m_imageDraws->render( request );
-//        }
-//    }
-//}
+void Stack::_renderZoom( int mouseX, int mouseY, double zoomFactor ){
+    if ( m_imageDraws->isZoomView()){
+        bool validPt = false;
+        QPointF screenPt( mouseX, mouseY );
+        QSize outputSize = m_stackDraw->getClientSize();
+        QPointF panPt = _getImagePt( screenPt, outputSize, &validPt );
+        std::vector<int> frames =_getFrameIndices();
+        const Carta::Lib::KnownSkyCS& cs = _getCoordinateSystem();
+        std::shared_ptr<RenderRequest> request( new RenderRequest( frames, cs));
+        int gridIndex = _getIndexCurrent();
+        request->setTopIndex( gridIndex );
+        request->setRequestZoom( true );
+        request->setPan( panPt);
+        request->setZoom( zoomFactor );
+        if ( validPt ){
+            QList<std::shared_ptr<Layer> > datas = _getDrawChildren();
+            request->setData( datas );
+            m_imageDraws->render( request);
+        }
+        else {
+            //Clear the screen.
+            QList<std::shared_ptr<Layer> > datas;
+            request->setData( datas );
+            m_imageDraws->render( request );
+        }
+    }
+}
 
 QString Stack::_resetFrames( int val ){
 	//Set the image frame.
@@ -651,10 +652,10 @@ QString Stack::_saveImage( const QString& saveName ){
     request->setOutputSize( QSize(width, height) );
     request->setTopIndex( _getIndexCurrent());
     request->setRequestMain( true );
-    bool saveStarted = m_saveService->saveImage(/*frameIndices, _getCoordinateSystem()*/request);
-    if ( !saveStarted ){
-        result = "Image was not saved.  Please check the file name.";
-    }
+//    bool saveStarted = m_saveService->saveImage(/*frameIndices, _getCoordinateSystem()*/request);
+//    if ( !saveStarted ){
+//        result = "Image was not saved.  Please check the file name.";
+//    }
     return result;
 }
 
@@ -784,15 +785,15 @@ bool Stack::_setLayerName( const QString& id, const QString& name ){
     return nameSet;
 }
 
-//bool Stack::_setLayersGrouped( bool grouped  ){
-//	QSize clientSize = m_stackDraw->getClientSize();
-//    bool operationPerformed = LayerGroup::_setLayersGrouped( grouped, clientSize);
-//    if ( operationPerformed ){
-//        emit viewLoad();
-//        _saveState();
-//    }
-//    return operationPerformed;
-//}
+bool Stack::_setLayersGrouped( bool grouped  ){
+    QSize clientSize = m_stackDraw->getClientSize();
+    bool operationPerformed = LayerGroup::_setLayersGrouped( grouped, clientSize);
+    if ( operationPerformed ){
+        emit viewLoad();
+        _saveState();
+    }
+    return operationPerformed;
+}
 
 
 void Stack::_setMaskColor( const QString& id, int redAmount,
@@ -906,51 +907,51 @@ void Stack::_setZoomLevel( double zoomLevel, bool zoomPanAll ){
     emit viewLoad();
 }
 
-//void Stack::_updatePan( double centerX , double centerY, bool zoomPanAll ){
-//    if ( zoomPanAll ){
-//        for ( std::shared_ptr<Layer> data : m_children ){
-//            _updatePan( centerX, centerY, data );
-//        }
-//    }
-//    else {
-//        int dataIndex = _getIndexCurrent();
-//        if ( dataIndex >= 0 ){
-//            _updatePan( centerX, centerY, m_children[dataIndex] );
-//        }
-//    }
-//    emit viewLoad();
-//}
+void Stack::_updatePan( double centerX , double centerY, bool zoomPanAll ){
+    if ( zoomPanAll ){
+        for ( std::shared_ptr<Layer> data : m_children ){
+            _updatePan( centerX, centerY, data );
+        }
+    }
+    else {
+        int dataIndex = _getIndexCurrent();
+        if ( dataIndex >= 0 ){
+            _updatePan( centerX, centerY, m_children[dataIndex] );
+        }
+    }
+    emit viewLoad();
+}
 
-//void Stack::_updatePan( double centerX , double centerY,
-//        std::shared_ptr<Layer> data){
-//    bool validImage = false;
-//    QSize outputSize = m_stackDraw->getClientSize();
-//    QPointF imagePt = data -> _getImagePt( { centerX, centerY }, outputSize, &validImage );
-//    if ( validImage ){
-//        double imageX = imagePt.x();
-//        double imageY = imagePt.y();
-//        data->_setPan( imageX, imageY );
-//    }
-//}
+void Stack::_updatePan( double centerX , double centerY,
+        std::shared_ptr<Layer> data){
+    bool validImage = false;
+    QSize outputSize = m_stackDraw->getClientSize();
+    QPointF imagePt = data -> _getImagePt( { centerX, centerY }, outputSize, &validImage );
+    if ( validImage ){
+        double imageX = imagePt.x();
+        double imageY = imagePt.y();
+        data->_setPan( imageX, imageY );
+    }
+}
 
-//void Stack::_updatePanZoom( double centerX, double centerY, double zoomFactor, bool zoomPanAll, double zoomLevel, double layerId){
-//    if ( zoomPanAll ){
-//        for (std::shared_ptr<Layer> data : m_children ){
-//            _updatePanZoom( centerX, centerY, zoomFactor, data, zoomLevel );
-//        }
-//    }
-//    else {
+void Stack::_updatePanZoom( double centerX, double centerY, double zoomFactor, bool zoomPanAll, double zoomLevel, double layerId){
+    if ( zoomPanAll ){
+        for (std::shared_ptr<Layer> data : m_children ){
+            _updatePanZoom( centerX, centerY, zoomFactor, data, zoomLevel );
+        }
+    }
+    else {
 
-//        int dataCount = m_children.size();
-//        for ( int i = 0; i < dataCount; i++ ){
-//            if (m_children[i]->_getLayerId() == QString::number(layerId)){
-//                _updatePanZoom( centerX, centerY, zoomFactor, m_children[i], zoomLevel );
-//                break;
-//            }
-//        }
-//    }
-//    emit viewLoad();
-//}
+        int dataCount = m_children.size();
+        for ( int i = 0; i < dataCount; i++ ){
+            if (m_children[i]->_getLayerId() == QString::number(layerId)){
+                _updatePanZoom( centerX, centerY, zoomFactor, m_children[i], zoomLevel );
+                break;
+            }
+        }
+    }
+    emit viewLoad();
+}
 
 
 void Stack::updateZoom(double zoomFactor, bool zoomPanAll, double zoomLevel, double layerId){
@@ -993,46 +994,46 @@ void Stack::_updateZoom(double zoomFactor,
     data->_setZoom( newZoom );
 }
 
-//void Stack::_updatePanZoom( double centerX, double centerY, double zoomFactor,
-//         std::shared_ptr<Layer> data, double zoomLevel){
-//    //Remember where the user clicked
-//    QPointF clickPtScreen( centerX, centerY);
-//    bool validImage = false;
-//    QSize outputSize = m_stackDraw->getClientSize();
-//    QPointF clickPtImageOld = data->_getImagePt( clickPtScreen, outputSize, &validImage );
-//    if ( validImage ){
+void Stack::_updatePanZoom( double centerX, double centerY, double zoomFactor,
+         std::shared_ptr<Layer> data, double zoomLevel){
+    //Remember where the user clicked
+    QPointF clickPtScreen( centerX, centerY);
+    bool validImage = false;
+    QSize outputSize = m_stackDraw->getClientSize();
+    QPointF clickPtImageOld = data->_getImagePt( clickPtScreen, outputSize, &validImage );
+    if ( validImage ){
 
-//        //Set the zoom
-//        double newZoom = 1;
+        //Set the zoom
+        double newZoom = 1;
 
-//        // Grimmer: to be compatible with the original logic and function, keep old way, zoomFactor
-//        if (zoomLevel >=0) {
-//            newZoom = zoomLevel;
-//        } else {
-//            double oldZoom = data->_getZoom();
-//            if ( zoomFactor < 0 ) {
-//                newZoom = oldZoom * 1.5625;
-//            }
-//            else {
-//                newZoom = oldZoom * 0.64;
-//            }
-//        }
+        // Grimmer: to be compatible with the original logic and function, keep old way, zoomFactor
+        if (zoomLevel >=0) {
+            newZoom = zoomLevel;
+        } else {
+            double oldZoom = data->_getZoom();
+            if ( zoomFactor < 0 ) {
+                newZoom = oldZoom * 1.5625;
+            }
+            else {
+                newZoom = oldZoom * 0.64;
+            }
+        }
 
-//        data->_setZoom( newZoom );
+        data->_setZoom( newZoom );
 
-//        // what is the new image pixel under the mouse cursor?
-////        QSize outputSize = m_stackDraw->getClientSize();
-//        QPointF clickPtImageNew = data ->_getImagePt( clickPtScreen, outputSize, &validImage );
+        // what is the new image pixel under the mouse cursor?
+        QSize outputSize = m_stackDraw->getClientSize();
+        QPointF clickPtImageNew = data ->_getImagePt( clickPtScreen, outputSize, &validImage );
 
-//        // calculate the difference
-//        QPointF delta = clickPtImageOld - clickPtImageNew;
+        // calculate the difference
+        QPointF delta = clickPtImageOld - clickPtImageNew;
 
-//        // add the delta to the current center
-//        QPointF currCenter = data ->_getCenterPixel();
-//        QPointF newCenter = currCenter + delta;
-//        data->_setPan( newCenter.x(), newCenter.y() );
-//    }
-//}
+        // add the delta to the current center
+        QPointF currCenter = data ->_getCenterPixel();
+        QPointF newCenter = currCenter + delta;
+        data->_setPan( newCenter.x(), newCenter.y() );
+    }
+}
 
 
 

@@ -41,8 +41,8 @@ private:
      * @param rInfo - the region information.
      * @param corners - the list of region corners to add.
      */
-    void _addCorners( Carta::Lib::Regions::Polygon* rInfo,
-            const std::vector<QPointF>& corners );
+//    void _addCorners( Carta::Lib::Regions::Polygon* rInfo,
+//            const std::vector<QPointF>& corners );
 
     /**
      * Get a list of the corner points of a region in pixels.

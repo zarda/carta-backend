@@ -33,8 +33,8 @@ class SimpleRemoteVGView
 
 public:
 
-//    virtual const QSize &
-//    getClientSize() override;
+    virtual const QSize &
+    getClientSize() override;
 
     virtual const QString &
     getRVGViewName() override;
@@ -59,8 +59,8 @@ public:
 
 public slots:
 
-//    virtual qint64
-//    scheduleRepaint( qint64 id = - 1 ) override;
+    virtual qint64
+    scheduleRepaint( qint64 id = - 1 ) override;
 
 private:
 
@@ -75,7 +75,7 @@ private:
 //    QImage m_raster, m_buffer;
 
 //    VGList m_vgList;
-//    qint64 m_lastRepaintId = - 1;
+    qint64 m_lastRepaintId = - 1;
 
     // IView interface
 
@@ -85,14 +85,14 @@ private:
     virtual const QString &
     name() const override;
 
-//    virtual QSize
-//    size() override;
+    virtual QSize
+    size() override;
 
 //    virtual const QImage &
 //    getBuffer() override;
 
-//    virtual void
-//    handleResizeRequest( const QSize & size ) override;
+    virtual void
+    handleResizeRequest( const QSize & size ) override;
 
 //    virtual void
 //    handleMouseEvent( const QMouseEvent & event ) override;
@@ -104,7 +104,7 @@ private:
     viewRefreshed( qint64 id) override ;
 
     // for now this is how we handle input events... same for desktop and server
-//    QString inputEventCB( const QString & cmd, const QString & params, const QString & sessionId);
+    QString inputEventCB( const QString & cmd, const QString & params, const QString & sessionId);
 
 };
 }

@@ -29,7 +29,7 @@ class Themes;
 
 class DataGrid : public Carta::State::CartaObject {
 
-friend class LayerData;
+//friend class LayerData;
 friend class LayerGroup;
 friend class Stack;
 // For controller to use const string in callback.
@@ -109,7 +109,7 @@ private:
     QString _setState( const QString stateName, const QString stateValue );
 
     Carta::State::StateInterface _getState();
-    QPen _getPen( const QString& key, const Carta::State::StateInterface& state );
+//    QPen _getPen( const QString& key, const Carta::State::StateInterface& state );
     void _initializeDefaultPen( const QString& key, int red, int green, int blue,
             int alpha, int width );
     void _initializeDefaultState();
@@ -119,7 +119,7 @@ private:
             Carta::Lib::AxisInfo::KnownType axis);
     void _initializeSingletons();
     void _notifyAxesChanged();
-    void _resetGridRenderer();
+//    void _resetGridRenderer();
     QStringList _setColor( const QString& key, int redAmount, int greenAmount, int blueAmount,
             bool* colorChanged );
 
@@ -194,7 +194,7 @@ private:
     static Themes* m_themes;
     static LabelFormats* m_formats;
     double m_errorMargin;
-    QColor m_borderColor;
+//    QColor m_borderColor;
 
 	DataGrid( const DataGrid& other);
 	DataGrid& operator=( const DataGrid& other );

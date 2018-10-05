@@ -38,7 +38,7 @@ RegionEllipse::RegionEllipse(const QString& path, const QString& id )
 				this, SLOT(_updateStateFromJson( const QJsonObject&)));
 
     _initializeState();
-    _updateShapeFromState();
+//    _updateShapeFromState();
 }
 
 double RegionEllipse::getAngle() const {
@@ -122,8 +122,8 @@ bool RegionEllipse::setCenter( const QPointF& center ){
 		centerChanged = true;
 		m_state.setValue<double>( Carta::Lib::Regions::RegionBase::CENTER_X, centerX );
 		m_state.setValue<double>( Carta::Lib::Regions::RegionBase::CENTER_Y, centerY );
-		m_shape->setModel( toJSON() );
-		_updateName();
+//		m_shape->setModel( toJSON() );
+//		_updateName();
 	}
 	return centerChanged;
 }
@@ -133,7 +133,7 @@ void RegionEllipse::setModel( Carta::Lib::Regions::RegionBase* model ){
 		QString regionType = model->typeName();
 		CARTA_ASSERT( regionType == Carta::Lib::Regions::Ellipse::TypeName );
 		QJsonObject modelJson = model->toJson();
-		m_shape->setModel( modelJson );
+//		m_shape->setModel( modelJson );
 		_updateStateFromJson( modelJson );
 	}
 }
@@ -152,8 +152,8 @@ QString RegionEllipse::setRadiusMajor( double length, bool* changed ){
 	else if ( qAbs( oldRadiusMajor - roundedLength ) > errorMargin ){
 		*changed = true;
 		m_state.setValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MAJOR, roundedLength );
-		m_shape->setModel( toJSON() );
-		_updateName();
+//		m_shape->setModel( toJSON() );
+//		_updateName();
 	}
 	return result;;
 }
@@ -172,8 +172,8 @@ QString RegionEllipse::setRadiusMinor( double length, bool* changed ){
 	else if ( qAbs( oldRadiusMinor - roundedLength) > errorMargin ){
 		*changed = true;
 		m_state.setValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MINOR, roundedLength );
-		m_shape->setModel( toJSON() );
-		_updateName();
+//		m_shape->setModel( toJSON() );
+//		_updateName();
 	}
 	else {
 		qDebug()<< "Distance exceeded error margin";
@@ -211,7 +211,7 @@ void RegionEllipse::_updateStateFromJson( const QJsonObject& json ){
 	m_state.setValue<double>( Carta::Lib::Regions::Ellipse::RADIUS_MINOR, radiusMinor );
 	double angle = Util::roundToDigits( json[Carta::Lib::Regions::Ellipse::ANGLE].toDouble(), SIGNIFICANT_DIGITS );
 	m_state.setValue<double>( Carta::Lib::Regions::Ellipse::ANGLE, angle );
-	_updateName();
+//	_updateName();
 	emit regionShapeChanged();
 }
 

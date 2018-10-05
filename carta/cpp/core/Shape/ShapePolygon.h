@@ -2,9 +2,11 @@
  * A polygonal shape.
  **/
 #include "ShapeBase.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+#include <QPointF>
+#include <QSizeF>
+//#include "CartaLib/VectorGraphics/VGList.h"
 
-namespace vge = Carta::Lib::VectorGraphics::Entries;
+//namespace vge = Carta::Lib::VectorGraphics::Entries;
 
 namespace Carta {
 
@@ -45,7 +47,7 @@ public:
      * Return the vector graphics for the shape.
      * @return - the shape vector graphics.
      */
-    virtual Carta::Lib::VectorGraphics::VGList getVGList() const override;
+//    virtual Carta::Lib::VectorGraphics::VGList getVGList() const override;
 
     /**
      * Notification that a drag event has ended.
@@ -87,12 +89,12 @@ protected:
 
 private:
 
-    void _controlPointCB( int index, bool final );
+//    void _controlPointCB( int index, bool final );
 
     std::shared_ptr<Carta::Lib::Regions::Polygon> m_polygonRegion;
 
     // the shadow polygon
-    QPolygonF m_shadowPolygon;
+//    QPolygonF m_shadowPolygon;
 };
 }
 }

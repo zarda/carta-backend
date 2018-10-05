@@ -6,7 +6,7 @@
 
 #include "CartaLib.h"
 #include "PixelPipeline/IPixelPipeline.h"
-#include <QColor>
+//#include <QColor>
 #include <QString>
 #include <memory>
 #include <QPointF>

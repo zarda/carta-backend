@@ -6,7 +6,7 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/InputEvents.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+//#include "CartaLib/VectorGraphics/VGList.h"
 #include "Data/Image/Render/RenderRequest.h"
 #include "Data/Image/Render/RenderResponse.h"
 
@@ -48,7 +48,7 @@ public:
      * Return the client view size.
      * @return - the size of the stack view on the client.
      */
-//    QSize getClientSize() const;
+    QSize getClientSize() const;
 
     virtual ~DrawStackSynchronizer();
 

@@ -3,7 +3,7 @@
  **/
 
 #include "HtmlString.h"
-#include <QTextDocumentFragment>
+//#include <QTextDocumentFragment>
 
 namespace Carta
 {
@@ -21,16 +21,16 @@ HtmlString::html() const
     }
 }
 
-QString
-HtmlString::plain() const
-{
-    if ( m_plain.isNull() ) {
-        return QTextDocumentFragment::fromHtml( m_html ).toPlainText();
-    }
-    else {
-        return m_plain;
-    }
-}
+//QString
+//HtmlString::plain() const
+//{
+//    if ( m_plain.isNull() ) {
+//        return QTextDocumentFragment::fromHtml( m_html ).toPlainText();
+//    }
+//    else {
+//        return m_plain;
+//    }
+//}
 
 HtmlString
 HtmlString::fromHtml( QString html )

@@ -41,9 +41,9 @@ std::shared_ptr<Region> RegionFactory::makeRegionType( const QString& regionType
     else if ( regionType == Carta::Lib::Regions::Ellipse::TypeName ){
         region.reset( objMan->createObject<RegionEllipse>() );
     }
-    else if ( regionType == Carta::Lib::Regions::Point::TypeName ){
-    	region.reset( objMan->createObject<RegionPoint>() );
-    }
+//    else if ( regionType == Carta::Lib::Regions::Point::TypeName ){
+//    	region.reset( objMan->createObject<RegionPoint>() );
+//    }
     else {
         qWarning()<<"makeRegion:: Unrecognized region: "<<regionType;
     }
@@ -57,7 +57,7 @@ std::shared_ptr<Region> RegionFactory::makeRegion( const QString& regionState ){
     QString regionType = rState.getValue<QString>( Region::REGION_TYPE );
     std::shared_ptr<Region> region = makeRegionType( regionType );
     if ( region ){
-        region->_restoreState( regionState );
+//        region->_restoreState( regionState );
     }
     return region;
 }

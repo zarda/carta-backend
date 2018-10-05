@@ -42,9 +42,10 @@ const QString & ImageView::name() const {
     return m_viewName;
 }
 
-//QSize ImageView::size() {
+QSize ImageView::size() {
 //    return m_qimage.size();
-//}
+    return QSize();
+}
 
 //const QImage & ImageView::getBuffer() {
 //    redrawBuffer();

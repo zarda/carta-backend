@@ -8,7 +8,7 @@ SUBDIRS = \
     core \
     desktop \
     plugins \
-    Tests \
+#    Tests \
 #    testCache \
 #    testRegion \
 #    testPercentile

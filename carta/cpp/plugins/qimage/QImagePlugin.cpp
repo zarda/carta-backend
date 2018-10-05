@@ -384,7 +384,8 @@ public:
     title( TextFormat format ) override
     {
         if ( format == TextFormat::Plain ) {
-            return m_title.plain();
+//            return m_title.plain();
+            return "";
         }
         else {
             return m_title.html();
@@ -528,34 +529,34 @@ private:
     bool
     init( QString fname )
     {
-        QImage qimg;
-        m_valid = qimg.load( fname );
-        if ( ! m_valid ) {
-            return false;
-        }
-        qimg = qimg.mirrored( false, true );
-        if ( qimg.format() != QImage::Format_ARGB32_Premultiplied ) {
-            qimg = qimg.convertToFormat( QImage::Format_ARGB32_Premultiplied );
-        }
+//        QImage qimg;
+//        m_valid = qimg.load( fname );
+//        if ( ! m_valid ) {
+//            return false;
+//        }
+//        qimg = qimg.mirrored( false, true );
+//        if ( qimg.format() != QImage::Format_ARGB32_Premultiplied ) {
+//            qimg = qimg.convertToFormat( QImage::Format_ARGB32_Premultiplied );
+//        }
 
-        // prepare dimensions
-        m_dims[0] = qimg.width();
-        m_dims[1] = qimg.height();
+//        // prepare dimensions
+//        m_dims[0] = qimg.width();
+//        m_dims[1] = qimg.height();
 
-        // prepare metadata
-        m_mdi = std::make_shared < QImageMDI > ( shared_from_this() );
+//        // prepare metadata
+//        m_mdi = std::make_shared < QImageMDI > ( shared_from_this() );
 
-        // extract the actual pixels and store it in our own data buffer (only one byte
-        // per pixel, gray equivalent to be precise)
-        m_data = std::make_shared < std::vector < unsigned char > > ( m_dims[0] * m_dims[1] );
-        unsigned int * src = (unsigned int *) qimg.bits();
-        int count = qimg.width() * qimg.height();
-        unsigned char * dst = & m_data-> at( 0 );
-        for ( int i = 0 ; i < count ; ++i ) {
-            * dst = qGray( * src );
-            src++;
-            dst++;
-        }
+//        // extract the actual pixels and store it in our own data buffer (only one byte
+//        // per pixel, gray equivalent to be precise)
+//        m_data = std::make_shared < std::vector < unsigned char > > ( m_dims[0] * m_dims[1] );
+//        unsigned int * src = (unsigned int *) qimg.bits();
+//        int count = qimg.width() * qimg.height();
+//        unsigned char * dst = & m_data-> at( 0 );
+//        for ( int i = 0 ; i < count ; ++i ) {
+//            * dst = qGray( * src );
+//            src++;
+//            dst++;
+//        }
         return true;
     } // init
 

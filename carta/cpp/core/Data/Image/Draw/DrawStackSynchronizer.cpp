@@ -27,22 +27,22 @@ void DrawStackSynchronizer::_clear(){
     QMetaObject::invokeMethod( this, "_repaintFrameNow", Qt::QueuedConnection );
 }
 
-//QSize DrawStackSynchronizer::getClientSize() const {
-//    return m_view->getClientSize();
-//}
+QSize DrawStackSynchronizer::getClientSize() const {
+    return m_view->getClientSize();
+}
 
 
 QList<std::shared_ptr<Layer> > DrawStackSynchronizer::_getLoadableData( const std::shared_ptr<RenderRequest>& request ){
-	QList<std::shared_ptr<Layer> > loadables;
-	QList<std::shared_ptr<Layer> > datas = request->getData();
-	std::vector<int> frames = request->getFrames();
-	int dataCount = datas.size();
-	for ( int i = 0; i < dataCount; i++ ){
-		if ( datas[i]->_isLoadable(frames) ){
-			loadables.push_back( datas[i] );
-		}
-	}
-	return loadables;
+    QList<std::shared_ptr<Layer> > loadables;
+    QList<std::shared_ptr<Layer> > datas = request->getData();
+    std::vector<int> frames = request->getFrames();
+    int dataCount = datas.size();
+    for ( int i = 0; i < dataCount; i++ ){
+        if ( datas[i]->_isLoadable(frames) ){
+            loadables.push_back( datas[i] );
+        }
+    }
+    return loadables;
 }
 
 void DrawStackSynchronizer::_repaintFrameNow(){

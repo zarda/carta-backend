@@ -5,7 +5,7 @@
 #pragma once
 
 #include "CartaLib/CartaLib.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+//#include "CartaLib/VectorGraphics/VGList.h"
 #include "CartaLib/IRemoteVGView.h"
 #include "core/IConnector.h"
 #include <QObject>
@@ -118,8 +118,8 @@ public:
     void
     setRasterCombiner( Carta::Lib::IQImageCombiner::SharedPtr combiner );
 
-    void
-    setVG( const Carta::Lib::VectorGraphics::VGList & );
+//    void
+//    setVG( const Carta::Lib::VectorGraphics::VGList & );
 
     virtual
     ~LayerHandle() { }

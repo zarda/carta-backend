@@ -9,7 +9,7 @@
 #include "PluginManager.h"
 
 #include <QDebug>
-#include <QColor>
+//#include <QColor>
 #include <set>
 
 namespace Carta {

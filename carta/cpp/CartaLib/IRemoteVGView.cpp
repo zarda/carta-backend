@@ -89,20 +89,20 @@ LayeredRemoteVGView::viewName()
 //    return m_vgView-> getClientSize();
 //}
 
-//qint64
-//LayeredRemoteVGView::scheduleRepaint( qint64 id )
-//{
-//    if ( id == - 1 ) {
-//        id = m_repaintId + 1;
-//    }
-//    m_repaintId = id;
+qint64
+LayeredRemoteVGView::scheduleRepaint( qint64 id )
+{
+    if ( id == - 1 ) {
+        id = m_repaintId + 1;
+    }
+    m_repaintId = id;
 
 //    if ( ! m_timer-> isActive() ) {
 //        m_timer-> start();
 //    }
 
-//    return m_repaintId;
-//}
+    return m_repaintId;
+}
 
 LayeredRemoteVGView::LayeredRemoteVGView( IConnector * connector,
                                           QString viewName,
@@ -272,11 +272,11 @@ LayeredViewArbitrary::viewName()
     return m_vgView-> getRVGViewName();
 }
 
-//QSize
-//LayeredViewArbitrary::getClientSize()
-//{
-//    return m_vgView-> getClientSize();
-//}
+QSize
+LayeredViewArbitrary::getClientSize()
+{
+    return m_vgView-> getClientSize();
+}
 
 qint64
 LayeredViewArbitrary::scheduleRepaint( qint64 id )

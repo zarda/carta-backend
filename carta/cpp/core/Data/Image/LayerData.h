@@ -9,11 +9,15 @@
 #include "CartaLib/IImage.h"
 #include "CartaLib/AxisInfo.h"
 #include "CartaLib/AxisLabelInfo.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+#include "Grid/DataGrid.h"
+//#include "CartaLib/VectorGraphics/VGList.h"
 #include "CartaLib/IntensityUnitConverter.h"
-#include <QImage>
+//#include <QImage>
 #include <memory>
 #include <set>
+#include <QPointF>
+#include <QSize>
+#include <QRectF>
 
 class CoordinateFormatterInterface;
 
@@ -189,7 +193,7 @@ protected:
     virtual int _getFrameCount( Carta::Lib::AxisInfo::KnownType type ) const Q_DECL_OVERRIDE;
 
     //Return data source state.
-     virtual Carta::State::StateInterface _getGridState() const Q_DECL_OVERRIDE;
+//     virtual Carta::State::StateInterface _getGridState() const Q_DECL_OVERRIDE;
 
      /**
       * Returns the underlying image.
@@ -212,7 +216,7 @@ protected:
       * Return the color filter for the layer.
       * @return - a color filter for the layer.
       */
-     virtual quint32 _getMaskColor() const Q_DECL_OVERRIDE;
+//     virtual quint32 _getMaskColor() const Q_DECL_OVERRIDE;
 
 
      /**
@@ -318,7 +322,7 @@ protected:
      * @param clipMaxPercentile the maximum clip value.
      */
     void _load( std::vector<int> frames, bool autoClip, double clipMinPercentile,
-    		double clipMaxPercentile );
+            double clipMaxPercentile );
 
     /**
      * Center the image.
@@ -357,7 +361,7 @@ protected:
      * @param size - the size of the displayed image.
      * @return - the portion of the image that is visible.
      */
-    virtual QRectF _getInputRect( const QSize& size ) const Q_DECL_OVERRIDE;
+//    virtual QRectF _getInputRect( const QSize& size ) const Q_DECL_OVERRIDE;
 
     /**
      * Returns the intensity corresponding to a given percentile.
@@ -416,7 +420,7 @@ protected:
      * Return the graphics for drawing regions.
      * @return - a list of graphics for drawing regions.
      */
-    virtual Carta::Lib::VectorGraphics::VGList _getRegionGraphics() const Q_DECL_OVERRIDE;
+//    virtual Carta::Lib::VectorGraphics::VGList _getRegionGraphics() const Q_DECL_OVERRIDE;
 
     /**
      * Returns true if at least one contour set should be drawn; false otherwise.
@@ -440,19 +444,19 @@ protected:
     /**
      * Generate a new QImage.
      */
-    virtual void _renderStart() Q_DECL_OVERRIDE;
+//    virtual void _renderStart() Q_DECL_OVERRIDE;
 
     /**
      * Reset the prefereence state of this layer.
      * @param restoreState - the new layer state.
      */
-    virtual void _resetState( const Carta::State::StateInterface& restoreState ) Q_DECL_OVERRIDE;
+//    virtual void _resetState( const Carta::State::StateInterface& restoreState ) Q_DECL_OVERRIDE;
 
     /**
      * Reset the layer contours.
      * @param restoreeState - the new layer state.
      */
-    virtual void _resetStateContours(const Carta::State::StateInterface& restoreState ) Q_DECL_OVERRIDE;
+//    virtual void _resetStateContours(const Carta::State::StateInterface& restoreState ) Q_DECL_OVERRIDE;
 
     virtual QString _setAxis( const QString axis, const QString name ) Q_DECL_OVERRIDE;
 
@@ -505,7 +509,7 @@ protected:
      * Set a list of graphics for drawing the current regions.
      * @param regionVGList - graphics for drawing the current regions.
      */
-    virtual void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ) Q_DECL_OVERRIDE;
+//    virtual void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ) Q_DECL_OVERRIDE;
     virtual void _setSupportAlpha( bool supportAlpha ) Q_DECL_OVERRIDE;
     virtual void _setSupportColor( bool supportColor ) Q_DECL_OVERRIDE;
 
@@ -528,11 +532,11 @@ private slots:
 
     //Notification from the rendering service that a new image and assiciated vector
     //graphics have been produced.
-    void _renderingDone(  QImage image,
-                          Carta::Lib::VectorGraphics::VGList vgList,
-                          Carta::Lib::VectorGraphics::VGList contourList,
-						  Carta::Lib::VectorGraphics::VGList regionList,
-                          int64_t jobId );
+//    void _renderingDone(  QImage image,
+//                          Carta::Lib::VectorGraphics::VGList vgList,
+//                          Carta::Lib::VectorGraphics::VGList contourList,
+//						  Carta::Lib::VectorGraphics::VGList regionList,
+//                          int64_t jobId );
 
 private:
 
@@ -552,7 +556,7 @@ private:
     QPointF _getPan() const;
 
 
-    bool _getTransform( const QPointF& pan, double zoom, const QSize& size, QTransform& tf ) const;
+//    bool _getTransform( const QPointF& pan, double zoom, const QSize& size, QTransform& tf ) const;
 
     void _initializeState();
 
@@ -581,7 +585,7 @@ private:
      /// image-and-grid-service result synchronizer
     std::unique_ptr<DrawSynchronizer> m_drawSync;
 
-    Carta::Lib::VectorGraphics::VGList m_regionGraphics;
+//    Carta::Lib::VectorGraphics::VGList m_regionGraphics;
 
     std::shared_ptr<ColorState> m_stateColor;
 

@@ -8,7 +8,7 @@
 #include <State/StateInterface.h>
 #include <cmath>
 
-#include <QPen>
+//#include <QPen>
 
 namespace Carta {
 
@@ -34,7 +34,7 @@ public:
      * Returns the pen that should be used to draw the contour.
      * @return - the QPen for drawing the contour.
      */
-    QPen getPen() const;
+//    QPen getPen() const;
 
 
     /**

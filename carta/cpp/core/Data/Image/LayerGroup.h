@@ -190,7 +190,7 @@ protected:
     virtual int _getFrameCount( Carta::Lib::AxisInfo::KnownType type ) const Q_DECL_OVERRIDE;
 
     //Return data source state.
-    virtual Carta::State::StateInterface _getGridState() const Q_DECL_OVERRIDE;
+//    virtual Carta::State::StateInterface _getGridState() const Q_DECL_OVERRIDE;
 
     /**
       * Returns the underlying image.
@@ -222,7 +222,7 @@ protected:
      * @param size - the size of the displayed image.
      * @return - the portion of the image that is visible.
      */
-    virtual QRectF _getInputRect( const QSize& size ) const Q_DECL_OVERRIDE;
+//    virtual QRectF _getInputRect( const QSize& size ) const Q_DECL_OVERRIDE;
 
 
     /**
@@ -348,7 +348,7 @@ protected:
      * Return the graphics for drawing regions.
      * @return - a list of graphics for drawing regions.
      */
-    virtual Carta::Lib::VectorGraphics::VGList _getRegionGraphics() const Q_DECL_OVERRIDE;
+//    virtual Carta::Lib::VectorGraphics::VGList _getRegionGraphics() const Q_DECL_OVERRIDE;
 
     /**
      * Return the rest frequency and units for the image.
@@ -438,7 +438,7 @@ protected:
     /**
      * Generate a new QImage.
      */
-    virtual void _renderStart( ) Q_DECL_OVERRIDE;
+//    virtual void _renderStart( ) Q_DECL_OVERRIDE;
 
     /**
      * Center the image.
@@ -494,7 +494,7 @@ protected:
      * Set a list of graphics for drawing the current regions.
      * @param regionVGList - graphics for drawing the current regions.
      */
-    virtual void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ) Q_DECL_OVERRIDE;
+//    virtual void _setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList ) Q_DECL_OVERRIDE;
 
     /**
      * Set this data source selected.
@@ -563,12 +563,12 @@ protected slots:
     virtual void _colorChanged() Q_DECL_OVERRIDE;
 
 private slots:
-    void _renderingDone( QImage image, Carta::Lib::VectorGraphics::VGList graphics );
+//    void _renderingDone( QImage image, Carta::Lib::VectorGraphics::VGList graphics );
     void _removeLayer( Layer* group );
 
 private:
 
-    void _assignColor( int index );
+//    void _assignColor( int index );
     void _clearData();
 
 

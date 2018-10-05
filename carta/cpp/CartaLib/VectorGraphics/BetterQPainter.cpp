@@ -2,13 +2,13 @@
  *
  **/
 
-#include "BetterQPainter.h"
+//#include "BetterQPainter.h"
 
-namespace Carta
-{
-namespace Lib
-{
-namespace VectorGraphics
-{ }
-}
-}
+//namespace Carta
+//{
+//namespace Lib
+//{
+//namespace VectorGraphics
+//{ }
+//}
+//}

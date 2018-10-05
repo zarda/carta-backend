@@ -5,6 +5,7 @@
 #include "IRegion.h"
 
 #include <QFile>
+#include <QPointF>
 #include <QJsonDocument>
 
 namespace Carta
@@ -65,42 +66,42 @@ fromJson( QJsonObject json, RegionBase * parent )
     return nullptr;
 } // fromJson
 
-void
-test1( QString inputFname, QString outputFname )
-{
-    QFile fp( inputFname );
-    if ( ! fp.open( QIODevice::ReadOnly ) ) {
-        qWarning() << "Could not open " << inputFname;
-        return;
-    }
-    QByteArray contents = fp.readAll();
-    QJsonParseError jerr;
-    QJsonDocument jdoc = QJsonDocument::fromJson( contents, & jerr );
-    if ( jerr.error != QJsonParseError::NoError ) {
-        qWarning() << "Json parse error@" << jerr.offset << ":" << jerr.errorString();
-        return;
-    }
+//void
+//test1( QString inputFname, QString outputFname )
+//{
+//    QFile fp( inputFname );
+//    if ( ! fp.open( QIODevice::ReadOnly ) ) {
+//        qWarning() << "Could not open " << inputFname;
+//        return;
+//    }
+//    QByteArray contents = fp.readAll();
+//    QJsonParseError jerr;
+//    QJsonDocument jdoc = QJsonDocument::fromJson( contents, & jerr );
+//    if ( jerr.error != QJsonParseError::NoError ) {
+//        qWarning() << "Json parse error@" << jerr.offset << ":" << jerr.errorString();
+//        return;
+//    }
 
-    Carta::Lib::Regions::RegionBase * bb = Carta::Lib::Regions::fromJson( jdoc.object() );
+//    Carta::Lib::Regions::RegionBase * bb = Carta::Lib::Regions::fromJson( jdoc.object() );
 
-    // get the outline box
-    QRectF bigRect = bb->outlineBox();
+//    // get the outline box
+//    QRectF bigRect = bb->outlineBox();
 
-    // setup the output image
-    QSize outputSize;
-    int maxSize = 100;
-    if ( bigRect.width() > bigRect.height() ) {
-        outputSize = QSize( maxSize, maxSize * bigRect.height() / bigRect.width() );
-    }
-    else {
-        outputSize = QSize( maxSize * bigRect.width() / bigRect.height(), maxSize );
-    }
-    QImage qimg( outputSize, QImage::Format_ARGB32 );
-    qimg.fill( 0 );
+//    // setup the output image
+//    QSize outputSize;
+//    int maxSize = 100;
+//    if ( bigRect.width() > bigRect.height() ) {
+//        outputSize = QSize( maxSize, maxSize * bigRect.height() / bigRect.width() );
+//    }
+//    else {
+//        outputSize = QSize( maxSize * bigRect.width() / bigRect.height(), maxSize );
+//    }
+//    QImage qimg( outputSize, QImage::Format_ARGB32 );
+//    qimg.fill( 0 );
 
-    // save image to output
-    qimg.save( outputFname );
-} // test1
+//    // save image to output
+//    qimg.save( outputFname );
+//} // test1
 }
 }
 }

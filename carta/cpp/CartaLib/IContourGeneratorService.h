@@ -12,7 +12,7 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/ContourSet.h"
 #include <QObject>
-#include <QPolygonF>
+//#include <QPolygonF>
 
 namespace Carta
 {
@@ -127,7 +127,7 @@ signals:
 }
 }
 
-#include "VectorGraphics/VGList.h"
+//#include "VectorGraphics/VGList.h"
 namespace Carta
 {
 namespace Lib
@@ -136,8 +136,8 @@ class Contour2VG
 {
 public:
 
-    VectorGraphics::VGList
-    convert( const IContourGeneratorService::Result & contours );
+//    VectorGraphics::VGList
+//    convert( const IContourGeneratorService::Result & contours );
 };
 }
 }

@@ -6,9 +6,10 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/InputEvents.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+//#include "CartaLib/VectorGraphics/VGList.h"
 #include <QtCore/qmath.h>
 #include <QObject>
+#include <QPointF>
 
 namespace Carta {
 namespace Shape {
@@ -25,7 +26,7 @@ public:
 	/**
 	 * Notification that the editable state of the shape has changed.
 	 */
-	virtual void editModeChanged();
+    virtual void editModeChanged();
 
 	/**
 	 * Return any user data associated with the shape.
@@ -55,7 +56,7 @@ public:
 	 * Return the center of the bounding box containing the shape.
 	 * @return - the center of the bounding box containing the shape.
 	 */
-	virtual QPointF getCenter() const = 0;
+    virtual QPointF getCenter() const = 0;
 
 	/**
 	 * Return information about the cursor position withen the shape.
@@ -67,31 +68,31 @@ public:
 	 * Return information about the color of the shape.
 	 * @retun - information about the color of the shape.
 	 */
-	QColor getColor() const;
+//	QColor getColor() const;
 
 	/**
 	 * Return the size of the bounding box containing the shape.
 	 * @return - the size of the bounding box containing the shape.
 	 */
-	virtual QSizeF getSize() const = 0;
+    virtual QSizeF getSize() const = 0;
 
 	/**
 	 * Return the vector graphics for the shape.
 	 * @return - the shape vector graphics.
 	 */
-	virtual Carta::Lib::VectorGraphics::VGList getVGList() const;
+//	virtual Carta::Lib::VectorGraphics::VGList getVGList() const;
 
 	/**
 	 * Notification that a drag event has started on the shape.
 	 * @param pt - the starting point of the drag.
 	 */
-	virtual void handleDragStart( const QPointF & pt );
+    virtual void handleDragStart( const QPointF & pt );
 
 	/**
 	 * Notification of a drag as it progresses.
 	 * @param pt - the current location of the drag.
 	 */
-	virtual void handleDrag( const QPointF & pt );
+    virtual void handleDrag( const QPointF & pt );
 
 	/**
 	 * Notification that a drag event has ended.
@@ -136,7 +137,7 @@ public:
 	 * Set the color of the shape;
 	 * @param color - the color to set.
 	 */
-	virtual void setColor( QColor color );
+//	virtual void setColor( QColor color );
 
 	/**
 	 * Set whether or not the shape can be deleted.
@@ -155,13 +156,13 @@ public:
 	 * Set a model for the shape.
 	 * @param json - the shape model (corner points, center, etc).
 	 */
-	virtual void setModel( const QJsonObject& json ) = 0;
+    virtual void setModel( const QJsonObject& json ) = 0;
 
 	/**
 	 * Set whether or not the shape is selected;
 	 * @param value - true if the shape is selected; false otherwise.
 	 */
-	virtual void setSelected( bool value );
+    virtual void setSelected( bool value );
 
 	/**
 	 * Set user data associated with the shape.
@@ -171,18 +172,18 @@ public:
 
 signals:
 
-	void shapeChanged( const QJsonObject& jsonObj );
+    void shapeChanged( const QJsonObject& jsonObj );
 
 protected:
-	virtual void _editShadow( const QPointF& pt ) = 0;
-	virtual void _moveShadow( const QPointF& pt ) = 0;
-	virtual void _syncShadowToCPs() = 0;
-	const static QPen shadowPen;
-	const static QBrush shadowBrush;
-	const static QPen outlinePen;
+    virtual void _editShadow( const QPointF& pt ) = 0;
+    virtual void _moveShadow( const QPointF& pt ) = 0;
+    virtual void _syncShadowToCPs() = 0;
+//	const static QPen shadowPen;
+//	const static QBrush shadowBrush;
+//	const static QPen outlinePen;
 	bool m_dragMode;
 	QPointF m_dragStart;
-        QColor m_color;
+//        QColor m_color;
 	int m_dragControlIndex;
 	std::vector < std::shared_ptr<ControlPointEditable> > m_controlPoints;
 

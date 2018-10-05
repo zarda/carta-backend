@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <QPolygonF>
+//#include <QPolygonF>
 #include <QDebug>
 #include <vector>
 
@@ -24,47 +24,47 @@ public:
     }
 
     /// returns the list of polylines
-    const std::vector < QPolygonF > &
-    polylines() const
-    {
-        return m_polylines;
-    }
+//    const std::vector < QPolygonF > &
+//    polylines() const
+//    {
+//        return m_polylines;
+//    }
 
     /// constructor
-    Contour( double level, std::vector < QPolygonF > & polylines )
-    {
-        m_level = level;
-        m_polylines = polylines;
+//    Contour( double level, std::vector < QPolygonF > & polylines )
+//    {
+//        m_level = level;
+//        m_polylines = polylines;
 
 //        m_constructed++;
 //        qDebug() << "xContour" << m_constructed << "vs" << m_deleted;
-    }
+//    }
 
-//    Contour( const Contour & other )
-//    {
-//        m_level = other.m_level;
+    Contour( const Contour & other )
+    {
+        m_level = other.m_level;
 //        m_polylines = other.m_polylines;
 
-//        m_constructed++;
-//        qDebug() << "xContour" << m_constructed << "vs" << m_deleted;
-//    }
+        m_constructed++;
+        qDebug() << "xContour" << m_constructed << "vs" << m_deleted;
+    }
 
-//    ~Contour()
-//    {
-//        m_deleted++;
-//        qDebug() << "xContour" << m_constructed << "vs" << m_deleted;
-//    }
+    ~Contour()
+    {
+        m_deleted++;
+        qDebug() << "xContour" << m_constructed << "vs" << m_deleted;
+    }
 
-//    Contour &
-//    operator= ( const Contour & ) = delete;
+    Contour &
+    operator= ( const Contour & ) = delete;
 
 private:
 
     double m_level = 0.0;
-    std::vector < QPolygonF > m_polylines;
+//    std::vector < QPolygonF > m_polylines;
 
-//    static int m_constructed;
-//    static int m_deleted;
+    static int m_constructed;
+    static int m_deleted;
 };
 
 /// data type that holds generated contours

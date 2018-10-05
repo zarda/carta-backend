@@ -101,8 +101,8 @@ ProfileStatistics* Profiler::m_stats = nullptr;
 LineStyles* Profiler::m_lineStyles = nullptr;
 
 
-QList<QColor> Profiler::m_curveColors = {Qt::blue, Qt::green, Qt::black, Qt::cyan,
-        Qt::magenta, Qt::yellow, Qt::gray };
+//QList<QColor> Profiler::m_curveColors = {Qt::blue, Qt::green, Qt::black, Qt::cyan,
+//        Qt::magenta, Qt::yellow, Qt::gray };
 
 using Carta::State::UtilState;
 using Carta::State::StateInterface;
@@ -219,37 +219,37 @@ int Profiler::_addNewCurveData( std::shared_ptr<Layer> layer,
     return index;
 }
 
-void Profiler::_assignColor( std::shared_ptr<CurveData> curveData ){
-    //First go through list of fixed colors & see if there is one available.
-    int fixedColorCount = m_curveColors.size();
-    int curveCount = m_plotCurves.size();
-    bool colorAssigned = false;
-    for ( int i = 0; i < fixedColorCount; i++ ){
-        bool colorAvailable = true;
-        QString fixedColorName = m_curveColors[i].name();
-        for ( int j = 0; j < curveCount; j++ ){
-            if ( m_plotCurves[j]->getColor().name() == fixedColorName ){
-                colorAvailable = false;
-                break;
-            }
-        }
-        if ( colorAvailable ){
-            curveData->setColor( m_curveColors[i] );
-            colorAssigned = true;
-            break;
-        }
-    }
+//void Profiler::_assignColor( std::shared_ptr<CurveData> curveData ){
+//    //First go through list of fixed colors & see if there is one available.
+//    int fixedColorCount = m_curveColors.size();
+//    int curveCount = m_plotCurves.size();
+//    bool colorAssigned = false;
+//    for ( int i = 0; i < fixedColorCount; i++ ){
+//        bool colorAvailable = true;
+//        QString fixedColorName = m_curveColors[i].name();
+//        for ( int j = 0; j < curveCount; j++ ){
+//            if ( m_plotCurves[j]->getColor().name() == fixedColorName ){
+//                colorAvailable = false;
+//                break;
+//            }
+//        }
+//        if ( colorAvailable ){
+//            curveData->setColor( m_curveColors[i] );
+//            colorAssigned = true;
+//            break;
+//        }
+//    }
 
-    //If there is no color in the fixed list, assign a random one.
-    if ( !colorAssigned ){
-        const int MAX_COLOR = 255;
-        int redAmount = qrand() % MAX_COLOR;
-        int greenAmount = qrand() % MAX_COLOR;
-        int blueAmount = qrand() % MAX_COLOR;
-        QColor randomColor( redAmount, greenAmount, blueAmount );
-        curveData->setColor( randomColor.name());
-    }
-}
+//    //If there is no color in the fixed list, assign a random one.
+//    if ( !colorAssigned ){
+//        const int MAX_COLOR = 255;
+//        int redAmount = qrand() % MAX_COLOR;
+//        int greenAmount = qrand() % MAX_COLOR;
+//        int blueAmount = qrand() % MAX_COLOR;
+//        QColor randomColor( redAmount, greenAmount, blueAmount );
+//        curveData->setColor( randomColor.name());
+//    }
+//}
 
 
 void Profiler::_clearData(){
@@ -1548,30 +1548,30 @@ void Profiler::_initializeCallbacks(){
         QString result;
         _generateProfiles();
 
-        // QJsonArray profileDataList;
-        // QJsonObject profileData;
-        //
-        // int curveCount = m_plotCurves.size();
-        // for ( int i = 0; i< curveCount; i++ ){
-        //     std::vector<double> curveDataX = m_plotCurves[i]->getValuesX();
-        //     std::vector<double> curveDataY = m_plotCurves[i]->getValuesY();
-        //
-        //     int dataCount = curveDataX.size();
-        //     if ( dataCount > 0 ){
-        //         QJsonArray profileDataX, profileDataY;
-        //         for( int i = 0 ; i < dataCount; i ++ ){
-        //             profileDataX.append( curveDataX[i] );
-        //             profileDataY.append( curveDataY[i] );
-        //         }
-        //         profileData.insert( "curveName", i );
-        //         profileData.insert( "x", profileDataX );
-        //         profileData.insert( "y", profileDataY );
-        //     }
-        //     profileDataList.push_back(profileData);
-        // }
-        //
-        // QJsonDocument doc(profileDataList);
-        // result = QString(doc.toJson());
+         QJsonArray profileDataList;
+         QJsonObject profileData;
+
+         int curveCount = m_plotCurves.size();
+         for ( int i = 0; i< curveCount; i++ ){
+             std::vector<double> curveDataX = m_plotCurves[i]->getValuesX();
+             std::vector<double> curveDataY = m_plotCurves[i]->getValuesY();
+
+             int dataCount = curveDataX.size();
+             if ( dataCount > 0 ){
+                 QJsonArray profileDataX, profileDataY;
+                 for( int i = 0 ; i < dataCount; i ++ ){
+                     profileDataX.append( curveDataX[i] );
+                     profileDataY.append( curveDataY[i] );
+                 }
+                 profileData.insert( "curveName", i );
+                 profileData.insert( "x", profileDataX );
+                 profileData.insert( "y", profileDataY );
+             }
+             profileDataList.push_back(profileData);
+         }
+
+         QJsonDocument doc(profileDataList);
+         result = QString(doc.toJson());
         result = m_stateData.toString();
 
         return result;
@@ -1590,44 +1590,44 @@ void Profiler::_initializeCallbacks(){
 
     addCommandCallback( "getProfileData", [=] ( const QString & /*cmd*/,
             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        // Carta::Lib::Hooks::ProfileResult profileResult = m_renderService->getResult();
-        // std::vector< std::pair<double,double> > data = profileResult.getData();
-        // int dataCount = data.size();
-        // if ( dataCount > 0 ){
-        //     QJsonArray profileDataX, profileDataY;
-        //     for( int i = 0 ; i < dataCount; i ++ ){
-        //         profileDataX.append( data[i].first );
-        //         profileDataY.append( data[i].second );
-        //     }
-        //     m_profileData.insert( "x", profileDataX );
-        //     m_profileData.insert( "y", profileDataY );
-        // }
+         Carta::Lib::Hooks::ProfileResult profileResult = m_renderService->getResult();
+         std::vector< std::pair<double,double> > data = profileResult.getData();
+         int dataCount = data.size();
+         if ( dataCount > 0 ){
+             QJsonArray profileDataX, profileDataY;
+             for( int i = 0 ; i < dataCount; i ++ ){
+                 profileDataX.append( data[i].first );
+                 profileDataY.append( data[i].second );
+             }
+             m_profileData.insert( "x", profileDataX );
+             m_profileData.insert( "y", profileDataY );
+         }
 
-        // QJsonArray profileDataList;
-        // QJsonObject profileData;
-        //
-        // int curveCount = m_plotCurves.size();
-        // for ( int i = 0; i< curveCount; i++ ){
-        //     std::vector<double> curveDataX = m_plotCurves[i]->getValuesX();
-        //     std::vector<double> curveDataY = m_plotCurves[i]->getValuesY();
-        //
-        //     int dataCount = curveDataX.size();
-        //     if ( dataCount > 0 ){
-        //         QJsonArray profileDataX, profileDataY;
-        //         for( int i = 0 ; i < dataCount; i ++ ){
-        //             profileDataX.append( curveDataX[i] );
-        //             profileDataY.append( curveDataY[i] );
-        //         }
-        //         profileData.insert( "curveName", i );
-        //         profileData.insert( "x", profileDataX );
-        //         profileData.insert( "y", profileDataY );
-        //     }
-        //     profileDataList.push_back(profileData);
-        // }
-        //
-        // QString result = "";
-        // QJsonDocument doc(profileDataList);
-        // result = QString(doc.toJson());
+         QJsonArray profileDataList;
+         QJsonObject profileData;
+
+         int curveCount = m_plotCurves.size();
+         for ( int i = 0; i< curveCount; i++ ){
+             std::vector<double> curveDataX = m_plotCurves[i]->getValuesX();
+             std::vector<double> curveDataY = m_plotCurves[i]->getValuesY();
+
+             int dataCount = curveDataX.size();
+             if ( dataCount > 0 ){
+                 QJsonArray profileDataX, profileDataY;
+                 for( int i = 0 ; i < dataCount; i ++ ){
+                     profileDataX.append( curveDataX[i] );
+                     profileDataY.append( curveDataY[i] );
+                 }
+                 profileData.insert( "curveName", i );
+                 profileData.insert( "x", profileDataX );
+                 profileData.insert( "y", profileDataY );
+             }
+             profileDataList.push_back(profileData);
+         }
+
+         QString result = "";
+         QJsonDocument doc(profileDataList);
+         result = QString(doc.toJson());
         return m_stateData.toString();
     });
 
@@ -1643,15 +1643,15 @@ void Profiler::_initializeCallbacks(){
         return result;
     });
 
-    // addCommandCallback( "removeProfile", [=] (const QString & /*cmd*/,
-    //         const QString & params, const QString & /*sessionId*/) -> QString {
-    //     std::set<QString> keys = {Util::NAME};
-    //     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //     QString nameStr = dataValues[Util::NAME];
-    //     QString result = profileRemove( nameStr );
-    //     Util::commandPostProcess( result );
-    //     return result;
-    // });
+     addCommandCallback( "removeProfile", [=] (const QString & /*cmd*/,
+             const QString & params, const QString & /*sessionId*/) -> QString {
+         std::set<QString> keys = {Util::NAME};
+         std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+         QString nameStr = dataValues[Util::NAME];
+         QString result = profileRemove( nameStr );
+         Util::commandPostProcess( result );
+         return result;
+     });
 
     addCommandCallback( "removeProfile", [=] (const QString & /*cmd*/,
             const QString & /*params*/, const QString & /*sessionId*/) -> QString {
@@ -1672,31 +1672,31 @@ void Profiler::_initializeCallbacks(){
     });
 
 
-    addCommandCallback( "setCurveColor", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-        QString result;
-        std::set<QString> keys = {Util::RED, Util::GREEN, Util::BLUE, Util::NAME};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString redStr = dataValues[Util::RED];
-        QString greenStr = dataValues[Util::GREEN];
-        QString blueStr = dataValues[Util::BLUE];
-        QString curveName = dataValues[Util::NAME];
-        bool validRed = false;
-        int redAmount = redStr.toInt( &validRed );
-        bool validGreen = false;
-        int greenAmount = greenStr.toInt( &validGreen );
-        bool validBlue = false;
-        int blueAmount = blueStr.toInt( &validBlue );
-        if ( validRed && validGreen && validBlue ){
-            QStringList resultList = setCurveColor( curveName, redAmount, greenAmount, blueAmount );
-            result = resultList.join( ";");
-        }
-        else {
-            result = "Please check that curve colors are integers: " + params;
-        }
-        Util::commandPostProcess( result );
-        return result;
-    });
+//    addCommandCallback( "setCurveColor", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+//        QString result;
+//        std::set<QString> keys = {Util::RED, Util::GREEN, Util::BLUE, Util::NAME};
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        QString redStr = dataValues[Util::RED];
+//        QString greenStr = dataValues[Util::GREEN];
+//        QString blueStr = dataValues[Util::BLUE];
+//        QString curveName = dataValues[Util::NAME];
+//        bool validRed = false;
+//        int redAmount = redStr.toInt( &validRed );
+//        bool validGreen = false;
+//        int greenAmount = greenStr.toInt( &validGreen );
+//        bool validBlue = false;
+//        int blueAmount = blueStr.toInt( &validBlue );
+//        if ( validRed && validGreen && validBlue ){
+//            QStringList resultList = setCurveColor( curveName, redAmount, greenAmount, blueAmount );
+//            result = resultList.join( ";");
+//        }
+//        else {
+//            result = "Please check that curve colors are integers: " + params;
+//        }
+//        Util::commandPostProcess( result );
+//        return result;
+//    });
 
     addCommandCallback( "setGridLines", [=] (const QString & /*cmd*/,
                 const QString & params, const QString & /*sessionId*/) -> QString {
@@ -2204,23 +2204,23 @@ void Profiler::_plotSizeChanged(){
 // }
 
 
-// QString Profiler::profileRemove( const QString& name ){
-//     QString result;
-//     int curveIndex = _findCurveIndex( name );
-//     if ( curveIndex >= 0 ){
-//         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-//         objMan->removeObject( m_plotCurves[curveIndex]->getId());
-//         m_plotCurves.removeAt( curveIndex );
-//         m_plotManager->removeData( name );
-//         _saveCurveState();
-//         _updateZoomRangeBasedOnPercent();
-//         // _updatePlotData();
-//     }
-//     else {
-//         result = "Could not find profile curve "+name+" to remove.";
-//     }
-//     return result;
-// }
+ QString Profiler::profileRemove( const QString& name ){
+     QString result;
+     int curveIndex = _findCurveIndex( name );
+     if ( curveIndex >= 0 ){
+         Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+         objMan->removeObject( m_plotCurves[curveIndex]->getId());
+         m_plotCurves.removeAt( curveIndex );
+         m_plotManager->removeData( name );
+         _saveCurveState();
+         _updateZoomRangeBasedOnPercent();
+         // _updatePlotData();
+     }
+     else {
+         result = "Could not find profile curve "+name+" to remove.";
+     }
+     return result;
+ }
 
 QString Profiler::profileRemove( int index ){
     QString result;
@@ -2298,7 +2298,7 @@ void Profiler::_profileRendered(const Carta::Lib::Hooks::ProfileResult& result,
                 profileCurve->setRestQuantity( restRounded, restUnit );
                 profileCurve->setSpectralInfo( getSpectralType(), getSpectralUnits() );
                 profileCurve->setStokesFrame( getStokesFrame() );
-                _assignColor( profileCurve );
+//                _assignColor( profileCurve );
                 if ( curveIndex < 0 ){
                     m_plotCurves.append( profileCurve );
                 }
@@ -2680,40 +2680,40 @@ QString Profiler::setAxisUnitsY( const QString& unitStr ){
 }
 
 
-QStringList Profiler::setCurveColor( const QString& name, int redAmount, int greenAmount, int blueAmount ){
-    QStringList result;
-    const int MAX_COLOR = 255;
-    bool validColor = true;
-    if ( redAmount < 0 || redAmount > MAX_COLOR ){
-        validColor = false;
-        result.append("Profile curve red amount must be in [0,"+QString::number(MAX_COLOR)+"]: "+QString::number(redAmount) );
-    }
-    if ( greenAmount < 0 || greenAmount > MAX_COLOR ){
-        validColor = false;
-        result.append("Profile curve green amount must be in [0,"+QString::number(MAX_COLOR)+"]: "+QString::number(greenAmount) );
-    }
-    if ( blueAmount < 0 || blueAmount > MAX_COLOR ){
-        validColor = false;
-        result.append("Profile curve blue amount must be in [0,"+QString::number(MAX_COLOR)+"]: "+QString::number(blueAmount) );
-    }
-    if ( validColor ){
-        int index = _findCurveIndex( name );
-        if ( index >= 0 ){
-            QColor oldColor = m_plotCurves[index]->getColor();
-            QColor curveColor( redAmount, greenAmount, blueAmount );
-            if ( oldColor.name() != curveColor.name() ){
-                m_plotCurves[index]->setColor( curveColor );
-                _saveCurveState( index );
-                m_stateData.flushState();
+//QStringList Profiler::setCurveColor( const QString& name, int redAmount, int greenAmount, int blueAmount ){
+//    QStringList result;
+//    const int MAX_COLOR = 255;
+//    bool validColor = true;
+//    if ( redAmount < 0 || redAmount > MAX_COLOR ){
+//        validColor = false;
+//        result.append("Profile curve red amount must be in [0,"+QString::number(MAX_COLOR)+"]: "+QString::number(redAmount) );
+//    }
+//    if ( greenAmount < 0 || greenAmount > MAX_COLOR ){
+//        validColor = false;
+//        result.append("Profile curve green amount must be in [0,"+QString::number(MAX_COLOR)+"]: "+QString::number(greenAmount) );
+//    }
+//    if ( blueAmount < 0 || blueAmount > MAX_COLOR ){
+//        validColor = false;
+//        result.append("Profile curve blue amount must be in [0,"+QString::number(MAX_COLOR)+"]: "+QString::number(blueAmount) );
+//    }
+//    if ( validColor ){
+//        int index = _findCurveIndex( name );
+//        if ( index >= 0 ){
+//            QColor oldColor = m_plotCurves[index]->getColor();
+//            QColor curveColor( redAmount, greenAmount, blueAmount );
+//            if ( oldColor.name() != curveColor.name() ){
+//                m_plotCurves[index]->setColor( curveColor );
+//                _saveCurveState( index );
+//                m_stateData.flushState();
 //                m_plotManager->setColor( curveColor, name );
-            }
-        }
-        else {
-            result.append( "Unrecognized profile curve:"+name );
-        }
-    }
-    return result;
-}
+//            }
+//        }
+//        else {
+//            result.append( "Unrecognized profile curve:"+name );
+//        }
+//    }
+//    return result;
+//}
 
 
 QString Profiler::setCurveName( const QString& id, const QString& newName ){

@@ -51,9 +51,9 @@ void DrawGroupSynchronizer::render(
     }
     else {
         //Just say we are done since there is nothing to draw.
-        QImage img;
-        Carta::Lib::VectorGraphics::VGList graphics;
-        emit done( img, graphics );
+//        QImage img;
+//        Carta::Lib::VectorGraphics::VGList graphics;
+//        emit done( img, graphics );
     }
 }
 

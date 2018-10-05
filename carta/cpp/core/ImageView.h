@@ -2,6 +2,8 @@
 //#include <QImage>
 //#include <QColor>
 #include <QObject>
+#include <QPointF>
+#include <QSize>
 
 class IConnector;
 
@@ -26,7 +28,7 @@ public:
 //    void scheduleRedraw();
     virtual void registration(IConnector *connector) override;
     virtual const QString & name() const override;
-//    virtual QSize size() override;
+    virtual QSize size() override;
 //    virtual const QImage & getBuffer() override;
 //    virtual void handleResizeRequest(const QSize & size) override;
 //    virtual void handleMouseEvent(const QMouseEvent & ev) override;
@@ -51,7 +53,7 @@ protected:
 //    QImage m_qimage;
     QString m_viewName;
     int m_timerId;
-//    QPointF m_lastMouse;
+    QPointF m_lastMouse;
     Carta::State::StateInterface* m_mouseState;
 
 

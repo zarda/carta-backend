@@ -12,6 +12,7 @@
 
 #include <QDebug>
 #include <math.h>
+#include <QRectF>
 
 namespace Carta {
 

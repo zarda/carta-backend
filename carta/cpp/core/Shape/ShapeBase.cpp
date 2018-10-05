@@ -4,40 +4,40 @@ namespace Carta {
 
 namespace Shape{
 
-const QPen ShapeBase::shadowPen = QPen( QBrush( QColor( 255, 0, 255 ) ), 2 );
-const QBrush ShapeBase::shadowBrush = QBrush( QColor( 0, 255, 0 ) );
-const QPen ShapeBase::outlinePen = QPen( QBrush( QColor( 0, 255, 0 ) ), 2 );
+//const QPen ShapeBase::shadowPen = QPen( QBrush( QColor( 255, 0, 255 ) ), 2 );
+//const QBrush ShapeBase::shadowBrush = QBrush( QColor( 0, 255, 0 ) );
+//const QPen ShapeBase::outlinePen = QPen( QBrush( QColor( 0, 255, 0 ) ), 2 );
 
 ShapeBase::ShapeBase( QObject* parent ):
-		QObject( parent ),
-		m_dragStart(QPointF(0,0)){
-		m_dragMode = false;
-                m_color = shadowPen.color();;
-		m_dragControlIndex = -1;
+        QObject( parent ),
+        m_dragStart(QPointF(0,0)){
+        m_dragMode = false;
+//        m_color = shadowPen.color();;
+        m_dragControlIndex = -1;
 }
 
 void ShapeBase::editModeChanged(){
-	// update the positions of control points
-	_syncShadowToCPs();
+    // update the positions of control points
+    _syncShadowToCPs();
 
-	// activate/deactivate control points based on edit status
-	for ( auto & pt : m_controlPoints ) {
-		pt-> setActive( !isEditMode() );
-	}
+    // activate/deactivate control points based on edit status
+    for ( auto & pt : m_controlPoints ) {
+        pt-> setActive( !isEditMode() );
+    }
 }
 
 QString ShapeBase::getCursor() const {
 	return m_cursor;
 }
 
-QColor ShapeBase::getColor() const {
-       return m_color;
-}
+//QColor ShapeBase::getColor() const {
+//       return m_color;
+//}
 
 
-Carta::Lib::VectorGraphics::VGList ShapeBase::getVGList() const {
-	return Carta::Lib::VectorGraphics::VGList();
-}
+//Carta::Lib::VectorGraphics::VGList ShapeBase::getVGList() const {
+//	return Carta::Lib::VectorGraphics::VGList();
+//}
 
 
 void * ShapeBase::getUserData() const {
@@ -46,26 +46,26 @@ void * ShapeBase::getUserData() const {
 
 
 void ShapeBase::handleDrag( const QPointF & pt ){
-	int controlPointCount = m_controlPoints.size();
-	if ( m_dragControlIndex >= 0 && m_dragControlIndex < controlPointCount ){
-		m_controlPoints[m_dragControlIndex]->handleDrag( pt );
-	}
-	else {
+    int controlPointCount = m_controlPoints.size();
+    if ( m_dragControlIndex >= 0 && m_dragControlIndex < controlPointCount ){
+        m_controlPoints[m_dragControlIndex]->handleDrag( pt );
+    }
+    else {
 
-		// calculate offset if we are starting the drag
-		if ( ! m_dragMode ) {
-			qWarning() << "dragging but not in drag mode";
-			return;
-		}
+        // calculate offset if we are starting the drag
+        if ( ! m_dragMode ) {
+            qWarning() << "dragging but not in drag mode";
+            return;
+        }
 
-		if ( !isEditMode() ){
-			_moveShadow( pt );
-			_syncShadowToCPs();
-		}
-		else {
-			_editShadow( pt );
-		}
-	}
+        if ( !isEditMode() ){
+            _moveShadow( pt );
+            _syncShadowToCPs();
+        }
+        else {
+            _editShadow( pt );
+        }
+    }
 }
 
 void ShapeBase::handleDragDone( const QPointF & pt ) {
@@ -132,26 +132,26 @@ void ShapeBase::setEditMode( bool editMode ){
 	bool oldEditMode = m_editMode;
 	m_editMode = editMode;
 	if ( oldEditMode != editMode ) {
-		editModeChanged();
+        editModeChanged();
 	}
 }
 
 void ShapeBase::setSelected( bool value ){
-	m_selected = value;
-	int controlCount = m_controlPoints.size();
-	for ( int i = 0; i < controlCount; i++ ){
-		m_controlPoints[i]->setSelected( value );
-	}
+    m_selected = value;
+    int controlCount = m_controlPoints.size();
+    for ( int i = 0; i < controlCount; i++ ){
+        m_controlPoints[i]->setSelected( value );
+    }
 }
 
-void ShapeBase::setColor( QColor value ){
-	m_color = value;
-        int controlCount = m_controlPoints.size();
-        for ( int i = 0; i < controlCount; i++ ){
-          m_controlPoints[i]->setFillColor( m_color );
-	}
+//void ShapeBase::setColor( QColor value ){
+//	m_color = value;
+//        int controlCount = m_controlPoints.size();
+//        for ( int i = 0; i < controlCount; i++ ){
+//          m_controlPoints[i]->setFillColor( m_color );
+//	}
 
-}
+//}
 
 void ShapeBase::setUserData( void * value ){
 	m_userData = value;

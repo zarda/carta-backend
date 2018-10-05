@@ -27,7 +27,7 @@ Region::Region(const QString& className, const QString& path, const QString& id 
 }
 
 QPointF Region::getCenter() const {
-	return m_shape->getCenter();
+    return m_shape->getCenter();
 }
 
 
@@ -73,7 +73,7 @@ QString Region::getRegionType() const {
 }
 
 QSizeF Region::getSize() const {
-	return m_shape->getSize();
+    return m_shape->getSize();
 }
 
 QString Region::_getStateString() const {
@@ -84,36 +84,36 @@ void * Region::getUserData() const {
 	return nullptr;
 }
 
-Carta::Lib::VectorGraphics::VGList Region::getVGList() const {
-	Carta::Lib::VectorGraphics::VGList graphicsList = m_shape->getVGList();
-	return graphicsList;
-}
+//Carta::Lib::VectorGraphics::VGList Region::getVGList() const {
+//	Carta::Lib::VectorGraphics::VGList graphicsList = m_shape->getVGList();
+//	return graphicsList;
+//}
 
 
 void Region::handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev, const QPointF& location ){
-	if ( isDraggable() ){
-		Carta::Lib::InputEvents::Drag2Event::Phase phase = ev.phase();
-		if ( phase == Carta::Lib::InputEvents::Drag2Event::Phase::Start ){
-			handleDragStart( location );
-		}
-		else if ( phase == Carta::Lib::InputEvents::Drag2Event::Phase::Progress ){
-			handleDrag( location );
-		}
-		else if ( phase == Carta::Lib::InputEvents::Drag2Event::Phase::End ){
-			handleDragDone( location );
-		}
-		else {
-			qWarning() << "Unrecognized drag event phase: "<<(int)(phase);
-		}
-	}
+    if ( isDraggable() ){
+        Carta::Lib::InputEvents::Drag2Event::Phase phase = ev.phase();
+        if ( phase == Carta::Lib::InputEvents::Drag2Event::Phase::Start ){
+            handleDragStart( location );
+        }
+        else if ( phase == Carta::Lib::InputEvents::Drag2Event::Phase::Progress ){
+            handleDrag( location );
+        }
+        else if ( phase == Carta::Lib::InputEvents::Drag2Event::Phase::End ){
+            handleDragDone( location );
+        }
+        else {
+            qWarning() << "Unrecognized drag event phase: "<<(int)(phase);
+        }
+    }
 }
 
 void Region::handleDrag( const QPointF & pt ) {
-	if ( isDraggable() ){
-		if ( m_shape ){
-			m_shape->handleDrag( pt );
-		}
-	}
+    if ( isDraggable() ){
+        if ( m_shape ){
+            m_shape->handleDrag( pt );
+        }
+    }
 }
 
 
@@ -137,14 +137,14 @@ void Region::handleDragStart( const QPointF & pt ) {
 }
 
 void Region::handleTouch( const QPointF& pt ){
-	//Only active shapes participate in user events
-	if ( isActive() ){
-		bool tapped = false;
-		if ( m_shape->isPointInside( pt ) ){
-			tapped = true;
-		}
-		setSelected( tapped );
-	}
+    //Only active shapes participate in user events
+    if ( isActive() ){
+        bool tapped = false;
+        if ( m_shape->isPointInside( pt ) ){
+            tapped = true;
+        }
+        setSelected( tapped );
+    }
 }
 
 void Region::handleTapDouble( const QPointF& /*pt*/ ){
@@ -193,11 +193,11 @@ bool Region::isSelected() const {
 }
 
 void Region::_restoreState( const QString& stateStr ){
-	Carta::State::StateInterface regState( "");
-	regState.setState( stateStr );
-	m_state = regState;
-	m_state.setValue<QString>(Util::ID, getId() );
-	m_shape->setModel( toJSON() );
+    Carta::State::StateInterface regState( "");
+    regState.setState( stateStr );
+    m_state = regState;
+    m_state.setValue<QString>(Util::ID, getId() );
+    m_shape->setModel( toJSON() );
 }
 
 
@@ -258,20 +258,20 @@ QString Region::setRegionName( const QString& name ){
 	return result;
 }
 
-bool Region::setColor( QColor color){
-        bool colorChanged = false;
-        colorChanged = true;
-        m_shape->setColor( color );
-        return colorChanged;
-}
+//bool Region::setColor( QColor color){
+//        bool colorChanged = false;
+//        colorChanged = true;
+//        m_shape->setColor( color );
+//        return colorChanged;
+//}
 
 void Region::setSelected( bool selected ) {
-	bool oldSelected = isSelected();
+    bool oldSelected = isSelected();
     if ( oldSelected != selected ){
-		m_state.setValue<bool>( Util::SELECTED, selected );
-		m_shape->setSelected( selected );
-		emit regionSelectionChanged( getId());
-	}
+        m_state.setValue<bool>( Util::SELECTED, selected );
+        m_shape->setSelected( selected );
+        emit regionSelectionChanged( getId());
+    }
 }
 
 
@@ -290,26 +290,26 @@ QJsonObject Region::toJSON() const {
 }
 
 void Region::_updateName(){
-	if ( !m_state.getValue<bool>(CUSTOM_NAME) ){
-		QPointF center = getCenter();
-		QSizeF size = getSize();
-		QString type = getRegionType();
-		QString dName = type + "[cX="+QString::number( center.x()) + " cY=" +QString::number( center.y() );
-		if ( type != RegionTypes::POINT ){
-				dName = dName + " width=" +QString::number(size.width())+" height="+QString::number(size.height());
-		}
-		dName = dName+"]";
-		QString oldName = m_state.getValue<QString>( Util::NAME );
-		if ( oldName != dName ){
-			m_state.setValue<QString>( Util::NAME, dName );
-			m_state.flushState();
-		}
-	}
+    if ( !m_state.getValue<bool>(CUSTOM_NAME) ){
+        QPointF center = getCenter();
+        QSizeF size = getSize();
+        QString type = getRegionType();
+        QString dName = type + "[cX="+QString::number( center.x()) + " cY=" +QString::number( center.y() );
+        if ( type != RegionTypes::POINT ){
+                dName = dName + " width=" +QString::number(size.width())+" height="+QString::number(size.height());
+        }
+        dName = dName+"]";
+        QString oldName = m_state.getValue<QString>( Util::NAME );
+        if ( oldName != dName ){
+            m_state.setValue<QString>( Util::NAME, dName );
+            m_state.flushState();
+        }
+    }
 }
 
 void Region::_updateShapeFromState(){
-	m_shape->setActive( isActive() );
-	m_shape->setSelected( isSelected() );
+    m_shape->setActive( isActive() );
+    m_shape->setSelected( isSelected() );
 }
 
 Region::~Region(){

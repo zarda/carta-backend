@@ -28,17 +28,17 @@ QString Contour::getStateString() const {
     return m_state.toString();
 }
 
-QPen Contour::getPen() const {
-    QPen pen;
-    pen.setCosmetic( true );
-    pen.setWidthF( m_state.getValue<double>( Util::WIDTH) );
-    int redAmount = m_state.getValue<int>( Util::RED );
-    int greenAmount = m_state.getValue<int>( Util::GREEN );
-    int blueAmount = m_state.getValue<int>( Util::BLUE );
-    int alphaAmount = m_state.getValue<int>( Util::ALPHA );
-    pen.setColor( QColor(redAmount, greenAmount, blueAmount, alphaAmount) );
-    return pen;
-}
+//QPen Contour::getPen() const {
+//    QPen pen;
+//    pen.setCosmetic( true );
+//    pen.setWidthF( m_state.getValue<double>( Util::WIDTH) );
+//    int redAmount = m_state.getValue<int>( Util::RED );
+//    int greenAmount = m_state.getValue<int>( Util::GREEN );
+//    int blueAmount = m_state.getValue<int>( Util::BLUE );
+//    int alphaAmount = m_state.getValue<int>( Util::ALPHA );
+//    pen.setColor( QColor(redAmount, greenAmount, blueAmount, alphaAmount) );
+//    return pen;
+//}
 
 void Contour::_initializeSingletons( ){
     //Load the available contour generate modes.

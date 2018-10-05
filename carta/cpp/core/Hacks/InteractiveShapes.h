@@ -6,7 +6,7 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/InputEvents.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+//#include "CartaLib/VectorGraphics/VGList.h"
 
 namespace editable
 {
@@ -126,8 +126,8 @@ public:
         return false;
     }
 
-    virtual Carta::Lib::VectorGraphics::VGList
-    getVGList() { return Carta::Lib::VectorGraphics::VGList(); }
+//    virtual Carta::Lib::VectorGraphics::VGList
+//    getVGList() { return Carta::Lib::VectorGraphics::VGList(); }
 
 //    bool m_isMovable = false;
 //    bool
@@ -205,17 +205,17 @@ public:
     }
 
     /// get the current VGlist
-    Carta::Lib::VectorGraphics::VGList
-    vgList()
-    {
-        Carta::Lib::VectorGraphics::VGComposer comp;
-        for ( auto & shape : m_shapes ) {
-            if ( shape && shape-> isActive() ) {
-                comp.appendList( shape-> getVGList() );
-            }
-        }
-        return comp.vgList();
-    }
+//    Carta::Lib::VectorGraphics::VGList
+//    vgList()
+//    {
+//        Carta::Lib::VectorGraphics::VGComposer comp;
+//        for ( auto & shape : m_shapes ) {
+//            if ( shape && shape-> isActive() ) {
+//                comp.appendList( shape-> getVGList() );
+//            }
+//        }
+//        return comp.vgList();
+//    }
 
     /// handle an input event
     void

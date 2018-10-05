@@ -55,12 +55,13 @@ std::pair<double,QString> CCMetaDataInterface::getRestFrequency() const {
 QString
 CCMetaDataInterface::title( TextFormat format )
 {
-    if ( format == TextFormat::Plain ) {
-        return m_title.plain();
-    }
-    else {
-        return m_title.html();
-    }
+//    if ( format == TextFormat::Plain ) {
+//        return m_title.plain();
+//    }
+//    else {
+//        return m_title.html();
+//    }
+    return nullptr;
 }
 
 QStringList

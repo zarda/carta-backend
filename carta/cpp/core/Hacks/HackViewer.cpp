@@ -14,7 +14,7 @@
 #include "CartaLib/LinearMap.h"
 #include "CartaLib/IRemoteVGView.h"
 #include <QFileInfo>
-#include <QPainter>
+//#include <QPainter>
 #include <set>
 
 namespace Carta
@@ -82,29 +82,29 @@ HackViewer::start()
     Hacks::GlobalsH::instance().setPluginManager( pm );
 
     // initialize asynchronous renderer
-    m_imageViewController.reset(
-        new Hacks::ImageViewController( m_statePrefix + "/views/IVC7", "7" ) );
+//    m_imageViewController.reset(
+//        new Hacks::ImageViewController( m_statePrefix + "/views/IVC7", "7" ) );
 
     // tell the view controller to load the image specified on the command line/url
-    m_imageViewController-> loadImage( fname );
+//    m_imageViewController-> loadImage( fname );
 
     typedef const QString CSR;
 
     // invert toggle
-    prefixedAddStateCallback(
-        "cm-invert",
-        [this] ( CSR, CSR val ) {
-            m_imageViewController-> setCmapInvert( val == "1" );
-        }
-        );
+//    prefixedAddStateCallback(
+//        "cm-invert",
+//        [this] ( CSR, CSR val ) {
+//            m_imageViewController-> setCmapInvert( val == "1" );
+//        }
+//        );
 
     // reverse toggle
-    prefixedAddStateCallback(
-        "cm-reverse",
-        [this] ( CSR, CSR val ) {
-            m_imageViewController-> setCmapReverse( val == "1" );
-        }
-        );
+//    prefixedAddStateCallback(
+//        "cm-reverse",
+//        [this] ( CSR, CSR val ) {
+//            m_imageViewController-> setCmapReverse( val == "1" );
+//        }
+//        );
 
     auto colormapCB2 = [this] ( const QString & /*path*/, const QString & value ) {
         qDebug() << "Cmap2 changed to" << value;
@@ -118,7 +118,7 @@ HackViewer::start()
         CARTA_ASSERT( "colormap index out of range!" );
         return;
         }
-        m_imageViewController-> setColormap( m_allColormaps[ind] );
+//        m_imageViewController-> setColormap( m_allColormaps[ind] );
     };
 
     const QString pixelCachingOn = "pixelCacheOn";
@@ -128,29 +128,29 @@ HackViewer::start()
     prefixedSetState( pixelCacheInterpolationOn, "1" );
     prefixedSetState( pixelCacheSize, "1000" );
 
-    prefixedAddStateCallback( pixelCachingOn, [this] ( CSR, CSR val ) {
-                                  auto set = m_imageViewController-> getPPCsettings();
-                                  set.enabled = val == "1";
-                                  m_imageViewController-> setPPCsettings( set );
-                              }
-                              );
-    prefixedAddStateCallback( pixelCacheInterpolationOn, [this] ( CSR, CSR val ) {
-                                  auto set = m_imageViewController-> getPPCsettings();
-                                  set.interpolated = val == "1";
-                                  m_imageViewController-> setPPCsettings( set );
-                              }
-                              );
-    prefixedAddStateCallback( pixelCacheSize, [ = ] ( CSR, CSR val ) {
-                                  auto set = m_imageViewController-> getPPCsettings();
-                                  bool ok;
-                                  int size = val.toInt( & ok );
-                                  if ( ! ok || size < 2 ) {
-                                      size = 2;
-                                  }
-                                  set.size = size;
-                                  m_imageViewController-> setPPCsettings( set );
-                              }
-                              );
+//    prefixedAddStateCallback( pixelCachingOn, [this] ( CSR, CSR val ) {
+//                                  auto set = m_imageViewController-> getPPCsettings();
+//                                  set.enabled = val == "1";
+//                                  m_imageViewController-> setPPCsettings( set );
+//                              }
+//                              );
+//    prefixedAddStateCallback( pixelCacheInterpolationOn, [this] ( CSR, CSR val ) {
+//                                  auto set = m_imageViewController-> getPPCsettings();
+//                                  set.interpolated = val == "1";
+//                                  m_imageViewController-> setPPCsettings( set );
+//                              }
+//                              );
+//    prefixedAddStateCallback( pixelCacheSize, [ = ] ( CSR, CSR val ) {
+//                                  auto set = m_imageViewController-> getPPCsettings();
+//                                  bool ok;
+//                                  int size = val.toInt( & ok );
+//                                  if ( ! ok || size < 2 ) {
+//                                      size = 2;
+//                                  }
+//                                  set.size = size;
+//                                  m_imageViewController-> setPPCsettings( set );
+//                              }
+//                              );
 
     prefixedAddStateCallback( "cm-current", colormapCB2 );
 

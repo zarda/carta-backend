@@ -326,15 +326,15 @@ public:
         result[2] *= m_maxRgb[2];
     }
 
-    virtual void
-    convertq( double val, QRgb & result ) override
-    {
-        m_pipe-> convertq( val, result );
-        auto red = std::round( qRed( result) * m_maxRgb[0]);
-        auto green = std::round(qGreen( result) * m_maxRgb[1]);
-        auto blue = std::round(qBlue( result) * m_maxRgb[2]);
-        result = qRgb( red, green, blue);
-    }
+//    virtual void
+//    convertq( double val, QRgb & result ) override
+//    {
+//        m_pipe-> convertq( val, result );
+//        auto red = std::round( qRed( result) * m_maxRgb[0]);
+//        auto green = std::round(qGreen( result) * m_maxRgb[1]);
+//        auto blue = std::round(qBlue( result) * m_maxRgb[2]);
+//        result = qRgb( red, green, blue);
+//    }
 
     virtual void
     getClips( double & min, double & max ) override

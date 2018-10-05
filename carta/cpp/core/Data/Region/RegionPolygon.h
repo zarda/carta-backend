@@ -20,7 +20,7 @@ public:
 	 * Add a corner to the region.
 	 * @param pt - the specific corner to add.
 	 */
-	void addCorner( const QPointF& pt );
+//	void addCorner( const QPointF& pt );
 
     /**
      * Return a specific corner of the region.
@@ -46,13 +46,13 @@ public:
 	 * Notification of a click event.
 	 * @param pt - the current location of the mouse.
 	 */
-    virtual void handleTouch( const QPointF& pt ) Q_DECL_OVERRIDE;
+//    virtual void handleTouch( const QPointF& pt ) Q_DECL_OVERRIDE;
 
     /**
      * Notification of a double click event.
      * @param pt - the current location of the mouse.
      */
-    virtual void handleTapDouble( const QPointF& pt ) Q_DECL_OVERRIDE;
+//    virtual void handleTapDouble( const QPointF& pt ) Q_DECL_OVERRIDE;
 
     /**
      * Set the center of the rectangle.
@@ -71,7 +71,7 @@ public:
      * Set the underlying model for the region.
 	 * @param model - the region model.
 	 */
-    virtual void setModel( Carta::Lib::Regions::RegionBase* model ) Q_DECL_OVERRIDE;
+//    virtual void setModel( Carta::Lib::Regions::RegionBase* model ) Q_DECL_OVERRIDE;
 
     /**
      * Set the width of the bounding box of the region.
@@ -102,7 +102,7 @@ private:
 	 * @param corners - a list of corners to add to the region.
 	 */
     void _addCorners( const std::vector< QPointF >& corners );
-    void _closePolygon();
+//    void _closePolygon();
     void _initializeState();
     void _insertCorner( int index, const QPointF& corner );
 

@@ -213,51 +213,51 @@ QString RegionControls::_getStateString( const QString& /*sessionId*/, SnapshotT
 
 
 bool RegionControls::_handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev, const QPointF& imagePt ){
-	bool validDrag = false;
-	if ( ev.isValid() ){
-		validDrag = true;
-		if ( m_regionEdit ){
-			m_regionEdit->handleDrag( ev, imagePt );
+    bool validDrag = false;
+    if ( ev.isValid() ){
+        validDrag = true;
+        if ( m_regionEdit ){
+            m_regionEdit->handleDrag( ev, imagePt );
             const Carta::Lib::InputEvents::Drag2Event::Phase m_phase = ev.phase();
             // prevent calculating profiler on start
             if (m_phase != Carta::Lib::InputEvents::Drag2Event::Phase::Start) {
                 emit regionsChanged();
             }
-		}
-		else {
-			int regionCount = m_regions.size();
-			for ( int i = 0; i < regionCount; i++ ){
-				m_regions[i]->handleDrag( ev, imagePt );
-			}
-			if ( regionCount > 0 ){
-				emit regionsChanged();
-			}
-		}
-	}
-	return validDrag;
+        }
+        else {
+            int regionCount = m_regions.size();
+            for ( int i = 0; i < regionCount; i++ ){
+                m_regions[i]->handleDrag( ev, imagePt );
+            }
+            if ( regionCount > 0 ){
+                emit regionsChanged();
+            }
+        }
+    }
+    return validDrag;
 }
 
 
 bool RegionControls::_handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev,
-		const QPointF& imagePt ){
-	bool validTap = false;
-	if ( ev.isValid() ){
-		validTap = true;
-		if ( m_regionEdit ){
-			m_regionEdit->handleTouch( imagePt );
-			emit regionsChanged();
-		}
-		else {
-			int regionCount = m_regions.size();
-			for ( int i = 0; i < regionCount; i++ ){
-				m_regions[i]->handleTouch( imagePt);
-			}
-			if ( regionCount > 0 ){
-			        emit regionsChanged();
-			}
-		}
-	}
-	return validTap;
+        const QPointF& imagePt ){
+    bool validTap = false;
+    if ( ev.isValid() ){
+        validTap = true;
+        if ( m_regionEdit ){
+            m_regionEdit->handleTouch( imagePt );
+            emit regionsChanged();
+        }
+        else {
+            int regionCount = m_regions.size();
+            for ( int i = 0; i < regionCount; i++ ){
+                m_regions[i]->handleTouch( imagePt);
+            }
+            if ( regionCount > 0 ){
+                    emit regionsChanged();
+            }
+        }
+    }
+    return validTap;
 }
 
 bool RegionControls::_handleTapDouble( const Carta::Lib::InputEvents::DoubleTapEvent& ev, const QPointF& imagePt ){
@@ -385,19 +385,19 @@ void RegionControls::_initializeCallbacks(){
 		return result;
 	});
 
-	addCommandCallback( "setRegionsSelected", [=] (const QString & /*cmd*/,
-			const QString & params, const QString & /*sessionId*/) -> QString {
-		QString result;
-		QStringList names = params.split(";");
-		if ( names.size() == 0 ){
-			result = "Please specify the regions to select.";
-		}
-		else {
-			_setRegionsSelected( names );
-		}
-		Util::commandPostProcess( result );
-		return result;
-	});
+    addCommandCallback( "setRegionsSelected", [=] (const QString & /*cmd*/,
+            const QString & params, const QString & /*sessionId*/) -> QString {
+        QString result;
+        QStringList names = params.split(";");
+        if ( names.size() == 0 ){
+            result = "Please specify the regions to select.";
+        }
+        else {
+            _setRegionsSelected( names );
+        }
+        Util::commandPostProcess( result );
+        return result;
+    });
 
 	addCommandCallback( "setWidth", [=] (const QString & /*cmd*/,
 			const QString & params, const QString & /*sessionId*/) ->QString {
@@ -472,16 +472,16 @@ bool RegionControls::isAutoSelect() const {
 
 void RegionControls::_onInputEvent(InputEvent & ev, const QPointF& imagePt ){
         if ( !_handleTapDouble( Carta::Lib::InputEvents::DoubleTapEvent( ev ), imagePt ) ) {
-        	if ( !_handleTouch( Carta::Lib::InputEvents::TouchEvent( ev ), imagePt ) ){
-                	if( !_handleDrag( Carta::Lib::InputEvents::Drag2Event(ev), imagePt) ){
-                        	//qWarning() << "RegionControls:: unhandled event: "<<ev.type();
+            if ( !_handleTouch( Carta::Lib::InputEvents::TouchEvent( ev ), imagePt ) ){
+                    if( !_handleDrag( Carta::Lib::InputEvents::Drag2Event(ev), imagePt) ){
+                            //qWarning() << "RegionControls:: unhandled event: "<<ev.type();
                         }
                 }
         }
         else {
-        	//Note that we are doing this so if we are editing a polygon region and
-	       	//closing it with a double click, the image will not also be panned.
-        	ev.setConsumed();
+            //Note that we are doing this so if we are editing a polygon region and
+            //closing it with a double click, the image will not also be panned.
+            ev.setConsumed();
         }
 }
 
@@ -589,10 +589,10 @@ void RegionControls::setAutoSelect( bool autoSelect ){
 void RegionControls::setIndexCurrentNoRegionsChanged( int index ){
     int oldIndex = m_selectRegion->getIndex();
     m_selectRegion->setIndex( index );
-//	if ( oldIndex != index ){
-//		_saveStateRegions();
-//		emit regionsChanged();
-//	}
+    if ( oldIndex != index ){
+        _saveStateRegions();
+        emit regionsChanged();
+    }
 }
 
 void RegionControls::setIndexCurrent( int index ){
@@ -758,10 +758,10 @@ QStringList RegionControls::setRegionColor( int redAmount, int greenAmount, int 
 	int regionCount = m_regions.size();
 	for ( int i = 0; i < regionCount; i++ ){
 		if ( m_regions[i]->isSelected() ){
-                  QColor color = QColor(redAmount,greenAmount,blueAmount,255);
-                  if ( m_regions[i]->setColor( color ) ){
-				colorChanged = true;
-			}
+//                  QColor color = QColor(redAmount,greenAmount,blueAmount,255);
+//                  if ( m_regions[i]->setColor( color ) ){
+//				colorChanged = true;
+//			}
 		}
 	}
 	if ( colorChanged ){
@@ -772,43 +772,43 @@ QStringList RegionControls::setRegionColor( int redAmount, int greenAmount, int 
 }
 
 void RegionControls::_setRegionsSelected( QStringList ids ){
-	int regionCount = m_regions.size();
-	int indexCurrent = -1;
+    int regionCount = m_regions.size();
+    int indexCurrent = -1;
 
-	//First set all regions unselected
-	for ( int i = 0; i < regionCount; i++ ){
-		m_regions[i]->setSelected( false );
-	}
-	for ( int i = 0; i < regionCount; i++ ){
-		QString id = m_regions[i]->getId();
-		if ( ids.contains ( id ) ){
-			m_regions[i]->setSelected( true );
-			if ( indexCurrent == -1 ){
-				indexCurrent = i;
-			}
-		}
-	}
-	_saveStateRegions();
-	if ( indexCurrent >= 0  ){
-		setIndexCurrent( indexCurrent );
-	}
+    //First set all regions unselected
+    for ( int i = 0; i < regionCount; i++ ){
+        m_regions[i]->setSelected( false );
+    }
+    for ( int i = 0; i < regionCount; i++ ){
+        QString id = m_regions[i]->getId();
+        if ( ids.contains ( id ) ){
+            m_regions[i]->setSelected( true );
+            if ( indexCurrent == -1 ){
+                indexCurrent = i;
+            }
+        }
+    }
+    _saveStateRegions();
+    if ( indexCurrent >= 0  ){
+        setIndexCurrent( indexCurrent );
+    }
 }
 
-Carta::Lib::VectorGraphics::VGList RegionControls::vgList() const {
-	//Get the region graphics
-	Carta::Lib::VectorGraphics::VGList vgList;
-	int regionCount = m_regions.size();
-	Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
-	if ( m_regionEdit ){
-		Carta::Lib::VectorGraphics::VGList editRegionList = m_regionEdit->getVGList();
-		comp.appendList( editRegionList );
-	}
-	for ( int i = 0; i < regionCount; i++ ){
-		Carta::Lib::VectorGraphics::VGList regionList = m_regions[i]->getVGList();
-		comp.appendList( regionList );
-	}
-	return comp.vgList();
-}
+//Carta::Lib::VectorGraphics::VGList RegionControls::vgList() const {
+//	//Get the region graphics
+//	Carta::Lib::VectorGraphics::VGList vgList;
+//	int regionCount = m_regions.size();
+//	Carta::Lib::VectorGraphics::VGComposer comp = Carta::Lib::VectorGraphics::VGComposer( );
+//	if ( m_regionEdit ){
+//		Carta::Lib::VectorGraphics::VGList editRegionList = m_regionEdit->getVGList();
+//		comp.appendList( editRegionList );
+//	}
+//	for ( int i = 0; i < regionCount; i++ ){
+//		Carta::Lib::VectorGraphics::VGList regionList = m_regions[i]->getVGList();
+//		comp.appendList( regionList );
+//	}
+//	return comp.vgList();
+//}
 
 
 RegionControls::~RegionControls(){

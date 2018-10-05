@@ -83,9 +83,9 @@ QString RegionTypes::getModelType( const QString& userType ) const {
 		else if ( actualType == POLYGON ){
 			modelType = Carta::Lib::Regions::Polygon::TypeName;
 		}
-		else if ( actualType == POINT ){
-			modelType = Carta::Lib::Regions::Point::TypeName;
-		}
+//		else if ( actualType == POINT ){
+//			modelType = Carta::Lib::Regions::Point::TypeName;
+//		}
 		else if ( actualType == ELLIPSE ){
 			modelType = Carta::Lib::Regions::Ellipse::TypeName;
 		}

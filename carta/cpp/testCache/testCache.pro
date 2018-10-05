@@ -2,7 +2,8 @@
   error( "Could not find the common.pri file!" )
 }
 
-QT      +=  network widgets xml
+QT      +=  network xml
+QT -= gui widgets
 
 HEADERS +=
 

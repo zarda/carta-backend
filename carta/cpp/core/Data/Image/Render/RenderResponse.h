@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <CartaLib/VectorGraphics/VGList.h>
+//#include <CartaLib/VectorGraphics/VGList.h>
 #include <QString>
-#include <QImage>
+//#include <QImage>
 
 namespace Carta {
 
@@ -19,15 +19,15 @@ public:
     /**
      * Constructor.
      */
-    RenderResponse( const QImage image,
-            const Carta::Lib::VectorGraphics::VGList vgList,
+    RenderResponse( /*const QImage image,
+            const Carta::Lib::VectorGraphics::VGList vgList,*/
             const QString& layerName );
 
     /**
      * Renders the rendered image.
      * @return - the rendered image.
      */
-    QImage getImage() const;
+//    QImage getImage() const;
 
     /**
      * Returns an identifier for the layer that produced the image.
@@ -39,14 +39,14 @@ public:
      * Returns the vector graphics associated with the image.
      * @return - the vector graphics associated with the image.
      */
-    Carta::Lib::VectorGraphics::VGList getVectorGraphics() const;
+//    Carta::Lib::VectorGraphics::VGList getVectorGraphics() const;
 
     virtual ~RenderResponse();
 
 private:
 
-    QImage m_image;
-    Carta::Lib::VectorGraphics::VGList m_graphics;
+//    QImage m_image;
+//    Carta::Lib::VectorGraphics::VGList m_graphics;
     QString m_layerId;
 
     RenderResponse( const RenderResponse& other);

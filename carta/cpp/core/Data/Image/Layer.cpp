@@ -1,4 +1,4 @@
-#include "Layer.h"
+﻿#include "Layer.h"
 #include "Grid/DataGrid.h"
 #include "Contour/DataContours.h"
 #include "Data/Util.h"
@@ -112,10 +112,10 @@ float Layer::_getMaskAlpha() const {
     return 1.0f;
 }
 
-quint32 Layer::_getMaskColor() const {
-    QRgb rgbCol = qRgba( 255,255,255,255);
-    return rgbCol;
-}
+//quint32 Layer::_getMaskColor() const {
+//    QRgb rgbCol = qRgba( 255,255,255,255);
+//    return rgbCol;
+//}
 
 
 void Layer::_initializeSingletons( ){
@@ -157,7 +157,7 @@ bool Layer::_isOnCelestialPlane( bool ) const {
 }
 
 bool Layer::_isLoadable( const std::vector<int>& /*frames*/ ) const {
-	return false;
+    return false;
 }
 
 bool Layer::_isMatch( const QString& name ) const {
@@ -183,18 +183,18 @@ bool Layer::_isVisible() const {
 
 void Layer::_render( const std::shared_ptr<RenderRequest>& request ){
     m_renderRequests.push( request );
-    if ( !m_renderQueued ){
-        _renderStart();
-    }
+//    if ( !m_renderQueued ){
+//        _renderStart();
+//    }
 }
 
 void Layer::_renderDone(){
     // schedule a repaint with the connector
     m_renderQueued = false;
 
-    if ( m_renderRequests.size() > 0 ){
-        _renderStart();
-    }
+//    if ( m_renderRequests.size() > 0 ){
+//        _renderStart();
+//    }
 }
 
 

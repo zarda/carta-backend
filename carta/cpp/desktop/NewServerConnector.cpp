@@ -3,6 +3,7 @@
  **/
 
 #include "NewServerConnector.h"
+#include "SimpleRemoteVGView.h"
 
 #include <iostream>
 #include <QXmlInputSource>
@@ -147,7 +148,7 @@ IConnector::CallbackID NewServerConnector::addStateCallback(
 void NewServerConnector::registerView(IView * view)
 {
     // let the view know it's registered, and give it access to the connector
-//    view->registration( this);
+    view->registration( this);
 
     // insert this view int our list of views
     ViewInfo * viewInfo = new ViewInfo( view);
@@ -209,8 +210,7 @@ void NewServerConnector::removeStateCallback(const IConnector::CallbackID & /*id
 
 Carta::Lib::IRemoteVGView * NewServerConnector::makeRemoteVGView(QString viewName)
 {
-//    return new Carta::Core::SimpleRemoteVGView( this, viewName, this);
-    return nullptr;
+    return new Carta::Core::SimpleRemoteVGView( this, viewName, this);
 }
 
 NewServerConnector::ViewInfo * NewServerConnector::findViewInfo( const QString & viewName)

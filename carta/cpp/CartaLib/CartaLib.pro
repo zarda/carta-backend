@@ -12,6 +12,7 @@ $$system(cp Proto/request/*.proto Proto/)
 $$system(cp Proto/stream/*.proto Proto/)
 
 QT       += network xml
+QT  -=  gui widgets
 
 TARGET = CartaLib
 TEMPLATE = lib

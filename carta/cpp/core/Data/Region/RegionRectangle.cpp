@@ -32,12 +32,12 @@ bool RegionRectangle::m_registered =
 
 RegionRectangle::RegionRectangle(const QString& path, const QString& id )
     :Region( CLASS_NAME, path, id ){
-	m_shape.reset( new ShapeRectangle() );
+//	m_shape.reset( new ShapeRectangle() );
 	 connect( m_shape.get(), SIGNAL(shapeChanged( const QJsonObject&)),
 			 this, SLOT(_updateStateFromJson(const QJsonObject&)));
     _initializeState();
 
-    _updateShapeFromState();
+//    _updateShapeFromState();
 }
 
 
@@ -104,8 +104,8 @@ bool RegionRectangle::setHeight( double height ){
 	if ( qAbs( oldHeight - roundedHeight ) > errorMargin ){
 		heightChanged = true;
 		m_state.setValue<double>( Util::HEIGHT, roundedHeight );
-		m_shape->setModel( toJSON() );
-		_updateName();
+//		m_shape->setModel( toJSON() );
+//		_updateName();
 	}
 	return heightChanged;
 }
@@ -116,7 +116,7 @@ void RegionRectangle::setModel( Carta::Lib::Regions::RegionBase* model ){
 		QString regionType = model->typeName();
 		CARTA_ASSERT( regionType == Carta::Lib::Regions::Rectangle::TypeName );
 		QJsonObject modelJson = model->toJson();
-		m_shape->setModel( modelJson );
+//		m_shape->setModel( modelJson );
 		_updateStateFromJson( modelJson );
 	}
 }
@@ -131,8 +131,8 @@ bool RegionRectangle::setWidth( double width ){
 	if ( qAbs( roundedWidth - oldWidth ) > errorMargin ){
 		widthChanged = true;
 		m_state.setValue<double>( Util::WIDTH, roundedWidth );
-		m_shape->setModel( toJSON() );
-		_updateName();
+//		m_shape->setModel( toJSON() );
+//		_updateName();
 	}
 	return widthChanged;
 }
@@ -149,8 +149,8 @@ bool RegionRectangle::setCenter( const QPointF& pt ){
 		centerChanged = true;
 		m_state.setValue<double>( Util::XCOORD, centerX );
 		m_state.setValue<double>( Util::YCOORD, centerY );
-		m_shape->setModel( toJSON() );
-		_updateName();
+//		m_shape->setModel( toJSON() );
+//		_updateName();
 	}
 	return centerChanged;
 }
@@ -179,7 +179,7 @@ void RegionRectangle::_updateStateFromJson( const QJsonObject& json ){
 	double heightVal = qAbs(json[Util::HEIGHT].toDouble());
 	double height = Util::roundToDigits( heightVal, SIGNIFICANT_DIGITS );
 	m_state.setValue<double>( Util::HEIGHT, height );
-	_updateName();
+//	_updateName();
 	emit regionShapeChanged();
 }
 

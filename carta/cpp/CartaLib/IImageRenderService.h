@@ -4,7 +4,7 @@
 #include "CartaLib/IImage.h"
 #include "CartaLib/PixelPipeline/IPixelPipeline.h"
 #include <QObject>
-#include <QImage>
+//#include <QImage>
 
 namespace Carta
 {
@@ -70,21 +70,21 @@ public:
     /// set coordinates of the data pixel to be centered in the generated
     /// image, in zero-based image coordinates, e.g. (0,0) is bottom left corner of pixel
     /// (0,0), while (1,1) is it's right-top corner, and (1/2,1/2) is it's center
-    virtual void
-    setPan( QPointF pt ) = 0;
+//    virtual void
+//    setPan( QPointF pt ) = 0;
 
     /// getter for pan (see setPan())
-    virtual QPointF
-    pan() = 0;
+//    virtual QPointF
+//    pan() = 0;
 
     /// specify zoom
     /// \param zoom how many screen pixels does a data pixel occupy on screen
-    virtual void
-    setZoom( double zoom ) = 0;
+//    virtual void
+//    setZoom( double zoom ) = 0;
 
     /// return current zoom
-    virtual double
-    zoom() = 0;
+//    virtual double
+//    zoom() = 0;
 
     /// \brief sets the pixel pipeline (non-cached) to be used to render the image
     /// \param pixelPipeline the pixel pipeline to use (this can be non-cached version)
@@ -163,11 +163,11 @@ signals:
 
     /// emitted when job is done
     /// \warning connect to this using queued connection
-    void done( QImage, JobId );
+//    void done( QImage, JobId );
 
     /// emitted when job is still processing, but partial results are available
     /// \warning connect to this using queued connection
-    void progress( QImage, JobId );
+//    void progress( QImage, JobId );
 
     /// emitted when job terminated due to some errors
     /// \warning connect to this using queued connection

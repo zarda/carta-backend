@@ -6,7 +6,7 @@
 
 #include "State/StateInterface.h"
 #include "State/ObjectManager.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+//#include "CartaLib/VectorGraphics/VGList.h"
 #include "CartaLib/InputEvents.h"
 #include <QObject>
 
@@ -38,7 +38,7 @@ public:
 	 * Returns the center point of the bounding box enclosing the region.
 	 * @return - the center point of the bounding box enclosing the region.
 	 */
-	QPointF getCenter() const;
+    QPointF getCenter() const;
 
 	/**
 	 * Return information about the cursor position withen the shape.
@@ -50,7 +50,7 @@ public:
 	 * Returns the size of the bounding box enclosing the regions.
 	 * @return - the size of the bounding box enclosing the region.
 	 */
-	QSizeF getSize() const;
+    QSizeF getSize() const;
 
 	/**
 	 * Return the information associated with this region.
@@ -90,7 +90,7 @@ public:
 	 * Return the vector graphics for the shape.
 	 * @return - the shape vector graphics.
 	 */
-	Carta::Lib::VectorGraphics::VGList getVGList() const;
+//	Carta::Lib::VectorGraphics::VGList getVGList() const;
 
 
 	/**
@@ -98,13 +98,13 @@ public:
 	 * @param ev - the drag event.
 	 * @param location - the position of the cursor translated to the image coordinate system.
 	 */
-	void handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev, const QPointF& location );
+    void handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev, const QPointF& location );
 
 	/**
 	 * Notification of a drag as it progresses.
 	 * @param pt - the current location of the drag.
 	 */
-	virtual void handleDrag( const QPointF & pt );
+    virtual void handleDrag( const QPointF & pt );
 
 	/**
 	 * Notification that a drag event has ended.
@@ -122,7 +122,7 @@ public:
 	 * Notification of a click event.
 	 * @param pt - the current location of the mouse.
 	 */
-	virtual void handleTouch( const QPointF& pt );
+    virtual void handleTouch( const QPointF& pt );
 
 	/**
 	 * Notification of a double click event.
@@ -240,13 +240,13 @@ public:
          * @param blueAmount - an integer in [0,255] indicating the amount of blue.
          * @return a list of errors or an empty list if the color was successfully set.
 	 */
-	virtual bool setColor( QColor color );
+//	virtual bool setColor( QColor color );
 
 	/**
 	 * Set whether or not the shape is selected;
 	 * @param value - true if the shape is selected; false otherwise.
 	 */
-	void setSelected( bool value );
+    void setSelected( bool value );
 
 	/**
 	 * Set the width of the bounding box of the region.
@@ -295,11 +295,11 @@ protected:
 	 * Restore the region state.
 	 * @param state - a string representation of the state to restore.
 	 */
-	virtual void _restoreState( const QString& state );
+    virtual void _restoreState( const QString& state );
 
-	void _updateShapeFromState();
+    void _updateShapeFromState();
 
-	void _updateName();
+    void _updateName();
 
 	/**
 	 * Construct a region.

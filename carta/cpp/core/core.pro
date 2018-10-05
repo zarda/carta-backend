@@ -8,6 +8,7 @@ TEMPLATE = lib
 QT += network
 QT += xml
 QT += concurrent
+QT  -=  gui widgets
 
 HEADERS += \
     IConnector.h \

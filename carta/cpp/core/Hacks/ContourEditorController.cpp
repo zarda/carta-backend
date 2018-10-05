@@ -73,12 +73,12 @@ ContourEditorController::ContourEditorController( QObject * parent,
                 << "#l -1";
     QString s = initialText.join("\n").toLatin1().toBase64();
 
-    SetupVar( m_stringVar, SS::StringVar,
-              "text", s);
+//    SetupVar( m_stringVar, SS::StringVar,
+//              "text", s);
 
-#undef SetupVar
+//#undef SetupVar
 
-    stdVarCB();
+//    stdVarCB();
 }
 
 ContourEditorController::JobId
@@ -102,7 +102,7 @@ ContourEditorController::setInput( Carta::Lib::NdArray::RawViewInterface::Shared
     m_contourSvc-> setInput( rawView );
 }
 
-namespace VGE = Carta::Lib::VectorGraphics::Entries;
+//namespace VGE = Carta::Lib::VectorGraphics::Entries;
 
 void
 ContourEditorController::contourServiceCB(
@@ -114,115 +114,115 @@ ContourEditorController::contourServiceCB(
         return;
     }
 
-    if( m_pens.size() != result.contours().size()) {
-        qCritical() << "conour set entries:" << result.contours().size()
-                    << "but pen entries:" << m_pens.size();
-        return;
-    }
+//    if( m_pens.size() != result.contours().size()) {
+//        qCritical() << "conour set entries:" << result.contours().size()
+//                    << "but pen entries:" << m_pens.size();
+//        return;
+//    }
 
     // convert the raw contours into VG
-    Carta::Lib::VectorGraphics::VGComposer vgc;
-    const auto & contourSet = result.contours();
-    for ( size_t k = 0 ; k < contourSet.size() ; ++k ) {
-        const auto & con = contourSet[k].polylines();
-        vgc.append< VGE::SetPen >( m_pens[k]);
-        for ( size_t i = 0 ; i < con.size() ; ++i ) {
-            const QPolygonF & poly = con[i];
-            vgc.append < VGE::DrawPolyline > ( poly );
-        }
-    }
-    emit done( vgc.vgList(), m_lastJobId );
+//    Carta::Lib::VectorGraphics::VGComposer vgc;
+//    const auto & contourSet = result.contours();
+//    for ( size_t k = 0 ; k < contourSet.size() ; ++k ) {
+//        const auto & con = contourSet[k].polylines();
+//        vgc.append< VGE::SetPen >( m_pens[k]);
+//        for ( size_t i = 0 ; i < con.size() ; ++i ) {
+//            const QPolygonF & poly = con[i];
+//            vgc.append < VGE::DrawPolyline > ( poly );
+//        }
+//    }
+//    emit done( vgc.vgList(), m_lastJobId );
 } // contourServiceCB
 
-void
-ContourEditorController::stdVarCB()
-{
-    QString text = QByteArray::fromBase64( m_stringVar-> get().toLatin1() );
-    qDebug() << "raw string var:" << m_stringVar-> get();
-    qDebug() << "decoded string var:" << text;
+//void
+//ContourEditorController::stdVarCB()
+//{
+//    QString text = QByteArray::fromBase64( m_stringVar-> get().toLatin1() );
+//    qDebug() << "raw string var:" << m_stringVar-> get();
+//    qDebug() << "decoded string var:" << text;
 
-    std::vector<double> levels;
-    std::vector<std::vector<double>> levelsVector;
-    m_pens.resize( 0);
-    double width = 1.0;
-    QColor color = QColor( "green");
-    // make lines
-    QStringList lines = text.split( "\n", QString::SkipEmptyParts);
-    for( auto & line : lines) {
-        line = line.simplified();
-        bool lineError = false;
+//    std::vector<double> levels;
+//    std::vector<std::vector<double>> levelsVector;
+//    m_pens.resize( 0);
+//    double width = 1.0;
+//    QColor color = QColor( "green");
+//    // make lines
+//    QStringList lines = text.split( "\n", QString::SkipEmptyParts);
+//    for( auto & line : lines) {
+//        line = line.simplified();
+//        bool lineError = false;
 
-        QStringList e = line.split( " ");
-        if( e[0] == "level" || e[0] == "l") {
-            for( int i = 1 ; i < e.length() ; ++ i) {
-                bool ok;
-                double v = e[i].toDouble( & ok);
-                if( ! ok) {
-                    lineError = true;
-                    continue;
-                }
-                levels.push_back( v);
-                QPen pen( QColor( color), width);
-                pen.setCosmetic( true);
-                m_pens.push_back( pen);
-            }
-        }
-        else if( e[0] == "color" || e[0] == "c") {
-            if( e.length() != 2) {
-                lineError = true;
-            } else {
-                color.setNamedColor( e[1]);
-                if( ! color.isValid()) {
-                    lineError = true;
-                }
-            }
-        }
-        else if( e[0] == "alpha" || e[0] == "a") {
-            if( e.length() != 2) {
-                lineError = true;
-            } else {
-                bool ok;
-                double alpha = e[1].toDouble( & ok);
-                if( ! ok || ! ( alpha >= 0 && alpha <= 1)) {
-                    lineError = true;
-                } else {
-                    color.setAlphaF( alpha);
-                }
-            }
-        }
-        else if( e[0] == "width" || e[0] == "w") {
-            if( e.length() != 2) {
-                lineError = true;
-            } else {
-                bool ok;
-                width = e[1].toDouble( & ok);
-                if( ! ok || ! ( width >= 0 && width <= 100)) {
-                    lineError = true;
-                }
-            }
-        }
-        else if( line.startsWith( "#")) {
-            // comment, skip it
-        }
-        else {
-            lineError = true;
-        }
+//        QStringList e = line.split( " ");
+//        if( e[0] == "level" || e[0] == "l") {
+//            for( int i = 1 ; i < e.length() ; ++ i) {
+//                bool ok;
+//                double v = e[i].toDouble( & ok);
+//                if( ! ok) {
+//                    lineError = true;
+//                    continue;
+//                }
+//                levels.push_back( v);
+//                QPen pen( QColor( color), width);
+//                pen.setCosmetic( true);
+//                m_pens.push_back( pen);
+//            }
+//        }
+//        else if( e[0] == "color" || e[0] == "c") {
+//            if( e.length() != 2) {
+//                lineError = true;
+//            } else {
+//                color.setNamedColor( e[1]);
+//                if( ! color.isValid()) {
+//                    lineError = true;
+//                }
+//            }
+//        }
+//        else if( e[0] == "alpha" || e[0] == "a") {
+//            if( e.length() != 2) {
+//                lineError = true;
+//            } else {
+//                bool ok;
+//                double alpha = e[1].toDouble( & ok);
+//                if( ! ok || ! ( alpha >= 0 && alpha <= 1)) {
+//                    lineError = true;
+//                } else {
+////                    color.setAlphaF( alpha);
+//                }
+//            }
+//        }
+//        else if( e[0] == "width" || e[0] == "w") {
+//            if( e.length() != 2) {
+//                lineError = true;
+//            } else {
+//                bool ok;
+//                width = e[1].toDouble( & ok);
+//                if( ! ok || ! ( width >= 0 && width <= 100)) {
+//                    lineError = true;
+//                }
+//            }
+//        }
+//        else if( line.startsWith( "#")) {
+//            // comment, skip it
+//        }
+//        else {
+//            lineError = true;
+//        }
 
-        if( lineError) {
-            qWarning() << "Error parsing contour UI:" << line;
-        }
-    }
-    levelsVector.push_back(levels);
-    m_contourSvc->setLevelsVector(levelsVector);
-    emit updated();
-
-//    text.replace( ',',' ');
-//    text = text.simplified();
-//    m_contourSvc-> setLevels( Impl::s2vd( text));
-
-//    // let everyone know something was updated
+//        if( lineError) {
+//            qWarning() << "Error parsing contour UI:" << line;
+//        }
+//    }
+//    levelsVector.push_back(levels);
+//    m_contourSvc->setLevelsVector(levelsVector);
 //    emit updated();
-}
+
+////    text.replace( ',',' ');
+////    text = text.simplified();
+////    m_contourSvc-> setLevels( Impl::s2vd( text));
+
+////    // let everyone know something was updated
+////    emit updated();
+//}
 }
 
 }

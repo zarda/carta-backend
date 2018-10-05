@@ -65,14 +65,14 @@ signals:
     /// \note it is up to the owner of this instance to listen for this and manually
     /// triggering startRendering(). We don't do this automatically because we may want
     /// to synchronize rendering with other layers...
-    void
-    updated();
+//    void
+//    updated();
 
     /// gets emitted when rendering is done
     /// \param vg the rendered vector graphics
     /// \param id the jobId this result corresponds to
-    void
-    done( Carta::Lib::VectorGraphics::VGList vg, JobId id );
+//    void
+//    done( Carta::Lib::VectorGraphics::VGList vg, JobId id );
 
 public slots:
 
@@ -88,8 +88,8 @@ private:
     JobId m_lastJobId = - 1;
 
     /// shared callback for all state variables
-    void
-    stdVarCB();
+//    void
+//    stdVarCB();
 
     IConnector * m_connector = nullptr;
     QString m_statePrefix = "/";
@@ -98,7 +98,7 @@ private:
 
     Carta::Core::DefaultContourGeneratorService::UniquePtr m_contourSvc = nullptr;
 
-    std::vector<QPen> m_pens;
+//    std::vector<QPen> m_pens;
 };
 }
 }

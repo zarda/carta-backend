@@ -45,8 +45,8 @@ public:
     html() const;
 
     /// returns the plain text
-    QString
-    plain() const;
+//    QString
+//    plain() const;
 
 protected:
 

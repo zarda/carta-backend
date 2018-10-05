@@ -6,8 +6,10 @@
 #include "ShapeBase.h"
 #include "CartaLib/CartaLib.h"
 #include <QPointF>
+#include <functional>
+#include <QSize>
 
-namespace vge = Carta::Lib::VectorGraphics::Entries;
+//namespace vge = Carta::Lib::VectorGraphics::Entries;
 
 
 namespace Carta {
@@ -48,7 +50,7 @@ public:
      * Returns the graphics for drawing the control point.
      * @return - the graphics for drawing the control point.
      */
-    virtual Carta::Lib::VectorGraphics::VGList getVGList() const override;
+//    virtual Carta::Lib::VectorGraphics::VGList getVGList() const override;
 
     /**
      * Notification that a drag has started.
@@ -79,7 +81,7 @@ public:
      * Set the fill color of the point.
      * @param color - the fill color for the point.
      */
-    void setFillColor( QColor color );
+//    void setFillColor( QColor color );
 
     /**
      * Set the underlying model for the region.
@@ -103,7 +105,7 @@ protected:
 private:
     std::function < void (bool) > m_cb;
     QPointF m_pos;
-    QColor m_fillColor;
+//    QColor m_fillColor;
     double m_size = 9;
 };
 

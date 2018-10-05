@@ -1060,10 +1060,10 @@ std::vector<int32_t> DataSource::_getNanEncodingsBlock(std::vector<float>& array
     return encodedArray;
 }
 
-QColor DataSource::_getNanColor() const {
-    QColor nanColor = m_renderService->getNanColor();
-    return nanColor;
-}
+//QColor DataSource::_getNanColor() const {
+//    QColor nanColor = m_renderService->getNanColor();
+//    return nanColor;
+//}
 
 std::vector<double> DataSource::_getHertzValues(const std::vector<int> dims) const {
     int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
@@ -1138,7 +1138,7 @@ QPointF DataSource::_getScreenPt( const QPointF& imagePt, const QPointF& pan,
         double zoom, const QSize& outputSize, bool* valid ) const {
     QPointF screenPt;
     if ( m_image != nullptr ){
-        screenPt = m_renderService->image2screen( imagePt, pan, zoom, outputSize);
+//        screenPt = m_renderService->image2screen( imagePt, pan, zoom, outputSize);
         *valid = true;
     }
     else {
@@ -1509,23 +1509,23 @@ void DataSource::_load(std::vector<int> frames, bool recomputeClipsOnNewFrame,
 			_updateClips( view,  minClipPercentile, maxClipPercentile, mFrames );
         }
 		QString cacheId=m_pixelPipeline-> cacheId();
-		m_renderService-> setPixelPipeline( m_pixelPipeline,cacheId );
+//		m_renderService-> setPixelPipeline( m_pixelPipeline,cacheId );
 
 		QString renderId = _getViewIdCurrent( mFrames );
-		m_renderService-> setInputView( view, renderId );
+//		m_renderService-> setInputView( view, renderId );
 	}
 }
 
 
 void DataSource::_resetZoom(){
-    m_renderService-> setZoom( ZOOM_DEFAULT );
+//    m_renderService-> setZoom( ZOOM_DEFAULT );
 }
 
 void DataSource::_resetPan(){
     if ( m_permuteImage != nullptr ){
         double xCenter =  m_permuteImage-> dims()[0] / 2.0;
         double yCenter = m_permuteImage-> dims()[1] / 2.0;
-        m_renderService-> setPan({ xCenter, yCenter });
+//        m_renderService-> setPan({ xCenter, yCenter });
     }
 }
 
@@ -1602,8 +1602,8 @@ void DataSource::_setColorAmounts( double newRed, double newGreen, double newBlu
 }
 
 void DataSource::_setColorNan( double red, double green, double blue ){
-    QColor nanColor( red, green, blue );
-    m_renderService->setNanColor( nanColor );
+//    QColor nanColor( red, green, blue );
+//    m_renderService->setNanColor( nanColor );
 }
 
 bool DataSource::_setDisplayAxis( AxisInfo::KnownType axisType, int* axisIndex ){
@@ -1678,7 +1678,7 @@ void DataSource::_setNanDefault( bool nanDefault ){
 }
 
 void DataSource::_setPan( double imgX, double imgY ){
-    m_renderService-> setPan( QPointF(imgX,imgY) );
+//    m_renderService-> setPan( QPointF(imgX,imgY) );
 }
 
 void DataSource::_setTransformData( const QString& name ){
@@ -1690,7 +1690,7 @@ void DataSource::_setTransformData( const QString& name ){
 
 void DataSource::_setZoom( double zoomAmount){
     // apply new zoom
-    m_renderService-> setZoom( zoomAmount );
+//    m_renderService-> setZoom( zoomAmount );
 }
 
 

@@ -33,14 +33,14 @@ RegionPolygon::RegionPolygon(const QString& path, const QString& id )
     _updateShapeFromState();
 }
 
-void RegionPolygon::addCorner( const QPointF& pt ){
-	Shape::ShapePolygon* poly = dynamic_cast<Shape::ShapePolygon*>( m_shape.get());
-	if ( !poly->isCorner( pt ) ){
-		std::vector<QPointF> corners(1);
-		corners[0] = pt;
-		_addCorners( corners );
-	}
-}
+//void RegionPolygon::addCorner( const QPointF& pt ){
+//	Shape::ShapePolygon* poly = dynamic_cast<Shape::ShapePolygon*>( m_shape.get());
+//	if ( !poly->isCorner( pt ) ){
+//		std::vector<QPointF> corners(1);
+//		corners[0] = pt;
+//		_addCorners( corners );
+//	}
+//}
 
 void RegionPolygon::_addCorners( const std::vector< QPointF >& corners ){
     int cornerCount = corners.size();
@@ -57,23 +57,23 @@ void RegionPolygon::_addCorners( const std::vector< QPointF >& corners ){
     m_shape->setModel( toJSON() );
 }
 
-void RegionPolygon::_closePolygon(){
-	bool validCorner = false;
-	if ( m_shape ){
-		Shape::ShapePolygon* poly = dynamic_cast<Shape::ShapePolygon*>(m_shape.get());
-		if ( !poly->isClosed() ){
-			QPointF firstPoint = getCorner( 0, &validCorner );
-			if ( validCorner ){
-				//Circumvent the uniqueness check when adding the last corner
-				//by calling _addCorners instead of _addCorner
-				std::vector<QPointF> corners(1);
-				corners[0] = firstPoint;
-				_addCorners( corners );
-				emit editDone();
-			}
-		}
-	}
-}
+//void RegionPolygon::_closePolygon(){
+//	bool validCorner = false;
+//	if ( m_shape ){
+//		Shape::ShapePolygon* poly = dynamic_cast<Shape::ShapePolygon*>(m_shape.get());
+//		if ( !poly->isClosed() ){
+//			QPointF firstPoint = getCorner( 0, &validCorner );
+//			if ( validCorner ){
+//				//Circumvent the uniqueness check when adding the last corner
+//				//by calling _addCorners instead of _addCorner
+//				std::vector<QPointF> corners(1);
+//				corners[0] = firstPoint;
+//				_addCorners( corners );
+//				emit editDone();
+//			}
+//		}
+//	}
+//}
 
 QPointF RegionPolygon::getCorner( int index, bool* valid ) const {
     int cornerCount = m_state.getArraySize( Carta::Lib::Regions::Polygon::POINTS );
@@ -134,28 +134,28 @@ void RegionPolygon::_insertCorner( int index, const QPointF& corner ){
 	m_state.insertValue<double>( yLookup, corner.y() );
 }
 
-void RegionPolygon::handleTouch( const QPointF& pt ){
-	bool tapped = false;
-	if ( isEditMode() ){
-		//Add a new corner point
-		addCorner( pt );
-	}
-	else {
-		if ( m_shape->isPointInside( pt ) ){
-			tapped = true;
-		}
-		setSelected( tapped );
-	}
-}
+//void RegionPolygon::handleTouch( const QPointF& pt ){
+//	bool tapped = false;
+//	if ( isEditMode() ){
+//		//Add a new corner point
+//		addCorner( pt );
+//	}
+//	else {
+//		if ( m_shape->isPointInside( pt ) ){
+//			tapped = true;
+//		}
+//		setSelected( tapped );
+//	}
+//}
 
-void RegionPolygon::handleTapDouble( const QPointF& pt ){
-	if ( isEditMode() ){
-		//Add a new corner point
-		addCorner( pt );
-		//Close the polygon
-		_closePolygon();
-	}
-}
+//void RegionPolygon::handleTapDouble( const QPointF& pt ){
+//	if ( isEditMode() ){
+//		//Add a new corner point
+//		addCorner( pt );
+//		//Close the polygon
+//		_closePolygon();
+//	}
+//}
 
 
 bool RegionPolygon::setCenter( const QPointF& pt ){
@@ -182,8 +182,8 @@ bool RegionPolygon::setCenter( const QPointF& pt ){
 				m_state.setValue<double>( xKey, cornerX );
 				m_state.setValue<double>( yKey, cornerY );
 			}
-			m_shape->setModel( toJSON() );
-			_updateName();
+            m_shape->setModel( toJSON() );
+            _updateName();
 		}
 	}
 	return centerChanged;
@@ -211,30 +211,30 @@ bool RegionPolygon::setHeight( double height ){
 				cornerY = centerPt.y() + newAmount;
 				m_state.setValue<double>( yKey, cornerY );
 			}
-			m_shape->setModel( toJSON() );
-			_updateName();
+            m_shape->setModel( toJSON() );
+            _updateName();
 		}
 	}
 	return heightChanged;
 }
 
 
-void RegionPolygon::setModel( Carta::Lib::Regions::RegionBase* model ){
-	if ( model ){
-		QString regionType = model->typeName();
-		CARTA_ASSERT( regionType == Carta::Lib::Regions::Polygon::TypeName );
+//void RegionPolygon::setModel( Carta::Lib::Regions::RegionBase* model ){
+//	if ( model ){
+//		QString regionType = model->typeName();
+//		CARTA_ASSERT( regionType == Carta::Lib::Regions::Polygon::TypeName );
 
-		QJsonObject obj = model->toJson();
-		Carta::Lib::Regions::Polygon* polyRegion = dynamic_cast<Carta::Lib::Regions::Polygon*>( model );
-		QPolygonF poly = polyRegion->qpolyf();
-		int cornerCount = poly.size();
-		for ( int i = 0; i < cornerCount; i++ ){
-			addCorner( poly.value(i) );
-		}
-		_closePolygon();
-		_updateName();
-	}
-}
+//		QJsonObject obj = model->toJson();
+//		Carta::Lib::Regions::Polygon* polyRegion = dynamic_cast<Carta::Lib::Regions::Polygon*>( model );
+//		QPolygonF poly = polyRegion->qpolyf();
+//		int cornerCount = poly.size();
+//		for ( int i = 0; i < cornerCount; i++ ){
+//			addCorner( poly.value(i) );
+//		}
+//		_closePolygon();
+//		_updateName();
+//	}
+//}
 
 bool RegionPolygon::setWidth( double width ){
 	CARTA_ASSERT( width >= 0 );
@@ -260,8 +260,8 @@ bool RegionPolygon::setWidth( double width ){
 				cornerX = centerPt.x() + newAmount;
 				m_state.setValue<double>( xKey, cornerX );
 			}
-			m_shape->setModel( toJSON() );
-			_updateName();
+            m_shape->setModel( toJSON() );
+            _updateName();
 		}
 	}
 	return widthChanged;
@@ -301,7 +301,7 @@ void RegionPolygon::_updateStateFromJson( const QJsonObject& json ){
 			}
 		}
 	}
-	_updateName();
+    _updateName();
 	emit regionShapeChanged();
 }
 

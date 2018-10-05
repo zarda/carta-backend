@@ -41,7 +41,7 @@ MyQApp::notify( QObject * obj, QEvent * ev )
         err << QString( "Exception (...)" );
     }
 
-    err << "...caught in MyQapp::nofify()";
+    err << "...caught in MyQapp::notify()";
     qFatal( "%s", err.join( '\n' ).toStdString().c_str() );
 
     return false;

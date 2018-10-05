@@ -107,13 +107,13 @@ casacore::ImageRegion* ImageRegionGenerator::makeRegion( casacore::ImageInterfac
 					dynamic_cast<Carta::Lib::Regions::Polygon*>( region.get() );
 			imageRegion = _makeRegionPolygon( casaImage, poly );
 		}
-		else if ( regionType == "Point" ){
-			Carta::Lib::Regions::Point* point =
-					dynamic_cast<Carta::Lib::Regions::Point*>( region.get() );
-			QPointF center = point->outlineBox().center();
-			QRectF box( center.x(), center.y(), center.x(), center.y());
-			imageRegion = _makeRegionRectangle( casaImage, box );
-		}
+//		else if ( regionType == "Point" ){
+//			Carta::Lib::Regions::Point* point =
+//					dynamic_cast<Carta::Lib::Regions::Point*>( region.get() );
+//			QPointF center = point->outlineBox().center();
+//			QRectF box( center.x(), center.y(), center.x(), center.y());
+//			imageRegion = _makeRegionRectangle( casaImage, box );
+//		}
 		else {
 			qDebug() << "RegionGenerator::makeRegion unsupported regionType: "<<regionType;
 		}
@@ -192,47 +192,47 @@ casacore::ImageRegion* ImageRegionGenerator::_makeRegionEllipse( casacore::Image
 casacore::ImageRegion* ImageRegionGenerator::_makeRegionPolygon( casacore::ImageInterface<casacore::Float> * image,
 		Carta::Lib::Regions::Polygon* polygon ){
 	casacore::ImageRegion* imageRegion = nullptr;
-	if ( image && polygon ){
-		QPolygonF poly = polygon->qpolyf();
-		int cornerPointCount = poly.count();
-		casacore::Vector<casacore::Double> x( cornerPointCount );
-		casacore::Vector<casacore::Double> y( cornerPointCount );
-		const casacore::CoordinateSystem &cs = image->coordinates( );
-		bool successful = true;
-		for ( int i = 0; i < cornerPointCount; ++i ) {
-			QPointF polyPt = poly.value( i );
-			casacore::Vector<casacore::Double> worldPt = _toWorld( cs, polyPt.x(), polyPt.y(), &successful );
-			if ( successful ){
-				x[i] = worldPt[0];
-				y[i] = worldPt[1];
-			}
-			else {
-				qDebug() << "i="<<i<<" could not convert x="<<polyPt.x()<<" y="<<polyPt.y()<<" to world.";
-				break;
-			}
-		}
+//	if ( image && polygon ){
+//		QPolygonF poly = polygon->qpolyf();
+//		int cornerPointCount = poly.count();
+//		casacore::Vector<casacore::Double> x( cornerPointCount );
+//		casacore::Vector<casacore::Double> y( cornerPointCount );
+//		const casacore::CoordinateSystem &cs = image->coordinates( );
+//		bool successful = true;
+//		for ( int i = 0; i < cornerPointCount; ++i ) {
+//			QPointF polyPt = poly.value( i );
+//			casacore::Vector<casacore::Double> worldPt = _toWorld( cs, polyPt.x(), polyPt.y(), &successful );
+//			if ( successful ){
+//				x[i] = worldPt[0];
+//				y[i] = worldPt[1];
+//			}
+//			else {
+//				qDebug() << "i="<<i<<" could not convert x="<<polyPt.x()<<" y="<<polyPt.y()<<" to world.";
+//				break;
+//			}
+//		}
 
-		if ( successful ){
-			casacore::Vector<casacore::Int> dispAxes(2);
-			const casacore::CoordinateSystem &cs = image->coordinates( );
-			int directionIndex = cs.findCoordinate( casacore::Coordinate::DIRECTION );
-			if ( directionIndex >= 0 ){
-				casacore::Vector<casacore::Int> dirPixelAxis = cs.pixelAxes(directionIndex);
-				dispAxes(0) = dirPixelAxis[0];
-				dispAxes(1) = dirPixelAxis[1];
-				const casacore::String units( RAD_UNITS.toStdString().c_str() );
-				try {
-					casacore::Quantum<casacore::Vector<casacore::Double> > qx( x, units );
-					casacore::Quantum<casacore::Vector<casacore::Double> > qy( y, units );
-					casacore::WCPolygon poly(qx, qy, casacore::IPosition(dispAxes), cs);
-					imageRegion = new casacore::ImageRegion(poly);
-				}
-				catch( casacore::AipsError& error ) {
-					qDebug() << "Error making image region: "<<error.getMesg().c_str();
-				}
-			}
-		}
-	}
+//		if ( successful ){
+//			casacore::Vector<casacore::Int> dispAxes(2);
+//			const casacore::CoordinateSystem &cs = image->coordinates( );
+//			int directionIndex = cs.findCoordinate( casacore::Coordinate::DIRECTION );
+//			if ( directionIndex >= 0 ){
+//				casacore::Vector<casacore::Int> dirPixelAxis = cs.pixelAxes(directionIndex);
+//				dispAxes(0) = dirPixelAxis[0];
+//				dispAxes(1) = dirPixelAxis[1];
+//				const casacore::String units( RAD_UNITS.toStdString().c_str() );
+//				try {
+//					casacore::Quantum<casacore::Vector<casacore::Double> > qx( x, units );
+//					casacore::Quantum<casacore::Vector<casacore::Double> > qy( y, units );
+//					casacore::WCPolygon poly(qx, qy, casacore::IPosition(dispAxes), cs);
+//					imageRegion = new casacore::ImageRegion(poly);
+//				}
+//				catch( casacore::AipsError& error ) {
+//					qDebug() << "Error making image region: "<<error.getMesg().c_str();
+//				}
+//			}
+//		}
+//	}
 	return imageRegion;
 }
 

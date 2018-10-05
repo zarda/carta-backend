@@ -84,17 +84,17 @@ QString DataContours::getContourType() const {
     return m_generatorState -> getContourType();
 }
 
-std::vector<QPen> DataContours::getPens() const {
-    int penCount = m_contours.size();
-    std::vector<QPen> pens( penCount );
-    int i = 0;
-    for ( std::set<Contour>::iterator it = m_contours.begin();
-                it != m_contours.end(); it++ ){
-        pens[i] = (*it).getPen();
-        i++;
-    }
-    return pens;
-}
+//std::vector<QPen> DataContours::getPens() const {
+//    int penCount = m_contours.size();
+//    std::vector<QPen> pens( penCount );
+//    int i = 0;
+//    for ( std::set<Contour>::iterator it = m_contours.begin();
+//                it != m_contours.end(); it++ ){
+//        pens[i] = (*it).getPen();
+//        i++;
+//    }
+//    return pens;
+//}
 
 
 Carta::State::StateInterface DataContours::_getState() const {

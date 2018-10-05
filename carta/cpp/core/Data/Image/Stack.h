@@ -83,7 +83,7 @@ protected:
      */
     virtual bool _setLayerName( const QString& id, const QString& name ) Q_DECL_OVERRIDE;
 
-//    virtual bool _setLayersGrouped( bool grouped  );
+    virtual bool _setLayersGrouped( bool grouped  );
 
     virtual bool _setSelected( QStringList& names ) Q_DECL_OVERRIDE;
 
@@ -112,7 +112,7 @@ private:
     QStringList _getCoords( double x, double y,
                 Carta::Lib::KnownSkyCS system ) const;
 
-//    QString _getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY );
+    QString _getCursorText(bool isAutoClip, double minPercent, double maxPercent, int mouseX, int mouseY );
     Carta::State::StateInterface _getDataGridState();
 
     QList<std::shared_ptr<Layer> > _getDrawChildren() const;
@@ -123,7 +123,7 @@ private:
     std::vector<int> _getImageSlice() const;
     int _getIndex( const QString& layerId) const;
     QString _getPixelVal( double x, double y) const;
-//    QRectF _getInputRectangle() const;
+    QRectF _getInputRectangle() const;
      QList<std::shared_ptr<Region> > _getRegions() const;
 
      int _getSelectImageIndex() const;
@@ -139,7 +139,7 @@ private:
       * Returns the size in pixels of the main image display.
       * @return - the size in pixels of the main image display.
       */
-//     QSize _getOutputSize() const;
+     QSize _getOutputSize() const;
 
     void _gridChanged( const Carta::State::StateInterface& state, bool applyAll);
 
@@ -151,7 +151,7 @@ private:
     		bool recomputeClipsOnNewFrame, double minClipPercentile, double maxClipPercentile);
     void _renderAll(bool recomputeClipsOnNewFrame, double minClipPercentile, double maxClipPercentile);
     void _renderContext( double zoomFactor );
-//    void _renderZoom( int mouseX, int mouseY, double factor );
+    void _renderZoom( int mouseX, int mouseY, double factor );
 
     QString _reorderImages( const std::vector<int> & indices );
     QString _resetFrames( int val);
@@ -199,13 +199,13 @@ private:
     void _setZoomLevel( double zoomLevel, bool zoomPanAll );
 
 
-//    void _updatePan( double centerX , double centerY, bool zoomPanAll );
-//    void _updatePan( double centerX , double centerY,
-//            std::shared_ptr<Layer> data);
+    void _updatePan( double centerX , double centerY, bool zoomPanAll );
+    void _updatePan( double centerX , double centerY,
+            std::shared_ptr<Layer> data);
 
-//    void _updatePanZoom( double centerX, double centerY, double zoomFactor, bool zoomPanAll, double zoomLevel, double layerId);
-//    void _updatePanZoom( double centerX, double centerY, double zoomFactor,
-//            std::shared_ptr<Layer> data, double zoomLevel );
+    void _updatePanZoom( double centerX, double centerY, double zoomFactor, bool zoomPanAll, double zoomLevel, double layerId);
+    void _updatePanZoom( double centerX, double centerY, double zoomFactor,
+            std::shared_ptr<Layer> data, double zoomLevel );
 
     void updateZoom(double zoomFactor, bool zoomPanAll, double zoomLevel, double layerId);
     void _updateZoom(double zoomFactor, std::shared_ptr<Layer> data, double zoomLevel);

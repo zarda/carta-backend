@@ -11,7 +11,9 @@
 #include "CartaLib/Hooks/GetImageRenderService.h"
 #include "GrayColormap.h"
 #include "ProfileExtractor.h"
-#include <QPainter>
+//#include <QPainter>
+#include <QPointF>
+#include <QRectF>
 #include <QTime>
 #include <functional>
 
@@ -93,17 +95,17 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     // contour editor controller
     m_contourEditorController.reset( new Hacks::ContourEditorController( this,
                                                                          "/hacks/contourEditor/ce1" ) );
-    connect( m_contourEditorController.get(),
-             & ContourEditorController::updated,
-             [&] () {
-                 qDebug() << "contourEditorController updated";
+//    connect( m_contourEditorController.get(),
+//             & ContourEditorController::updated,
+//             [&] () {
+//                 qDebug() << "contourEditorController updated";
 
 //                 m_contourEditorController-> startRendering();
-                 m_syncSvc-> startContour();
+//                 m_syncSvc-> startContour();
 
 //                 requestImageAndGridUpdate();
-             }
-             );
+//             }
+//             );
 
 //    connect( m_contourEditorController.get(),
 //             & ContourEditorController::done,
@@ -121,8 +123,8 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     // connect its done() slot to our imageAndGridDoneSlot()
 //    connect( m_igSync.get(), & ImageGridServiceSynchronizer::done,
 //             this, & Me::imageAndGridDoneSlot );
-    connect( m_syncSvc.get(), & ServiceSync::done,
-             this, & Me::imageAndGridDoneSlot );
+//    connect( m_syncSvc.get(), & ServiceSync::done,
+//             this, & Me::imageAndGridDoneSlot );
 
     // initialize pixel pipeline
     m_pixelPipeline = std::make_shared < Carta::Lib::PixelPipeline::CustomizablePixelPipeline > ();
@@ -130,24 +132,24 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
     m_pixelPipeline-> setReverse( false );
     m_pixelPipeline-> setColormap( std::make_shared < Carta::Core::GrayColormap > () );
     m_pixelPipeline-> setMinMax( 0, 1 );
-    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
+//    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
 
     // register with connector as a view
     m_connector-> registerView( this );
 
     // register callback for zoom
-    m_connector-> addCommandCallback(
-        m_statePrefix + "/zoom",
-        std::bind( & ImageViewController::zoomCB, this,
-                   std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 )
-        );
+//    m_connector-> addCommandCallback(
+//        m_statePrefix + "/zoom",
+//        std::bind( & ImageViewController::zoomCB, this,
+//                   std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 )
+//        );
 
-    // register callback for center
-    m_connector-> addCommandCallback(
-        m_statePrefix + "/center",
-        std::bind( & ImageViewController::panCB, this,
-                   std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 )
-        );
+//    // register callback for center
+//    m_connector-> addCommandCallback(
+//        m_statePrefix + "/center",
+//        std::bind( & ImageViewController::panCB, this,
+//                   std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 )
+//        );
 
     m_connector-> setState( m_statePrefix + "/frame", "n/a" );
 
@@ -172,8 +174,8 @@ ImageViewController::ImageViewController( QString statePrefix, QString viewName,
             "/hacks/gridControls/c1",
             m_wcsGridRenderer
             ) );
-    connect( m_wcsGridOptionsController.get(), & WcsGridOptionsController::updated,
-             this, & Me::requestImageAndGridUpdate );
+//    connect( m_wcsGridOptionsController.get(), & WcsGridOptionsController::updated,
+//             this, & Me::requestImageAndGridUpdate );
 
     // shared state stuff
     // ------------------
@@ -209,103 +211,103 @@ ImageViewController::playMovieToggleCB()
     }
 }
 
-void
-ImageViewController::requestImageAndGridUpdate()
-{
-    // erase current grid
-//    m_gridVG = Nullable < Carta::Lib::VectorGraphics::VGList > ();
+//void
+//ImageViewController::requestImageAndGridUpdate()
+//{
+//    // erase current grid
+////    m_gridVG = Nullable < Carta::Lib::VectorGraphics::VGList > ();
 
-    auto renderSize = m_renderService-> outputSize();
-    m_wcsGridRenderer-> setOutputSize( renderSize );
+//    auto renderSize = m_renderService-> outputSize();
+//    m_wcsGridRenderer-> setOutputSize( renderSize );
 
-    int leftMargin = 50;
-    int rightMargin = 10;
-    int bottomMargin = 50;
-    int topMargin = 10;
+//    int leftMargin = 50;
+//    int rightMargin = 10;
+//    int bottomMargin = 50;
+//    int topMargin = 10;
 
-    QRectF outputRect( leftMargin, topMargin,
-                       renderSize.width() - leftMargin - rightMargin,
-                       renderSize.height() - topMargin - bottomMargin );
-    QRectF inputRect(
-        m_renderService-> screen2img( outputRect.topLeft() ),
-        m_renderService-> screen2img( outputRect.bottomRight() ) );
+//    QRectF outputRect( leftMargin, topMargin,
+//                       renderSize.width() - leftMargin - rightMargin,
+//                       renderSize.height() - topMargin - bottomMargin );
+//    QRectF inputRect(
+//        m_renderService-> screen2img( outputRect.topLeft() ),
+//        m_renderService-> screen2img( outputRect.bottomRight() ) );
 
-    m_wcsGridRenderer-> setImageRect( inputRect );
-    m_wcsGridRenderer-> setOutputRect( outputRect );
+//    m_wcsGridRenderer-> setImageRect( inputRect );
+//    m_wcsGridRenderer-> setOutputRect( outputRect );
 
-//    m_igSync-> startAll();
-    m_syncSvc-> startImage();
-    m_syncSvc-> startGrid();
-} // updateGridAfterPanZoom
+////    m_igSync-> startAll();
+//    m_syncSvc-> startImage();
+//    m_syncSvc-> startGrid();
+//} // updateGridAfterPanZoom
 
-QString
-ImageViewController::zoomCB( const QString &, const QString & params, const QString & )
-{
-    auto vals = Impl::s2vd( params );
+//QString
+//ImageViewController::zoomCB( const QString &, const QString & params, const QString & )
+//{
+//    auto vals = Impl::s2vd( params );
 
-    // ignore misformatted messages
-    if ( vals.size() < 3 ) {
-        qWarning() << "zoomCB: bad message" << params;
-        return "";
-    }
+//    // ignore misformatted messages
+//    if ( vals.size() < 3 ) {
+//        qWarning() << "zoomCB: bad message" << params;
+//        return "";
+//    }
 
-    // remember where the user clicked
-    QPointF clickPtScreen( vals[0], vals[1] );
-    QPointF clickPtImageOld = m_renderService-> screen2img( clickPtScreen );
+//    // remember where the user clicked
+//    QPointF clickPtScreen( vals[0], vals[1] );
+//    QPointF clickPtImageOld = m_renderService-> screen2img( clickPtScreen );
 
-    // apply new zoom
-    double z = vals[2];
-    double newZoom;
-    if ( z < 0 ) {
-        newZoom = m_renderService-> zoom() / 0.9;
-    }
-    else {
-        newZoom = m_renderService-> zoom() * 0.9;
-    }
-    m_renderService-> setZoom( newZoom );
+//    // apply new zoom
+//    double z = vals[2];
+//    double newZoom;
+//    if ( z < 0 ) {
+//        newZoom = m_renderService-> zoom() / 0.9;
+//    }
+//    else {
+//        newZoom = m_renderService-> zoom() * 0.9;
+//    }
+//    m_renderService-> setZoom( newZoom );
 
-    // what is the new image pixel under the mouse cursor?
-    QPointF clickPtImageNew = m_renderService-> screen2img( clickPtScreen );
+//    // what is the new image pixel under the mouse cursor?
+//    QPointF clickPtImageNew = m_renderService-> screen2img( clickPtScreen );
 
-    // calculate the difference
-    QPointF delta = clickPtImageOld - clickPtImageNew;
+//    // calculate the difference
+//    QPointF delta = clickPtImageOld - clickPtImageNew;
 
-    // add the delta to the current center
-    QPointF currCenter = m_renderService-> pan();
-    m_renderService-> setPan( currCenter + delta );
+//    // add the delta to the current center
+//    QPointF currCenter = m_renderService-> pan();
+//    m_renderService-> setPan( currCenter + delta );
 
-    // request repaint
-    requestImageAndGridUpdate();
+//    // request repaint
+//    requestImageAndGridUpdate();
 
-    return "";
-} // zoomCB
+//    return "";
+//} // zoomCB
 
-QString
-ImageViewController::panCB( const QString &, const QString & params, const QString & )
-{
-    auto vals = Impl::s2vd( params );
-    if ( vals.size() > 1 ) {
-        auto newCenter = m_renderService-> screen2img( { vals[0], vals[1] }
-                                                       );
-        m_renderService-> setPan( newCenter );
+//QString
+//ImageViewController::panCB( const QString &, const QString & params, const QString & )
+//{
+//    auto vals = Impl::s2vd( params );
+//    if ( vals.size() > 1 ) {
+//        auto newCenter = m_renderService-> screen2img( { vals[0], vals[1] }
+//                                                       );
+//        m_renderService-> setPan( newCenter );
 
-        // request repaint
-//        m_renderService-> render( 0 );
-        requestImageAndGridUpdate();
-    }
+//        // request repaint
+////        m_renderService-> render( 0 );
+//        requestImageAndGridUpdate();
+//    }
 
-    return "";
-} // zoomCB
+//    return "";
+//} // zoomCB
 
 ImageViewController::~ImageViewController()
 { }
 
-QSize
-ImageViewController::size()
-{
-//    return m_renderService-> outputSize();
-    return m_renderBuffer.size();
-}
+//QSize
+//ImageViewController::size()
+//{
+////    return m_renderService-> outputSize();
+//    return m_renderBuffer.size();
+//}
 
 //const QImage &
 //ImageViewController::getBuffer()
@@ -313,62 +315,62 @@ ImageViewController::size()
 //    return m_renderBuffer;
 //}
 
-void
-ImageViewController::setCmapInvert( bool flag )
-{
-    m_pixelPipeline-> setInvert( flag );
-    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
+//void
+//ImageViewController::setCmapInvert( bool flag )
+//{
+//    m_pixelPipeline-> setInvert( flag );
+//    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
 
 //    m_renderService-> render( 0 );
 //    requestImageAndGridUpdate();
-    m_syncSvc-> startImage();
-}
+//    m_syncSvc-> startImage();
+//}
 
-void
-ImageViewController::setCmapReverse( bool flag )
-{
-    m_pixelPipeline-> setReverse( flag );
-    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
-
-//    m_renderService-> render( 0 );
-//    requestImageAndGridUpdate();
-    m_syncSvc-> startImage();
-}
-
-void
-ImageViewController::setColormap( Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr cmap )
-{
-    m_pixelPipeline-> setColormap( cmap );
-    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
+//void
+//ImageViewController::setCmapReverse( bool flag )
+//{
+//    m_pixelPipeline-> setReverse( flag );
+//    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
 
 //    m_renderService-> render( 0 );
 //    requestImageAndGridUpdate();
-    m_syncSvc-> startImage();
-}
+//    m_syncSvc-> startImage();
+//}
 
-void
-ImageViewController::setPPCsettings( ImageViewController::PPCsettings settings )
-{
-    m_renderService-> setPixelPipelineCacheSettings( settings );
+//void
+//ImageViewController::setColormap( Carta::Lib::PixelPipeline::IColormapNamed::SharedPtr cmap )
+//{
+//    m_pixelPipeline-> setColormap( cmap );
+//    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
 
 //    m_renderService-> render( 0 );
 //    requestImageAndGridUpdate();
-    m_syncSvc-> startImage();
-}
+//    m_syncSvc-> startImage();
+//}
 
-ImageViewController::PPCsettings
-ImageViewController::getPPCsettings()
-{
-    return m_renderService-> pixelPipelineCacheSettings();
-}
+//void
+//ImageViewController::setPPCsettings( ImageViewController::PPCsettings settings )
+//{
+//    m_renderService-> setPixelPipelineCacheSettings( settings );
 
-void
-ImageViewController::handleResizeRequest( const QSize & size )
-{
-    // redraw the image with the new size
-    m_renderService-> setOutputSize( size );
-    requestImageAndGridUpdate();
-}
+//    m_renderService-> render( 0 );
+//    requestImageAndGridUpdate();
+//    m_syncSvc-> startImage();
+//}
+
+//ImageViewController::PPCsettings
+//ImageViewController::getPPCsettings()
+//{
+//    return m_renderService-> pixelPipelineCacheSettings();
+//}
+
+//void
+//ImageViewController::handleResizeRequest( const QSize & size )
+//{
+//     redraw the image with the new size
+//    m_renderService-> setOutputSize( size );
+//    requestImageAndGridUpdate();
+//}
 
 void
 ImageViewController::viewRefreshed( qint64 id )
@@ -379,7 +381,7 @@ ImageViewController::viewRefreshed( qint64 id )
     }
 }
 
-void
+/*void
 ImageViewController::loadImage( QString fname )
 {
     //    qDebug() << "xyz ImageViewController::loadImage" << fname;
@@ -429,7 +431,7 @@ ImageViewController::loadImage( QString fname )
     };
     connect( extractor, & Carta::Lib::Profiles::ProfileExtractor::progress, profilecb );
     extractor-> start( path );
-} // loadImage
+}*/ // loadImage
 
 void
 ImageViewController::frameVarCB()
@@ -453,74 +455,74 @@ ImageViewController::frameVarCB()
     qDebug() << "current frame" << m_currentFrame << " frame=" << frame;
 
     // load the actual frame
-    if ( frame != m_currentFrame ) {
-        loadFrame( frame );
-    }
+//    if ( frame != m_currentFrame ) {
+//        loadFrame( frame );
+//    }
 } // frameVarCB
 
 void
 ImageViewController::gridToggleCB()
 {
     m_wcsGridRenderer-> setEmptyGrid( ! m_gridToggleVar-> get() );
-    m_syncSvc-> startGrid();
+//    m_syncSvc-> startGrid();
 }
 
-void
-ImageViewController::loadFrame( int frame )
-{
-    // make sure the frame makes sense (i.e. clip it to allowed range)
-    if ( frame < 0 ) {
-        frame = 0;
-    }
-    if ( m_astroImage-> dims().size() <= 2 ) {
-        frame = 0;
-    }
-    else {
-        frame = Carta::Lib::clamp( frame, 0, m_astroImage-> dims()[2] - 1 );
-    }
-    m_currentFrame = frame;
+//void
+//ImageViewController::loadFrame( int frame )
+//{
+//    // make sure the frame makes sense (i.e. clip it to allowed range)
+//    if ( frame < 0 ) {
+//        frame = 0;
+//    }
+//    if ( m_astroImage-> dims().size() <= 2 ) {
+//        frame = 0;
+//    }
+//    else {
+//        frame = Carta::Lib::clamp( frame, 0, m_astroImage-> dims()[2] - 1 );
+//    }
+//    m_currentFrame = frame;
 
-    // prepare slice description corresponding to the entire frame [:,:,frame,0,0,...0]
-    auto frameSlice = SliceND().next();
-    for ( size_t i = 2 ; i < m_astroImage->dims().size() ; i++ ) {
-        frameSlice.next().index( i == 2 ? m_currentFrame : 0 );
-    }
+//    // prepare slice description corresponding to the entire frame [:,:,frame,0,0,...0]
+//    auto frameSlice = SliceND().next();
+//    for ( size_t i = 2 ; i < m_astroImage->dims().size() ; i++ ) {
+//        frameSlice.next().index( i == 2 ? m_currentFrame : 0 );
+//    }
 
-    // get a view of the data using the slice description and make a shared pointer out of it
-    Carta::Lib::NdArray::RawViewInterface::SharedPtr view( m_astroImage-> getDataSlice( frameSlice ) );
+//    // get a view of the data using the slice description and make a shared pointer out of it
+//    Carta::Lib::NdArray::RawViewInterface::SharedPtr view( m_astroImage-> getDataSlice( frameSlice ) );
 
-    // compute 100% clip values, unless we already have them in the cache
-    std::vector < double > clips = m_quantileCache[m_currentFrame];
-    if ( clips.size() < 2 ) {
-        Carta::Lib::NdArray::Double doubleView( view.get(), false );
-        Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = std::make_shared<Carta::Core::Algorithms::PercentilesToPixels<double> >();
-        std::map<double, double> clips_map = calculator->percentile2pixels(doubleView, { 0.0, 1.0 }, -1, nullptr, {});
-        clips = {clips_map[0.0], clips_map[1.0]};
-        qDebug() << "recomputed clips" << clips;
-        m_quantileCache[m_currentFrame] = clips;
-    }
+//    // compute 100% clip values, unless we already have them in the cache
+//    std::vector < double > clips = m_quantileCache[m_currentFrame];
+//    if ( clips.size() < 2 ) {
+//        Carta::Lib::NdArray::Double doubleView( view.get(), false );
+//        Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = std::make_shared<Carta::Core::Algorithms::PercentilesToPixels<double> >();
+//        std::map<double, double> clips_map = calculator->percentile2pixels(doubleView, { 0.0, 1.0 }, -1, nullptr, {});
+//        clips = {clips_map[0.0], clips_map[1.0]};
+//        qDebug() << "recomputed clips" << clips;
+//        m_quantileCache[m_currentFrame] = clips;
+//    }
 
-    m_pixelPipeline-> setMinMax( clips[0], clips[1] );
-    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
+//    m_pixelPipeline-> setMinMax( clips[0], clips[1] );
+//    m_renderService-> setPixelPipeline( m_pixelPipeline, m_pixelPipeline-> cacheId() );
 
-    // tell the render service to render this job
-    m_renderService-> setInputView( view, QString( "%1//%2" ).arg( m_fileName ).arg( m_currentFrame ) );
+//    // tell the render service to render this job
+//    m_renderService-> setInputView( view, QString( "%1//%2" ).arg( m_fileName ).arg( m_currentFrame ) );
 
-    // tell the contour module about the changed input
-    m_contourEditorController-> setInput( view );
+//    // tell the contour module about the changed input
+//    m_contourEditorController-> setInput( view );
 
-    // if grid is active, request a grid rendering as well
-    if ( m_wcsGridRenderer ) {
-        m_wcsGridRenderer-> setInputImage( m_astroImage );
-    }
+//    // if grid is active, request a grid rendering as well
+//    if ( m_wcsGridRenderer ) {
+//        m_wcsGridRenderer-> setInputImage( m_astroImage );
+//    }
 
-    // update the GUI
-    m_connector-> setState( m_statePrefix + "/frame", QString::number( m_currentFrame ) );
+//    // update the GUI
+//    m_connector-> setState( m_statePrefix + "/frame", QString::number( m_currentFrame ) );
 
-    // request repaint
-    requestImageAndGridUpdate();
-    m_syncSvc-> startContour();
-} // loadFrame
+//    // request repaint
+//    requestImageAndGridUpdate();
+//    m_syncSvc-> startContour();
+//} // loadFrame
 
 void
 ImageViewController::loadNextFrame()
@@ -536,102 +538,102 @@ ImageViewController::loadNextFrame()
     m_frameVar-> set( ( nextFrame + 0.1 ) * 1e6 / nf );
 } // loadFrame
 
-void
-ImageViewController::imageAndGridDoneSlot(
-    QImage image,
-    Carta::Lib::VectorGraphics::VGList gridVG,
-    Carta::Lib::VectorGraphics::VGList contourVG,
-    ServiceSync::JobId /*jobId*/ )
-{
-    /// \todo we should make sure the jobId matches the last submitted job, otherwise
-    /// we are wasting CPU rendering old job...
+//void
+//ImageViewController::imageAndGridDoneSlot(
+//    QImage image,
+//    Carta::Lib::VectorGraphics::VGList gridVG,
+//    Carta::Lib::VectorGraphics::VGList contourVG,
+//    ServiceSync::JobId /*jobId*/ )
+//{
+//    /// \todo we should make sure the jobId matches the last submitted job, otherwise
+//    /// we are wasting CPU rendering old job...
 
-//    qDebug() << "imageAndGridDoneSlot" << jobId << "xyz";
-    m_renderBuffer = image;
+////    qDebug() << "imageAndGridDoneSlot" << jobId << "xyz";
+//    m_renderBuffer = image;
 
-    // draw the grid over top
-    QTime t;
-    t.restart();
-    QPainter painter( & m_renderBuffer );
-    painter.setRenderHint( QPainter::Antialiasing, true );
-    Carta::Lib::VectorGraphics::VGListQPainterRenderer vgRenderer;
-    if ( ! vgRenderer.render( gridVG, painter ) ) {
-        qWarning() << "could not render grid vector graphics";
-    }
-    qDebug() << "Grid VG rendered in" << t.elapsed() / 1000.0 << "sec" << "xyz";
-
-    // insert a matrix transform at the beginning
-    Carta::Lib::VectorGraphics::VGComposer composer;
-    t.restart();
-    {
-//        QPen lineColor( QColor( "red" ), 1 );
-//        lineColor.setCosmetic( true );
-//        painter.setPen( lineColor );
-
-        // where does 0.5, 0.5 map to?
-        QPointF p1 = m_renderService-> img2screen( { 0.5, 0.5 }
-                                                   );
-
-        // where does 1.5, 1.5 map to?
-        QPointF p2 = m_renderService-> img2screen( { 1.5, 1.5 }
-                                                   );
-        QTransform tf;
-        double m11 = p2.x() - p1.x();
-        double m22 = p2.y() - p1.y();
-        double m33 = 1; // no projection
-        double m13 = 0; // no projection
-        double m23 = 0; // no projection
-        double m12 = 0; // no shearing
-        double m21 = 0; // no shearing
-        double m31 = p1.x() - m11 * 0.5;
-        double m32 = p1.y() - m22 * 0.5;
-        tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
-
-//        painter.setTransform( tf );
-        composer.append < Carta::Lib::VectorGraphics::Entries::SetTransform > ( tf );
-        composer.appendList( contourVG );
-        contourVG = composer.vgList();
-    }
-    if ( ! vgRenderer.render( contourVG, painter ) ) {
-        qWarning() << "could not render contour vector graphics";
-    }
-    qDebug() << "Contour VG rendered in" << t.elapsed() / 1000.0 << "sec" << "xyz";
-
-//    // paint contours
-//    QPen lineColor( QColor( "red" ), 1 );
-//    lineColor.setCosmetic( true );
-//    painter.setPen( lineColor );
-
-//    // where does 0.5, 0.5 map to?
-//    QPointF p1 = m_renderService-> img2screen( { 0.5, 0.5 }
-//                                               );
-
-//    // where does 1.5, 1.5 map to?
-//    QPointF p2 = m_renderService-> img2screen( { 1.5, 1.5 }
-//                                               );
-//    QTransform tf;
-//    double m11 = p2.x() - p1.x();
-//    double m22 = p2.y() - p1.y();
-//    double m33 = 1; // no projection
-//    double m13 = 0; // no projection
-//    double m23 = 0; // no projection
-//    double m12 = 0; // no shearing
-//    double m21 = 0; // no shearing
-//    double m31 = p1.x() - m11 * 0.5;
-//    double m32 = p1.y() - m22 * 0.5;
-//    tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
-//    painter.setTransform( tf );
-
-//    for ( size_t k = 0 ; k < m_contours.size() ; ++k ) {
-//        std::vector < QPolygonF > con = m_contours[k];
-//        for ( size_t i = 0 ; i < con.size() ; ++i ) {
-//            QPolygonF & poly = con[i];
-//            painter.drawPolyline( poly );
-//        }
+//    // draw the grid over top
+//    QTime t;
+//    t.restart();
+//    QPainter painter( & m_renderBuffer );
+//    painter.setRenderHint( QPainter::Antialiasing, true );
+//    Carta::Lib::VectorGraphics::VGListQPainterRenderer vgRenderer;
+//    if ( ! vgRenderer.render( gridVG, painter ) ) {
+//        qWarning() << "could not render grid vector graphics";
 //    }
+//    qDebug() << "Grid VG rendered in" << t.elapsed() / 1000.0 << "sec" << "xyz";
 
-    // schedule a repaint with the connector
-    m_connector-> refreshView( this );
-} // imageAndGridDoneSlot
+//    // insert a matrix transform at the beginning
+//    Carta::Lib::VectorGraphics::VGComposer composer;
+//    t.restart();
+//    {
+////        QPen lineColor( QColor( "red" ), 1 );
+////        lineColor.setCosmetic( true );
+////        painter.setPen( lineColor );
+
+//        // where does 0.5, 0.5 map to?
+//        QPointF p1 = m_renderService-> img2screen( { 0.5, 0.5 }
+//                                                   );
+
+//        // where does 1.5, 1.5 map to?
+//        QPointF p2 = m_renderService-> img2screen( { 1.5, 1.5 }
+//                                                   );
+//        QTransform tf;
+//        double m11 = p2.x() - p1.x();
+//        double m22 = p2.y() - p1.y();
+//        double m33 = 1; // no projection
+//        double m13 = 0; // no projection
+//        double m23 = 0; // no projection
+//        double m12 = 0; // no shearing
+//        double m21 = 0; // no shearing
+//        double m31 = p1.x() - m11 * 0.5;
+//        double m32 = p1.y() - m22 * 0.5;
+//        tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
+
+////        painter.setTransform( tf );
+//        composer.append < Carta::Lib::VectorGraphics::Entries::SetTransform > ( tf );
+//        composer.appendList( contourVG );
+//        contourVG = composer.vgList();
+//    }
+//    if ( ! vgRenderer.render( contourVG, painter ) ) {
+//        qWarning() << "could not render contour vector graphics";
+//    }
+//    qDebug() << "Contour VG rendered in" << t.elapsed() / 1000.0 << "sec" << "xyz";
+
+////    // paint contours
+////    QPen lineColor( QColor( "red" ), 1 );
+////    lineColor.setCosmetic( true );
+////    painter.setPen( lineColor );
+
+////    // where does 0.5, 0.5 map to?
+////    QPointF p1 = m_renderService-> img2screen( { 0.5, 0.5 }
+////                                               );
+
+////    // where does 1.5, 1.5 map to?
+////    QPointF p2 = m_renderService-> img2screen( { 1.5, 1.5 }
+////                                               );
+////    QTransform tf;
+////    double m11 = p2.x() - p1.x();
+////    double m22 = p2.y() - p1.y();
+////    double m33 = 1; // no projection
+////    double m13 = 0; // no projection
+////    double m23 = 0; // no projection
+////    double m12 = 0; // no shearing
+////    double m21 = 0; // no shearing
+////    double m31 = p1.x() - m11 * 0.5;
+////    double m32 = p1.y() - m22 * 0.5;
+////    tf.setMatrix( m11, m12, m13, m21, m22, m23, m31, m32, m33 );
+////    painter.setTransform( tf );
+
+////    for ( size_t k = 0 ; k < m_contours.size() ; ++k ) {
+////        std::vector < QPolygonF > con = m_contours[k];
+////        for ( size_t i = 0 ; i < con.size() ; ++i ) {
+////            QPolygonF & poly = con[i];
+////            painter.drawPolyline( poly );
+////        }
+////    }
+
+//    // schedule a repaint with the connector
+//    m_connector-> refreshView( this );
+//} // imageAndGridDoneSlot
 }
 }

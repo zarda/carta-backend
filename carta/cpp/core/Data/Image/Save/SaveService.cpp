@@ -3,6 +3,7 @@
 #include "Data/Image/Layer.h"
 #include "Data/Image/Render/RenderResponse.h"
 #include "Data/Image/Render/RenderRequest.h"
+#include <QFile>
 
 
 namespace Carta
@@ -33,50 +34,50 @@ QSize SaveService::_getSaveSize( const std::shared_ptr<RenderRequest>& request )
     return saveSize;
 }
 
-bool SaveService::saveImage( const std::shared_ptr<RenderRequest>& request){
-    m_images.clear();
-    int dataCount = m_layers.size();
-    bool fileValid = _isFileValid();
-    m_selectIndex = request->getTopIndex();
-    m_outputSize = request->getOutputSize();
-    if ( fileValid ){
-        m_renderCount = 0;
-        m_redrawCount = dataCount;
-        int stackIndex = 0;
-        for ( int i = 0; i < dataCount; i++ ){
-            bool layerVisible = m_layers[i]->_isVisible();
-            if ( layerVisible ){
-                connect( m_layers[i].get(),
-                        SIGNAL(renderingDone( const std::shared_ptr<RenderResponse>&)),
-                        this,
-                        SLOT( _scheduleSave( const std::shared_ptr<RenderResponse>&)),
-                        Qt::UniqueConnection);
-                bool topOfStack = false;
-                if ( i == m_selectIndex ){
-                    topOfStack = true;
-                }
-                std::shared_ptr<RenderRequest> layerRequest( new RenderRequest(*request));
-                layerRequest->setStackTop( topOfStack );
-                m_layers[i]->_render( layerRequest );
-                stackIndex++;
-            }
-        }
-    }
-    return fileValid;
-}
+//bool SaveService::saveImage( const std::shared_ptr<RenderRequest>& request){
+//    m_images.clear();
+//    int dataCount = m_layers.size();
+//    bool fileValid = _isFileValid();
+//    m_selectIndex = request->getTopIndex();
+//    m_outputSize = request->getOutputSize();
+//    if ( fileValid ){
+//        m_renderCount = 0;
+//        m_redrawCount = dataCount;
+//        int stackIndex = 0;
+//        for ( int i = 0; i < dataCount; i++ ){
+//            bool layerVisible = m_layers[i]->_isVisible();
+//            if ( layerVisible ){
+//                connect( m_layers[i].get(),
+//                        SIGNAL(renderingDone( const std::shared_ptr<RenderResponse>&)),
+//                        this,
+//                        SLOT( _scheduleSave( const std::shared_ptr<RenderResponse>&)),
+//                        Qt::UniqueConnection);
+//                bool topOfStack = false;
+//                if ( i == m_selectIndex ){
+//                    topOfStack = true;
+//                }
+//                std::shared_ptr<RenderRequest> layerRequest( new RenderRequest(*request));
+//                layerRequest->setStackTop( topOfStack );
+//                m_layers[i]->_render( layerRequest );
+//                stackIndex++;
+//            }
+//        }
+//    }
+//    return fileValid;
+//}
 
-void SaveService::_saveImage( QImage img ){
-    QImage imgScaled = img;
-    //May need to scale if the image size isn't exactly right and we are ignoring
-    //aspect ratio.
-    if ( m_aspectRatioMode == Qt::IgnoreAspectRatio ){
-        if ( img.width() != m_outputSize.width() || img.height() != m_outputSize.height() ){
-            imgScaled = img.scaled( m_outputSize, m_aspectRatioMode );
-        }
-    }
-    bool result = imgScaled.save( m_fileName );
-    emit saveImageResult( result );
-}
+//void SaveService::_saveImage( QImage img ){
+//    QImage imgScaled = img;
+//    //May need to scale if the image size isn't exactly right and we are ignoring
+//    //aspect ratio.
+//    if ( m_aspectRatioMode == Qt::IgnoreAspectRatio ){
+//        if ( img.width() != m_outputSize.width() || img.height() != m_outputSize.height() ){
+//            imgScaled = img.scaled( m_outputSize, m_aspectRatioMode );
+//        }
+//    }
+//    bool result = imgScaled.save( m_fileName );
+//    emit saveImageResult( result );
+//}
 
 //void SaveService::_scheduleSave( const std::shared_ptr<RenderResponse>& response ){
 //    m_renderCount++;

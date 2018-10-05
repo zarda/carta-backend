@@ -5,7 +5,7 @@
 #pragma once
 
 #include "IRegion.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+//#include "CartaLib/VectorGraphics/VGList.h"
 #include <QJsonObject>
 #include <QRectF>
 
@@ -72,7 +72,7 @@ public:
 	 * Return vector graphics for the rectangle.
 	 * @return - vector graphics for the rectangle.
 	 */
-	VectorGraphics::VGList vgList() const override;
+//	VectorGraphics::VGList vgList() const override;
 
 private:
 

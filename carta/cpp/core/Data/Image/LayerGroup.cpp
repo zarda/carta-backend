@@ -31,7 +31,8 @@ public:
 
     Carta::State::CartaObject * create (const QString & path, const QString & id)
     {
-        return new LayerGroup(path, id);
+//        return new LayerGroup(path, id);
+        return nullptr;
     }
 };
 
@@ -54,8 +55,8 @@ LayerGroup::LayerGroup(const QString& className, const QString& path, const QStr
     m_drawSync.reset( new DrawGroupSynchronizer( ) );
 
     // connect its done() slot to our renderingSlot()
-    connect( m_drawSync.get(), SIGNAL(done(QImage,Carta::Lib::VectorGraphics::VGList)),
-                            this, SLOT(_renderingDone(QImage,Carta::Lib::VectorGraphics::VGList)));
+//    connect( m_drawSync.get(), SIGNAL(done(QImage,Carta::Lib::VectorGraphics::VGList)),
+//                            this, SLOT(_renderingDone(QImage,Carta::Lib::VectorGraphics::VGList)));
 }
 
 void LayerGroup::_addContourSet( std::shared_ptr<DataContours> contourSet){
@@ -136,52 +137,52 @@ void LayerGroup::_addLayer( std::shared_ptr<Layer> layer, int targetIndex ){
     }
     if ( tIndex >= 0 && tIndex < m_children.size() ){
         _setColorSupport( m_children[ tIndex ].get());
-        _assignColor( tIndex );
+//        _assignColor( tIndex );
     }
 }
 
-void LayerGroup::_assignColor( int index ){
+//void LayerGroup::_assignColor( int index ){
 
-    QString compMode = _getCompositionMode();
-    bool colorSupport = m_compositionModes->isColorSupport( compMode );
-    if ( colorSupport ){
-        int childrenCount = m_children.size();
-        if ( index >= 0 && index < childrenCount ){
-            bool redUsed = false;
-            bool blueUsed = false;
-            bool greenUsed = false;
-            for ( int i = 0; i < index; i++ ){
-                QColor color = m_children[i]->_getMaskColor();
-                int redAmount = color.red();
-                int greenAmount = color.green();
-                int blueAmount = color.blue();
-                if ( redAmount == 255 && greenAmount == 0 && blueAmount == 0){
-                    redUsed = true;
-                }
-                else if ( redAmount == 0 && greenAmount == 255 && blueAmount == 0 ){
-                    greenUsed = true;
-                }
-                else if ( redAmount == 0 && greenAmount == 0 && blueAmount == 255 ){
-                    blueUsed = true;
-                }
+//    QString compMode = _getCompositionMode();
+//    bool colorSupport = m_compositionModes->isColorSupport( compMode );
+//    if ( colorSupport ){
+//        int childrenCount = m_children.size();
+//        if ( index >= 0 && index < childrenCount ){
+//            bool redUsed = false;
+//            bool blueUsed = false;
+//            bool greenUsed = false;
+//            for ( int i = 0; i < index; i++ ){
+//                QColor color = m_children[i]->_getMaskColor();
+//                int redAmount = color.red();
+//                int greenAmount = color.green();
+//                int blueAmount = color.blue();
+//                if ( redAmount == 255 && greenAmount == 0 && blueAmount == 0){
+//                    redUsed = true;
+//                }
+//                else if ( redAmount == 0 && greenAmount == 255 && blueAmount == 0 ){
+//                    greenUsed = true;
+//                }
+//                else if ( redAmount == 0 && greenAmount == 0 && blueAmount == 255 ){
+//                    blueUsed = true;
+//                }
 
-            }
-            QString id = m_children[index]->_getLayerId();
-            if ( !redUsed ){
-                m_children[index]->_setMaskColor( id, 255, 0, 0 );
-            }
-            else if ( !greenUsed ){
-                m_children[index]->_setMaskColor( id, 0, 255, 0 );
-            }
-            else if ( !blueUsed ){
-                m_children[index]->_setMaskColor( id, 0, 0, 255 );
-            }
-        }
-    }
-    else {
-        m_children[index]->_setMaskColorDefault();
-    }
-}
+//            }
+//            QString id = m_children[index]->_getLayerId();
+//            if ( !redUsed ){
+//                m_children[index]->_setMaskColor( id, 255, 0, 0 );
+//            }
+//            else if ( !greenUsed ){
+//                m_children[index]->_setMaskColor( id, 0, 255, 0 );
+//            }
+//            else if ( !blueUsed ){
+//                m_children[index]->_setMaskColor( id, 0, 0, 255 );
+//            }
+//        }
+//    }
+//    else {
+//        m_children[index]->_setMaskColorDefault();
+//    }
+//}
 
 
 void LayerGroup::_clearColorMap(){
@@ -411,14 +412,14 @@ int LayerGroup::_getFrameCount( AxisInfo::KnownType type ) const {
     return frameCount;
 }
 
-Carta::State::StateInterface LayerGroup::_getGridState() const {
-    Carta::State::StateInterface gridState("");
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        gridState = m_children[dataIndex]->_getGridState();
-    }
-    return gridState;
-}
+//Carta::State::StateInterface LayerGroup::_getGridState() const {
+//    Carta::State::StateInterface gridState("");
+//    int dataIndex = _getIndexCurrent();
+//    if ( dataIndex >= 0 ){
+//        gridState = m_children[dataIndex]->_getGridState();
+//    }
+//    return gridState;
+//}
 
 std::shared_ptr<Carta::Lib::Image::ImageInterface> LayerGroup::_getImage(){
     std::shared_ptr<Carta::Lib::Image::ImageInterface> image(nullptr);
@@ -517,14 +518,14 @@ int LayerGroup::_getIndexCurrent( ) const {
     return dataIndex;
 }
 
-QRectF LayerGroup::_getInputRect( const QSize& size ) const {
-    QRectF rect(0,0,0,0);
-    int dataIndex = _getIndexCurrent();
-    if ( dataIndex >= 0 ){
-        rect = m_children[dataIndex]->_getInputRect( size );
-    }
-    return rect;
-}
+//QRectF LayerGroup::_getInputRect( const QSize& size ) const {
+//    QRectF rect(0,0,0,0);
+//    int dataIndex = _getIndexCurrent();
+//    if ( dataIndex >= 0 ){
+//        rect = m_children[dataIndex]->_getInputRect( size );
+//    }
+//    return rect;
+//}
 
 std::vector<double> LayerGroup::_getIntensity( int frameLow, int frameHigh,
         const std::vector<double>& percentiles, int stokeFrame,
@@ -689,14 +690,14 @@ QString LayerGroup::_getPixelValue( double x, double y, const std::vector<int>& 
     return pixelValue;
 }
 
-Carta::Lib::VectorGraphics::VGList LayerGroup::_getRegionGraphics() const {
-	Carta::Lib::VectorGraphics::VGList vgList;
-	int dataIndex = _getIndexCurrent();
-	if ( dataIndex >= 0 ){
-		vgList = m_children[dataIndex]->_getRegionGraphics();
-	}
-	return vgList;
-}
+//Carta::Lib::VectorGraphics::VGList LayerGroup::_getRegionGraphics() const {
+//	Carta::Lib::VectorGraphics::VGList vgList;
+//	int dataIndex = _getIndexCurrent();
+//	if ( dataIndex >= 0 ){
+//		vgList = m_children[dataIndex]->_getRegionGraphics();
+//	}
+//	return vgList;
+//}
 
 QSize LayerGroup::_getSaveSize( const QSize& outputSize,  Qt::AspectRatioMode aspectMode) const {
     QSize saveSize = outputSize;
@@ -838,16 +839,16 @@ bool LayerGroup::_isEmpty() const {
 }
 
 bool LayerGroup::_isLoadable( const std::vector<int>& frames ) const {
-	//A group is loadable if there is one loadable image in the group.
-	bool loadable = false;
-	int childCount = m_children.size();
-	for ( int i = 0; i < childCount; i++ ){
-		if ( m_children[i]->_isLoadable( frames ) ){
-			loadable = true;
-			break;
-		}
-	}
-	return loadable;
+    //A group is loadable if there is one loadable image in the group.
+    bool loadable = false;
+    int childCount = m_children.size();
+    for ( int i = 0; i < childCount; i++ ){
+        if ( m_children[i]->_isLoadable( frames ) ){
+            loadable = true;
+            break;
+        }
+    }
+    return loadable;
 }
 
 bool LayerGroup::_isSpectralAxis() const {
@@ -915,35 +916,35 @@ void LayerGroup::_removeLayer( Layer* group ){
 }
 
 
-void LayerGroup::_renderStart( ){
-    if ( m_renderRequests.size() > 0 ){
-        m_renderQueued = true;
-        std::shared_ptr<RenderRequest> request = m_renderRequests.pop();
-        //Only load the layers which have the required frames.
-        std::vector<int> frames = request->getFrames();
-        QList<std::shared_ptr<Layer> > loadables;
-        int childCount = m_children.size();
-        for ( int i = 0; i < childCount; i++ ){
-        	if ( m_children[i]->_isLoadable( frames ) ){
-        		loadables.append( m_children[i] );
-        	}
-        }
-        m_drawSync->setLayers( loadables );
-        m_drawSync->setCombineMode( _getCompositionMode() );
-        int topIndex = -1;
-        if ( request->isStackTop()){
-            topIndex = _getIndexCurrent();
-        }
-        request->setTopIndex( topIndex );
-        m_drawSync->render( request );
-    }
-}
+//void LayerGroup::_renderStart( ){
+//    if ( m_renderRequests.size() > 0 ){
+//        m_renderQueued = true;
+//        std::shared_ptr<RenderRequest> request = m_renderRequests.pop();
+//        //Only load the layers which have the required frames.
+//        std::vector<int> frames = request->getFrames();
+//        QList<std::shared_ptr<Layer> > loadables;
+//        int childCount = m_children.size();
+//        for ( int i = 0; i < childCount; i++ ){
+//            if ( m_children[i]->_isLoadable( frames ) ){
+//                loadables.append( m_children[i] );
+//            }
+//        }
+//        m_drawSync->setLayers( loadables );
+//        m_drawSync->setCombineMode( _getCompositionMode() );
+//        int topIndex = -1;
+//        if ( request->isStackTop()){
+//            topIndex = _getIndexCurrent();
+//        }
+//        request->setTopIndex( topIndex );
+//        m_drawSync->render( request );
+//    }
+//}
 
 
-void LayerGroup ::_renderingDone( QImage image, Carta::Lib::VectorGraphics::VGList graphics ){
-    std::shared_ptr<RenderResponse> response( new RenderResponse(image, graphics, _getLayerId()));
-    emit renderingDone( response );
-}
+//void LayerGroup ::_renderingDone( QImage image, Carta::Lib::VectorGraphics::VGList graphics ){
+//    std::shared_ptr<RenderResponse> response( new RenderResponse(image, graphics, _getLayerId()));
+//    emit renderingDone( response );
+//}
 
 
 void LayerGroup::_resetState( const Carta::State::StateInterface& restoreState ){
@@ -1191,12 +1192,12 @@ void LayerGroup::_setPan( double imgX, double imgY ){
     }
 }
 
-void LayerGroup::_setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList){
-	//Only the top layer needs them, but we store in all layers.
-	for( std::shared_ptr<Layer> layer : m_children ){
-		layer->_setRegionGraphics( regionVGList );
-	}
-}
+//void LayerGroup::_setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList){
+//	//Only the top layer needs them, but we store in all layers.
+//	for( std::shared_ptr<Layer> layer : m_children ){
+//		layer->_setRegionGraphics( regionVGList );
+//	}
+//}
 
 bool LayerGroup::_setSelected( QStringList& names){
     bool stateChanged = Layer::_setSelected( names );
@@ -1241,9 +1242,9 @@ void LayerGroup::_setMaskAlphaDefault(){
 }
 
 void LayerGroup::_setViewSize( const QSize& size ){
-	if ( m_drawSync ){
-		m_drawSync->viewResize( size );
-	}
+//	if ( m_drawSync ){
+//		m_drawSync->viewResize( size );
+//	}
 }
 
 bool LayerGroup::_setVisible( const QString& id, bool visible ){

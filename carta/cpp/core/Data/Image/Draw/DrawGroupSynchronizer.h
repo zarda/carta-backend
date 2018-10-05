@@ -5,14 +5,15 @@
 #pragma once
 
 #include "CartaLib/CartaLib.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+//#include "CartaLib/VectorGraphics/VGList.h"
 
 
 #include <QString>
 #include <QList>
 #include <QObject>
-#include <QImage>
+//#include <QImage>
 #include <QMap>
+#include <QSize>
 
 #include <memory>
 
@@ -67,8 +68,7 @@ signals:
     /**
      * Signal that rendering has finished.
      */
-    void done( QImage img, Carta::Lib::VectorGraphics::VGList graphics );
-
+//    void done( QImage img, Carta::Lib::VectorGraphics::VGList graphics );
 
 private slots:
 

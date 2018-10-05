@@ -20,7 +20,7 @@
 #include <memory>
 #include <QStringList>
 #include <QObject>
-#include <QPen>
+//#include <QPen>
 
 namespace Carta
 {
@@ -342,42 +342,42 @@ struct ConverterHelper < double > {
     }
 };
 
-template < >
-struct ConverterHelper < QPen > {
-    static QString
-    convertValToString( const QPen pen )
-    {
-        return QString( "%1 %2 %3")
-                .arg( pen.color().name(QColor::HexRgb))
-                .arg( pen.color().alphaF())
-                .arg( pen.widthF());
-    }
+//template < >
+//struct ConverterHelper < QPen > {
+//    static QString
+//    convertValToString( const QPen pen )
+//    {
+//        return QString( "%1 %2 %3")
+//                .arg( pen.color().name(QColor::HexRgb))
+//                .arg( pen.color().alphaF())
+//                .arg( pen.widthF());
+//    }
 
-    static QPen
-    convertStringToVal( const QString & s )
-    {
-        auto parts = s.split( ' ');
-        if( parts.size() != 3) {
-            qWarning() << s << "is not a valid qpen (need 3 parts)";
-            return QPen();
-        }
-        QColor color( parts[0]);
-        bool ok;
-        double alpha = parts[1].toDouble( & ok);
-        if( ! ok) {
-            qWarning() << s << "is not a valid qpen (bad alpha)";
-            return QPen();
-        }
-        double width = parts[2].toDouble( & ok);
-        if( ! ok) {
-            qWarning() << s << "is not a valid qpen (bad width)";
-            return QPen();
-        }
+//    static QPen
+//    convertStringToVal( const QString & s )
+//    {
+//        auto parts = s.split( ' ');
+//        if( parts.size() != 3) {
+//            qWarning() << s << "is not a valid qpen (need 3 parts)";
+//            return QPen();
+//        }
+//        QColor color( parts[0]);
+//        bool ok;
+//        double alpha = parts[1].toDouble( & ok);
+//        if( ! ok) {
+//            qWarning() << s << "is not a valid qpen (bad alpha)";
+//            return QPen();
+//        }
+//        double width = parts[2].toDouble( & ok);
+//        if( ! ok) {
+//            qWarning() << s << "is not a valid qpen (bad width)";
+//            return QPen();
+//        }
 
-        color.setAlphaF( alpha);
-        return QPen( color, width);
-    }
-};
+//        color.setAlphaF( alpha);
+//        return QPen( color, width);
+//    }
+//};
 
 
 /// Helper class so that typed vars can do signals/slots. This is needed because

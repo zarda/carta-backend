@@ -11,7 +11,7 @@
 #include "ImageViewController.h"
 #include "LayeredViewDemo.h"
 
-#include <QPixmap>
+//#include <QPixmap>
 #include <QObject>
 
 namespace Carta

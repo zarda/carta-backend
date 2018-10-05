@@ -7,7 +7,7 @@
 
 #include <QObject>
 #include <QSize>
-#include <QImage>
+//#include <QImage>
 #include <QList>
 #include <memory>
 #include "CartaLib/CartaLib.h"
@@ -55,8 +55,8 @@ public:
      * Save the image.
      * @return true if the image was saved; false, otherwise.
      */
-    bool saveImage(/*const std::vector<int>& frames,
-            const Carta::Lib::KnownSkyCS& cs*/const std::shared_ptr<RenderRequest>&);
+//    bool saveImage(/*const std::vector<int>& frames,
+//            const Carta::Lib::KnownSkyCS& cs*/const std::shared_ptr<RenderRequest>&);
 
     /**
      * Destructor.

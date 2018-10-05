@@ -7,10 +7,10 @@
 
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IPlugin.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+//#include "CartaLib/VectorGraphics/VGList.h"
 #include "CartaLib/IWcsGridRenderService.h"
-#include <QImage>
-#include <QColor>
+//#include <QImage>
+//#include <QColor>
 #include <vector>
 #include <functional>
 #include <memory>

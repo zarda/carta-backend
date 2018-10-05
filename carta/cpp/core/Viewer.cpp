@@ -16,9 +16,9 @@
 #include "ScriptedClient/ScriptedCommandInterpreter.h"
 #include "CartaLib/Hooks/GetPersistentCache.h"
 
-#include <QImage>
-#include <QColor>
-#include <QPainter>
+//#include <QImage>
+//#include <QColor>
+//#include <QPainter>
 #include <QDebug>
 #include <QCache>
 #include <QCoreApplication>

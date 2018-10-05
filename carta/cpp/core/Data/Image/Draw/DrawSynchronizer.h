@@ -3,8 +3,9 @@
  */
 
 #pragma once
-#include <CartaLib/VectorGraphics/VGList.h>
+//#include <CartaLib/VectorGraphics/VGList.h>
 #include <set>
+#include <QObject>
 
 
 namespace Carta {
@@ -35,27 +36,27 @@ class DrawSynchronizer : public QObject {
     Q_OBJECT
 
 public:
-    DrawSynchronizer( std::shared_ptr<Carta::Core::ImageRenderService::Service> imageRendererService,
-            std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridRendererService,
+    DrawSynchronizer( /*std::shared_ptr<Carta::Core::ImageRenderService::Service> imageRendererService,
+            std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridRendererService,*/
             QObject* parent = nullptr);
 
     /**
      * Sets the data to be used in calculating contours.
      * @param rawView - the data for calculating contours.
      */
-    void setInput( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> rawView );
+//    void setInput( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> rawView );
 
     /**
      * Sets the contour set(s) to be drawn.
      * @param contours - a set of contours to be drawn.
      */
-    void setContours( const std::set<std::shared_ptr<DataContours> > & contours );
+//    void setContours( const std::set<std::shared_ptr<DataContours> > & contours );
 
     /**
      * Store graphics for drawing regions in the image.
      * @param regionVGList - graphics for drawing regions.
      */
-    void setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList );
+//    void setRegionGraphics( const Carta::Lib::VectorGraphics::VGList& regionVGList );
 
     /**
      * Start a synchronized rendering.
@@ -63,7 +64,7 @@ public:
      * @param gridDraw - true if the grid should be rendered; false otherwise.
      * @param jobId - an identifier for the rendering task.
      */
-    int64_t start( bool contourDraw, bool gridDraw, int64_t jobId = - 1 );
+//    int64_t start( bool contourDraw, bool gridDraw, int64_t jobId = - 1 );
     typedef Carta::Lib::ContourSet Result;
     virtual ~DrawSynchronizer();
 
@@ -71,16 +72,16 @@ signals:
     /**
      * Signal that all the renderers have finished.
      */
-    void done( QImage img, Carta::Lib::VectorGraphics::VGList,
-            Carta::Lib::VectorGraphics::VGList, Carta::Lib::VectorGraphics::VGList, int64_t jobId );
+//    void done( QImage img, Carta::Lib::VectorGraphics::VGList,
+//            Carta::Lib::VectorGraphics::VGList, Carta::Lib::VectorGraphics::VGList, int64_t jobId );
 
 private slots:
     //Callback for the image rendering service.
-    void _irsDone( QImage img, int64_t jobId );
+//    void _irsDone( QImage img, int64_t jobId );
     //Callback for grids
-    void _wcsGridDone( Carta::Lib::VectorGraphics::VGList vgList, int64_t jobId );
+//    void _wcsGridDone( Carta::Lib::VectorGraphics::VGList vgList, int64_t jobId );
     //Callback for contours
-    void _contourDone( const Result & result, int64_t jobId);
+//    void _contourDone( const Result & result, int64_t jobId);
 
 private:
 
@@ -95,16 +96,16 @@ private:
     bool m_grsDone = false;
     bool m_cecDone = false;
 
-    QImage m_irsImage;
+//    QImage m_irsImage;
 
-    Carta::Lib::VectorGraphics::VGList m_grsVGList;
-    Carta::Lib::VectorGraphics::VGList m_cecVGList;
-    Carta::Lib::VectorGraphics::VGList m_regionVGList;
+//    Carta::Lib::VectorGraphics::VGList m_grsVGList;
+//    Carta::Lib::VectorGraphics::VGList m_cecVGList;
+//    Carta::Lib::VectorGraphics::VGList m_regionVGList;
 
-    std::shared_ptr<Carta::Core::ImageRenderService::Service> m_irs;
-    std::shared_ptr<Carta::Lib::IWcsGridRenderService> m_grs;
-    std::shared_ptr<Carta::Lib::IContourGeneratorService> m_cec;
-    std::vector<QPen> m_pens;
+//    std::shared_ptr<Carta::Core::ImageRenderService::Service> m_irs;
+//    std::shared_ptr<Carta::Lib::IWcsGridRenderService> m_grs;
+//    std::shared_ptr<Carta::Lib::IContourGeneratorService> m_cec;
+//    std::vector<QPen> m_pens;
 
     DrawSynchronizer( const DrawSynchronizer& other);
     DrawSynchronizer& operator=( const DrawSynchronizer& other );

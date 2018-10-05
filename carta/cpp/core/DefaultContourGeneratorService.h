@@ -39,7 +39,7 @@ signals:
 
 private slots:
 
-    void timerCB();
+//    void timerCB();
 
 private:
 

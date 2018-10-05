@@ -8,7 +8,7 @@
 #include "State/ObjectManager.h"
 #include "State/StateInterface.h"
 #include "CartaLib/Hooks/HistogramResult.h"
-#include <QColor>
+//#include <QColor>
 #include <QObject>
 
 
@@ -49,7 +49,7 @@ public:
      * Set the color to use in plotting the points of the data.
      * @param color - the color to use in plotting data points.
      */
-    void setColor( QColor color );
+//    void setColor( QColor color );
 
     /**
      * Set the (value,count) data values that comprise the data.

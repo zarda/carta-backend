@@ -102,7 +102,7 @@ DummyGridRenderer::setEmptyGrid( bool )
 void
 DummyGridRenderer::reportResult()
 {
-    emit done( Carta::Lib::VectorGraphics::VGList(), m_jobId );
+//    emit done( Carta::Lib::VectorGraphics::VGList(), m_jobId );
 }
 }
 }

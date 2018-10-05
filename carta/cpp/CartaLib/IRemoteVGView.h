@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QSize>
 //#include <QImage>
 //#include <QJsonObject>
 //#include <QJsonDocument>
@@ -42,8 +43,8 @@ public:
     IRemoteVGView( QObject * parent ) : QObject( parent ) { }
 
     /// returns size of the view in client (the master's UI)
-//    virtual const QSize &
-//    getClientSize() = 0;
+    virtual const QSize &
+    getClientSize() = 0;
 
     /// returns the unique name of this view
     virtual const QString &
@@ -51,8 +52,8 @@ public:
 
     /// sets the raster to be rendered in the view, as soon as possible,
     /// without synchronizing with VG
-    virtual void
-    setRaster( const QImage & image ) = 0;
+//    virtual void
+//    setRaster( const QImage & image ) = 0;
 
 //    /// sets the VG to be rendered on top of the raster, as soon as possible
 //    /// without synchronizing with raster
@@ -179,8 +180,8 @@ public slots:
 
     /// schedule a refresh with a given ID
     /// this allows the caller to be notified when the latest painting has reached the client
-//    qint64
-//    scheduleRepaint( qint64 id = - 1 );
+    qint64
+    scheduleRepaint( qint64 id = - 1 );
 
 signals:
 
@@ -405,13 +406,13 @@ public:
     /// \param img the raster image
     /// \param hasTransparentPixels whether the image could have alpha pixels
     ///
-    void
-    setLayerRaster( int ind, const QImage & img, bool hasTransparentPixels );
+//    void
+//    setLayerRaster( int ind, const QImage & img, bool hasTransparentPixels );
 
     /// use this if you don't know whether the image has transparent pixels
     /// the value will be determined based on format of the image
-    void
-    setLayerRaster( int layer, const QImage & img );
+//    void
+//    setLayerRaster( int layer, const QImage & img );
 
     /// set the layer's combiner
     void
@@ -439,8 +440,8 @@ public:
     QString
     viewName();
 
-//    QSize
-//    getClientSize();
+    QSize
+    getClientSize();
 
 public slots:
 

@@ -42,7 +42,7 @@ class IView;
 
 /// private info we keep with each view
 /// unfortunately it needs to live as it's own class because we need to give it slots...
-//class ViewInfo;
+class ViewInfo;
 
 class NewServerConnector : public QObject, public IConnector
 {

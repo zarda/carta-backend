@@ -1,10 +1,11 @@
 #pragma once
 
 #include "CartaLib/CartaLib.h"
-#include <QRgb>
+//#include <QRgb>
 #include <stdexcept>
 #include <cmath>
 #include <array>
+#include <functional>
 
 namespace Carta
 {
@@ -163,8 +164,8 @@ public:
     convert( double val, NormRgb & result ) = 0;
 
     /// do the conversion double -> 8 bit RGB, i.e. up to stage 5
-    virtual void
-    convertq( double val, QRgb & result ) = 0;
+//    virtual void
+//    convertq( double val, QRgb & result ) = 0;
 
     /// returns the input clip range
     /// \note this is not strictly necessary for minimalist interface, but we do use
@@ -251,15 +252,15 @@ public:
         }
     } // convert
 
-    virtual void
-    convertq( double p_val, QRgb & result ) override
-    {
-        NormRgb drgb;
-        convert( p_val, drgb );
+//    virtual void
+//    convertq( double p_val, QRgb & result ) override
+//    {
+//        NormRgb drgb;
+//        convert( p_val, drgb );
 
-        /// stage 5:
-        result = qRgb( drgb[0] * 255 , drgb[1] * 255 ,  drgb[2] * 255 );
-    } // convert
+//        /// stage 5:
+//        result = qRgb( drgb[0] * 255 , drgb[1] * 255 ,  drgb[2] * 255 );
+//    } // convert
 
 protected:
 
@@ -302,11 +303,11 @@ protected:
 };
 
 /// convenience function to convert normalized RGB to 8-bit RGB
-inline void
-normRgb2QRgb( const NormRgb & drgb, QRgb & result )
-{
-    result = qRgb( drgb[0] * 255, drgb[1] * 255 , drgb[2] * 255 );;
-}
+//inline void
+//normRgb2QRgb( const NormRgb & drgb, QRgb & result )
+//{
+//    result = qRgb( drgb[0] * 255, drgb[1] * 255 , drgb[2] * 255 );;
+//}
 
 /// algorithm for caching a double->rgb function
 /// it's templated over 'interpolated' flag
@@ -352,13 +353,13 @@ public:
     void
     convert( double x, NormRgb & result );
 
-    void
-    convertq( double x, QRgb & result ) /*override*/
-    {
-        NormRgb drgb;
-        convert( x, drgb );
-        normRgb2QRgb( drgb, result );
-    }
+//    void
+//    convertq( double x, QRgb & result ) /*override*/
+//    {
+//        NormRgb drgb;
+//        convert( x, drgb );
+//        normRgb2QRgb( drgb, result );
+//    }
 
 private:
 

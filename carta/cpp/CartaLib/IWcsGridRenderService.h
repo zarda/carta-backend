@@ -7,7 +7,7 @@
 #include "CartaLib/CartaLib.h"
 #include "CartaLib/IImage.h"
 #include "CartaLib/AxisLabelInfo.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+//#include "CartaLib/VectorGraphics/VGList.h"
 #include "CartaLib/AxisDisplayInfo.h"
 #include <memory>
 
@@ -27,7 +27,7 @@ public:
     typedef int64_t JobId;
 
     /// shortcut for VGList
-    typedef VectorGraphics::VGList VGList;
+//    typedef VectorGraphics::VGList VGList;
 
     /// types of elements supported
     /// their appearance can be customized
@@ -161,8 +161,8 @@ signals:
     /// gets emitted when rendering is done
     /// \param vg the rendered vector graphics
     /// \param id the jobId this result corresponds to
-    void
-    done( Carta::Lib::VectorGraphics::VGList vg, JobId id );
+//    void
+//    done( Carta::Lib::VectorGraphics::VGList vg, JobId id );
 };
 }
 }

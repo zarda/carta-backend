@@ -2,9 +2,11 @@
  * An elliptical shape.
  **/
 #include "ShapeBase.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+#include <QPointF>
+#include <QRectF>
+//#include "CartaLib/VectorGraphics/VGList.h"
 
-namespace vge = Carta::Lib::VectorGraphics::Entries;
+//namespace vge = Carta::Lib::VectorGraphics::Entries;
 
 namespace Carta {
 
@@ -46,7 +48,7 @@ public:
      * Return the vector graphics for the shape.
      * @return - the shape vector graphics.
      */
-    virtual Carta::Lib::VectorGraphics::VGList getVGList() const override;
+//    virtual Carta::Lib::VectorGraphics::VGList getVGList() const override;
 
 
     /**

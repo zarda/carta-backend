@@ -8,7 +8,7 @@
 #include "State/StateInterface.h"
 #include "CartaLib/IImage.h"
 #include "CartaLib/ProfileInfo.h"
-#include <QColor>
+//#include <QColor>
 #include <QObject>
 
 
@@ -315,7 +315,7 @@ public:
      * Set the color to use in plotting the points of the curve.
      * @param color - the color to use in plotting curve points.
      */
-    void setColor( QColor color );
+//    void setColor( QColor color );
 
     /**
      * Set the x- and y- data values that comprise the curve.

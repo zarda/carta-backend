@@ -63,45 +63,45 @@ void StatisticsCASARegion::_getStatsFromCalculator( casacore::ImageInterface<cas
     casacore::ImageRegion* imgBox = new casacore::ImageRegion( box );
     std::shared_ptr<casacore::SubImage<casacore::Float> > boxImage( new casacore::SubImage<Float>(*image, *imgBox ) );
 
-    casa::ImageStatsCalculator calc( boxImage, &region, "", true);
-    calc.setList(false);
-    Record result = calc.calculate();
-    const casacore::String blcKey( "blc");
-    const casacore::String trcKey( "trc");
-    _insertScalar( result, "npts", Carta::Lib::StatInfo::StatType::FrameCount, stats );
-    _insertScalar( result, "sum", Carta::Lib::StatInfo::StatType::Sum, stats );
-    _insertScalar( result, "sumsq", Carta::Lib::StatInfo::StatType::SumSq, stats );
-    _insertScalar( result, "min", Carta::Lib::StatInfo::StatType::Min, stats );
-    _insertScalar( result, "max", Carta::Lib::StatInfo::StatType::Max, stats );
-    _insertScalar( result, "mean", Carta::Lib::StatInfo::StatType::Mean, stats );
-    _insertScalar( result, "sigma", Carta::Lib::StatInfo::StatType::Sigma, stats );
-    _insertScalar( result, "rms", Carta::Lib::StatInfo::StatType::RMS, stats );
-    _insertScalar( result, "flux", Carta::Lib::StatInfo::StatType::FluxDensity, stats );
-    _insertList( result, blcKey, Carta::Lib::StatInfo::StatType::Blc, stats, slice );
-    _insertList( result, trcKey, Carta::Lib::StatInfo::StatType::Trc, stats, slice );
-    _insertList( result, "minpos", Carta::Lib::StatInfo::StatType::MinPos, stats, slice );
-    _insertList( result, "maxpos", Carta::Lib::StatInfo::StatType::MaxPos, stats, slice );
-    _insertString( result, "blcf", Carta::Lib::StatInfo::StatType::Blcf, stats );
-    _insertString( result, "trcf", Carta::Lib::StatInfo::StatType::Trcf, stats );
-    _insertString( result, "minposf", Carta::Lib::StatInfo::StatType::MinPosf, stats );
-    _insertString( result, "maxposf", Carta::Lib::StatInfo::StatType::MaxPosf, stats );
+//    casa::ImageStatsCalculator calc( boxImage, &region, "", true);
+//    calc.setList(false);
+//    Record result = calc.calculate();
+//    const casacore::String blcKey( "blc");
+//    const casacore::String trcKey( "trc");
+//    _insertScalar( result, "npts", Carta::Lib::StatInfo::StatType::FrameCount, stats );
+//    _insertScalar( result, "sum", Carta::Lib::StatInfo::StatType::Sum, stats );
+//    _insertScalar( result, "sumsq", Carta::Lib::StatInfo::StatType::SumSq, stats );
+//    _insertScalar( result, "min", Carta::Lib::StatInfo::StatType::Min, stats );
+//    _insertScalar( result, "max", Carta::Lib::StatInfo::StatType::Max, stats );
+//    _insertScalar( result, "mean", Carta::Lib::StatInfo::StatType::Mean, stats );
+//    _insertScalar( result, "sigma", Carta::Lib::StatInfo::StatType::Sigma, stats );
+//    _insertScalar( result, "rms", Carta::Lib::StatInfo::StatType::RMS, stats );
+//    _insertScalar( result, "flux", Carta::Lib::StatInfo::StatType::FluxDensity, stats );
+//    _insertList( result, blcKey, Carta::Lib::StatInfo::StatType::Blc, stats, slice );
+//    _insertList( result, trcKey, Carta::Lib::StatInfo::StatType::Trc, stats, slice );
+//    _insertList( result, "minpos", Carta::Lib::StatInfo::StatType::MinPos, stats, slice );
+//    _insertList( result, "maxpos", Carta::Lib::StatInfo::StatType::MaxPos, stats, slice );
+//    _insertString( result, "blcf", Carta::Lib::StatInfo::StatType::Blcf, stats );
+//    _insertString( result, "trcf", Carta::Lib::StatInfo::StatType::Trcf, stats );
+//    _insertString( result, "minposf", Carta::Lib::StatInfo::StatType::MinPosf, stats );
+//    _insertString( result, "maxposf", Carta::Lib::StatInfo::StatType::MaxPosf, stats );
 
-    //Put in an identifier.
-    if ( result.isDefined( blcKey ) && result.isDefined( trcKey ) ){
-        casacore::Vector<int> blcArray = result.asArrayInt( blcKey );
-        QString blcVal = _vectorToString( blcArray, slice );
-        casacore::Vector<int> trcArray = result.asArrayInt( trcKey );
-        QString trcVal = _vectorToString( trcArray, slice );
-        QString idVal = regionType + ": ";
-        // Note: It is meaningless to show the statistics for a "Point" region, this may need to correct in future.
-        if ( blcVal != trcVal ){
-            idVal = idVal + blcVal + " -> " + trcVal;
-        }
-        Carta::Lib::StatInfo info( Carta::Lib::StatInfo::StatType::Name );
-        info.setValue( idVal );
-        info.setImageStat( false );
-        stats.append( info );
-    }
+//    //Put in an identifier.
+//    if ( result.isDefined( blcKey ) && result.isDefined( trcKey ) ){
+//        casacore::Vector<int> blcArray = result.asArrayInt( blcKey );
+//        QString blcVal = _vectorToString( blcArray, slice );
+//        casacore::Vector<int> trcArray = result.asArrayInt( trcKey );
+//        QString trcVal = _vectorToString( trcArray, slice );
+//        QString idVal = regionType + ": ";
+//        // Note: It is meaningless to show the statistics for a "Point" region, this may need to correct in future.
+//        if ( blcVal != trcVal ){
+//            idVal = idVal + blcVal + " -> " + trcVal;
+//        }
+//        Carta::Lib::StatInfo info( Carta::Lib::StatInfo::StatType::Name );
+//        info.setValue( idVal );
+//        info.setImageStat( false );
+//        stats.append( info );
+//    }
 }
 
 

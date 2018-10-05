@@ -64,13 +64,13 @@ QString Rectangle::typeName() const {
 	return TypeName;
 }
 
-VectorGraphics::VGList Rectangle::vgList() const {
-	VectorGraphics::VGComposer composer;
-	composer.append < VectorGraphics::Entries::SetPenColor > ( getLineColor() );
-	composer.append < VectorGraphics::Entries::SetBrush > ( getFillColor() );
-	composer.append < VectorGraphics::Entries::DrawRect > ( m_rectf );
-	return composer.vgList();
-}
+//VectorGraphics::VGList Rectangle::vgList() const {
+//	VectorGraphics::VGComposer composer;
+//	composer.append < VectorGraphics::Entries::SetPenColor > ( getLineColor() );
+//	composer.append < VectorGraphics::Entries::SetBrush > ( getFillColor() );
+//	composer.append < VectorGraphics::Entries::DrawRect > ( m_rectf );
+//	return composer.vgList();
+//}
 }
 }
 }

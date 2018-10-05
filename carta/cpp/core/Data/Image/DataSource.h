@@ -299,7 +299,7 @@ private:
      * Returns the color used to draw nan pixels.
      * @return - the color used to draw nan pixels.
      */
-    QColor _getNanColor() const;
+//    QColor _getNanColor() const;
 
     std::vector<double> _getHertzValues(const std::vector<int> dims) const;
 

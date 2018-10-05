@@ -5,7 +5,7 @@
 #pragma once
 #include "IRegion.h"
 #include "CartaLib/CartaLib.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+//#include "CartaLib/VectorGraphics/VGList.h"
 #include <QJsonObject>
 #include <QRectF>
 
@@ -127,7 +127,7 @@ public:
 	 * Return vector graphics for the ellipse.
 	 * @return - vector graphics for the ellipse.
 	 */
-	virtual VectorGraphics::VGList vgList() const override;
+//	virtual VectorGraphics::VGList vgList() const override;
 	const static QString RADIUS_MAJOR;
 	const static QString RADIUS_MINOR;
 	const static QString ANGLE;

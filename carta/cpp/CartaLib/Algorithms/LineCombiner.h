@@ -4,10 +4,12 @@
 
 #pragma once
 
-class QRectF;
-class QPointF;
+//class QRectF;
+//class QPointF;
 #include <QLinkedList>
-#include <QPolygonF>
+//#include <QPolygonF>
+#include <QRect>
+#include <QPointF>
 #include <vector>
 namespace Carta
 {
@@ -22,20 +24,20 @@ public:
     LineCombiner( const QRectF & rect, int rows, int cols, double threshold);
     ~LineCombiner();
 
-//    void
-//    setRect( const QRectF & rect )
-//    {
-//        m_rect = rect;
-//    }
+    void
+    setRect( const QRectF & rect )
+    {
+        m_rect = rect;
+    }
 
-//    void
-//    setThreshold( double threshold )
-//    {
-//        m_thresholdSq = threshold * threshold;
-//    }
+    void
+    setThreshold( double threshold )
+    {
+        m_thresholdSq = threshold * threshold;
+    }
 
-//    void
-//    setColsRows( int cols, int rows );
+    void
+    setColsRows( int cols, int rows );
 
     void
     setSmallestY( double y );
@@ -43,8 +45,8 @@ public:
     void
     add( QPointF p1, QPointF p2 );
 
-    std::vector < QPolygonF >
-    getPolygons();
+//    std::vector < QPolygonF >
+//    getPolygons();
 
 private:
 
@@ -87,13 +89,13 @@ private:
     std::vector< Cell * > m_grid;
     QRectF m_rect; // bounding rect
 
-    std::vector<QPolygonF> m_polygons;
+//    std::vector<QPolygonF> m_polygons;
 
     Cell * findCell( const QPointF & pt);
 
     Cell & cell( int row, int col);
 
-    static QPolygonF poly2polygon( Poly * poly);
+//    static QPolygonF poly2polygon( Poly * poly);
 };
 }
 }

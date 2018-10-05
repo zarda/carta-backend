@@ -6,8 +6,10 @@
 #include "State/StateInterface.h"
 #include "State/ObjectManager.h"
 #include "CartaLib/InputEvents.h"
-#include "CartaLib/VectorGraphics/VGList.h"
+//#include "CartaLib/VectorGraphics/VGList.h"
 #include <memory>
+#include <QPointF>
+#include "Region.h"
 
 namespace Carta {
 namespace Data {
@@ -155,7 +157,7 @@ public:
 	 * Return the vector graphics for all the managed regions.
 	 * @return - the vector graphics for all the managed regions.
 	 */
-	Carta::Lib::VectorGraphics::VGList vgList() const;
+//	Carta::Lib::VectorGraphics::VGList vgList() const;
 
 	virtual ~RegionControls();
 
@@ -199,11 +201,11 @@ private:
 	void _initializeState();
 	void _initializeStatics();
 
-	bool _handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev, const QPointF& imagePt );
+    bool _handleDrag( const Carta::Lib::InputEvents::Drag2Event& ev, const QPointF& imagePt );
 	bool _handleTapDouble( const Carta::Lib::InputEvents::DoubleTapEvent& ev, const QPointF& imagePt );
-	bool _handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev, const QPointF& imagePt );
+    bool _handleTouch( const Carta::Lib::InputEvents::TouchEvent& ev, const QPointF& imagePt );
 
-	void _onInputEvent( InputEvent & ev, const QPointF& imagePt );
+    void _onInputEvent( InputEvent & ev, const QPointF& imagePt );
 
 	/**
 	 * Reset the state back to a different state.
@@ -212,7 +214,7 @@ private:
 	void _resetStateData( const QString& state );
 
 	void _saveStateRegions();
-	void _setRegionsSelected( QStringList ids );
+    void _setRegionsSelected( QStringList ids );
 
 	RegionControls( const RegionControls& other);
 	RegionControls& operator=( const RegionControls& other );

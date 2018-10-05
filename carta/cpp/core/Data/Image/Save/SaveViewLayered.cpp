@@ -6,36 +6,36 @@
 namespace Carta {
 namespace Data {
 
-SaveViewLayered::SaveViewLayered():
-      m_vgView( new SaveView()){
+SaveViewLayered::SaveViewLayered()/*:
+      m_vgView( new SaveView())*/{
 }
 
-QImage SaveViewLayered::getImage() const {
-    return m_vgView->getBuffer();
-}
+//QImage SaveViewLayered::getImage() const {
+//    return m_vgView->getBuffer();
+//}
 
 
-void SaveViewLayered::resetLayers(){
-    m_vgLayers.clear();
-    m_rasterLayers.clear();
-}
+//void SaveViewLayered::resetLayers(){
+//    m_vgLayers.clear();
+//    m_rasterLayers.clear();
+//}
 
-void SaveViewLayered::setRasterLayer( int layer, const QImage & img ){
-    CARTA_ASSERT( layer >= 0 && layer < 1000 );
-    if ( int ( m_rasterLayers.size() ) <= layer ) {
-        m_rasterLayers.resize( layer + 1 );
-    }
-    m_rasterLayers[layer].qimg = img;
-}
+//void SaveViewLayered::setRasterLayer( int layer, const QImage & img ){
+//    CARTA_ASSERT( layer >= 0 && layer < 1000 );
+//    if ( int ( m_rasterLayers.size() ) <= layer ) {
+//        m_rasterLayers.resize( layer + 1 );
+//    }
+//    m_rasterLayers[layer].qimg = img;
+//}
 
 
-void SaveViewLayered::setVectorGraphicsLayer( int layer, const Carta::Lib::VectorGraphics::VGList & vglist ){
-    CARTA_ASSERT( layer >= 0 && layer < 1000 );
-    if ( int ( m_vgLayers.size() ) <= layer ) {
-        m_vgLayers.resize( layer + 1 );
-    }
-    m_vgLayers[layer].vglist = vglist;
-}
+//void SaveViewLayered::setVectorGraphicsLayer( int layer, const Carta::Lib::VectorGraphics::VGList & vglist ){
+//    CARTA_ASSERT( layer >= 0 && layer < 1000 );
+//    if ( int ( m_vgLayers.size() ) <= layer ) {
+//        m_vgLayers.resize( layer + 1 );
+//    }
+//    m_vgLayers[layer].vglist = vglist;
+//}
 
 
 //void SaveViewLayered::paintLayers(){
