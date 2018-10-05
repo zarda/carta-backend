@@ -9,6 +9,7 @@
 #include <QSize>
 //#include <QImage>
 #include <QList>
+#include <QFile>
 #include <memory>
 #include "CartaLib/CartaLib.h"
 
