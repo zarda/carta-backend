@@ -157,15 +157,15 @@ void Colormap::_calculateColorStops(){
                     // fill Hex color codes in a string list
                     Carta::Lib::PixelPipeline::NormRgb normRgb;
                     pipe->convert( val, normRgb );
-                    QColor mapColor;
-                    if ( normRgb[0] >= 0 && normRgb[1] >= 0 && normRgb[2] >= 0 ){
-                    	mapColor = QColor::fromRgbF( normRgb[0], normRgb[1], normRgb[2] );
-                    }
-                    QString hexStr = mapColor.name();
-                    if ( i < 99 ){
-                        hexStr = hexStr + ",";
-                    }
-                    buff.append( hexStr );
+//                    QColor mapColor;
+//                    if ( normRgb[0] >= 0 && normRgb[1] >= 0 && normRgb[2] >= 0 ){
+//                    	mapColor = QColor::fromRgbF( normRgb[0], normRgb[1], normRgb[2] );
+//                    }
+//                    QString hexStr = mapColor.name();
+//                    if ( i < 99 ){
+//                        hexStr = hexStr + ",";
+//                    }
+//                    buff.append( hexStr );
                 }
                 m_state.setValue<QString>( COLOR_STOPS, buff.join("") );
 

@@ -2210,7 +2210,7 @@ void Histogram::_updatePlots( ){
 	for ( int i = 0; i < dataCount; i++ ){
 		Carta::Lib::Hooks::HistogramResult result = m_binDatas[i]->getHistogramResult();
 		m_plotManager->addData( &result );
-		m_plotManager->setColor( m_binDatas[i]->getColor(), result.getName());
+//		m_plotManager->setColor( m_binDatas[i]->getColor(), result.getName());
 	}
 	//Refresh the view
 	m_plotManager->setLogScale( m_state.getValue<bool>( GRAPH_LOG_COUNT ) );

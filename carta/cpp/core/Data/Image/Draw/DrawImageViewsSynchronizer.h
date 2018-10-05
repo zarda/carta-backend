@@ -95,7 +95,7 @@ private:
     /**
      * Start the next rendered view of the image.
      */
-    void _startNextDraw();
+//    void _startNextDraw();
 
     bool m_busy;
 

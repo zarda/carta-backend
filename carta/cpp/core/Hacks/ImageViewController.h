@@ -213,20 +213,20 @@ public:
     size() override;
 
     /// IView interface
-    virtual const QImage &
-    getBuffer() override;
+//    virtual const QImage &
+//    getBuffer() override;
 
     /// IView interface
     virtual void
     handleResizeRequest( const QSize & size ) override;
 
-    /// IView interface
-    virtual void
-    handleMouseEvent( const QMouseEvent & ) override { }
+//    /// IView interface
+//    virtual void
+//    handleMouseEvent( const QMouseEvent & ) override { }
 
-    /// IView interface
-    virtual void
-    handleKeyEvent( const QKeyEvent & ) override { }
+//    /// IView interface
+//    virtual void
+//    handleKeyEvent( const QKeyEvent & ) override { }
 
     /// IView interface
     virtual void

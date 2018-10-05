@@ -20,9 +20,10 @@
 #include <QDebug>
 #include <QElapsedTimer>
 #include "CartaLib/UtilCASA.h"
-
 #include <zfp.h>
 #include <cmath>
+#include <QFuture>
+#include <QtConcurrent>
 
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
@@ -39,6 +40,8 @@ const int DataSource::INDEX_INTENSITY = 1;
 const int DataSource::INDEX_PERCENTILE = 2;
 const int DataSource::INDEX_FRAME_LOW = 3;
 const int DataSource::INDEX_FRAME_HIGH = 4;
+const bool DataSource::IS_MULTITHREAD_ZFP = true;
+const int DataSource::MAX_SUBSETS = 8;
 
 CoordinateSystems* DataSource::m_coords = nullptr;
 
@@ -472,7 +475,7 @@ void DataSource::_setIntensityCache(double intensity, double error, int frameLow
 
 std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         const std::vector<double>& percentiles, int stokeFrame,
-        Carta::Lib::IntensityUnitConverter::SharedPtr converter) {
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
 
     // Pick a calculator
 
@@ -643,54 +646,17 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
     return intensities;
 }
 
-PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
-    int numberOfBins, int stokeFrame,
-    Carta::Lib::IntensityUnitConverter::SharedPtr converter) {
+PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+    int numberOfBins,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
 
-    qDebug() << "[DataSource] Calculating the regional histogram data...................................>";
-    RegionHistogramData result; // results from the "percentileAlgorithms.h"
+    RegionHistogramData result = _getPixels2HistogramData(fileId, regionId, frameLow, frameHigh, stokeFrame,
+                                                          numberOfBins, converter);
 
-    // get the raw data
-    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
-    if (rawData == nullptr) {
-        qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
+    // check if the result is valid
+    if (result.bins.size() == 0) {
         return nullptr;
     }
-
-    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
-    Carta::Lib::NdArray::Double doubleView(view.get(), false);
-
-    // get the min/max intensities
-    double minIntensity = 0.0;
-    double maxIntensity = 0.0;
-    std::vector<double> minMaxIntensities = _getIntensity(frameLow, frameHigh, std::vector<double>({0, 1}), stokeFrame, converter);
-    if (minMaxIntensities.size() != 2) {
-        qCritical() << "Error: can not get the min/max intensities!!";
-        return nullptr;
-    } else {
-        minIntensity = minMaxIntensities[0];
-        // assign the minimum of the pixel value as a private parameter
-        maxIntensity = minMaxIntensities[1];
-    }
-
-    if (minIntensity > maxIntensity) {
-        qCritical() << "Error: min intensity > max intensity!!";
-        return nullptr;
-    }
-
-    // get the calculator
-    Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = nullptr;
-    calculator = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
-
-    // Find Hz values if they are required for the unit transformation
-    std::vector<double> hertzValues;
-    if (converter && converter->frameDependent) {
-        hertzValues = _getHertzValues(doubleView.dims());
-    }
-
-    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
-    result = calculator->pixels2histogram(fileId, regionId, doubleView, minIntensity, maxIntensity,
-                                          numberOfBins, spectralIndex, converter, hertzValues, frameLow, stokeFrame);
 
     // add RegionHistogramData message
     std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());
@@ -710,13 +676,69 @@ PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int fram
     for (auto intensity : result.bins) {
         histogram->add_bins(intensity);
     }
-    qDebug() << "[DataSource] .......................................................................Done";
 
     return region_histogram_data;
 }
 
-PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
-    int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const {
+RegionHistogramData DataSource::_getPixels2HistogramData(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+    int numberOfBins,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
+
+    qDebug() << "[DataSource] Calculating the regional histogram data...................................>";
+    RegionHistogramData result; // results from the "percentileAlgorithms.h"
+
+    // get the raw data
+    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
+    if (rawData == nullptr) {
+        qCritical() << "[DataSource] Error: could not retrieve image data to calculate missing intensities.";
+        return result;
+    }
+
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
+    Carta::Lib::NdArray::Double doubleView(view.get(), false);
+
+    // get the min/max intensities
+    double minIntensity = 0.0;
+    double maxIntensity = 0.0;
+    std::vector<double> minMaxIntensities = _getIntensity(frameLow, frameHigh, std::vector<double>({0, 1}), stokeFrame, converter);
+    if (minMaxIntensities.size() != 2) {
+        qCritical() << "[DataSource] Error: can not get the min/max intensities!!";
+        return result;
+    } else {
+        minIntensity = minMaxIntensities[0];
+        // assign the minimum of the pixel value as a private parameter
+        maxIntensity = minMaxIntensities[1];
+    }
+
+    if (minIntensity > maxIntensity) {
+        qCritical() << "[DataSource] Error: min intensity > max intensity!!";
+        return result;
+    }
+
+    // get the calculator
+    Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = nullptr;
+    calculator = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
+
+    // Find Hz values if they are required for the unit transformation
+    std::vector<double> hertzValues;
+    if (converter && converter->frameDependent) {
+        hertzValues = _getHertzValues(doubleView.dims());
+    }
+
+    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+    result = calculator->pixels2histogram(fileId, regionId, doubleView, minIntensity, maxIntensity,
+                                          numberOfBins, spectralIndex, converter, hertzValues, frameLow, stokeFrame);
+
+    qDebug() << "[DataSource] .......................................................................Done";
+
+    return result;
+}
+
+PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
+    int frameLow, int frameHigh, int stokeFrame,
+    bool isZFP, int precision, int numSubsets,
+    bool &changeFrame, int regionId, int numberOfBins,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
 
     std::vector<float> imageData; // the image raw data with downsampling
 
@@ -818,35 +840,81 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
     raster->set_mip(mip);
 
     if (isZFP) {
-
         // use ZFP compression
         raster->set_compression_type(CARTA::CompressionType::ZFP);
         raster->set_compression_quality(precision);
 
-        // so far I only use one thread, use "numSubsets" for multi-thread calculations
-        std::vector<char> compressionBuffer;
-        size_t compressedSize; // use "vector<size_t> compressedSizes(numSubsets);" for multi-thread calculations
+        if (IS_MULTITHREAD_ZFP) {
+            // ZFP compression with multi-thread
+            int N = std::min(numSubsets, MAX_SUBSETS); // total number of threads
+            std::vector<size_t> compressedSizes(N);
+            std::vector<std::vector<int32_t> > nanEncodings(N);
+            std::vector<std::vector<char> > compressionBuffers(N);
+            std::vector<int> status(N);
+            std::vector<QFuture<void> > futures;
 
-        // get NaN type pixel distances of indices
-        std::vector<int32_t> nanEncodings = _getNanEncodingsBlock(imageData, 0, nx, ny);
+            for (int i = 0; i < N; i++) {
+                auto &compressionBuffer = compressionBuffers[i];
+                auto &compressedSize = compressedSizes[i];
 
-        // apply ZFP function
-        _compress(imageData, 0, compressionBuffer, compressedSize, nx, ny, precision);
+                QFuture<void> future = QtConcurrent::run(
+                    [&nanEncodings, &imageData, &compressionBuffer, &compressedSize, &status, i,
+                        nx, ny, N, precision, this]() {
 
-        // use "raster->add_image_data(compressionBuffers[i].data(), compressedSizes[i])" for multi-thread calculations
-        raster->add_image_data(compressionBuffer.data(), compressedSize);
-        raster->add_nan_encodings((char*) nanEncodings.data(), nanEncodings.size() * sizeof(int)); // This item is necessary !!
+                    int subsetRowStart = i * (ny / N);
+                    int subsetRowEnd = (i + 1) * (ny / N);
 
-        qDebug() << "[DataSource] Apply ZFP compression (precision=" << precision << ", number of subsets= 1"
-                 << ", NaN encodings size=" << nanEncodings.size() << ")";
+                    if (i == N - 1) {
+                        subsetRowEnd = ny;
+                    }
 
+                    int subsetElementStart = subsetRowStart * nx;
+
+                    nanEncodings[i] = this->_getNanEncodingsBlock(imageData, subsetElementStart, nx, subsetRowEnd - subsetRowStart);
+                    status[i] = this->_compress(imageData, subsetElementStart, compressionBuffer, compressedSize,
+                                                nx, subsetRowEnd - subsetRowStart, precision);
+                });
+
+                futures.push_back(future);
+            }
+
+            // Wait for completed compression threads
+            for (auto future : futures) {
+                // Note that if the future finished BEFORE we call this, it will still work.
+                future.waitForFinished();
+            }
+
+            // Complete the message
+            for (int i = 0; i < N; i++) {
+                raster->add_image_data(compressionBuffers[i].data(), compressedSizes[i]);
+                raster->add_nan_encodings((char*) nanEncodings[i].data(), nanEncodings[i].size() * sizeof(int));
+            }
+
+            qDebug() << "[DataSource] Apply ZFP compression (status=" << status << ", precision=" << precision
+                     << ", number of subsets=" << N << ", NaN encodings size=" << nanEncodings.size() << ")";
+        } else {
+            // ZFP compression with single thread
+            std::vector<char> compressionBuffer;
+            size_t compressedSize; // use "vector<size_t> compressedSizes(numSubsets);" for multi-thread calculations
+
+            // get NaN type pixel distances of indices
+            std::vector<int32_t> nanEncodings = _getNanEncodingsBlock(imageData, 0, nx, ny);
+
+            // apply ZFP function
+            int status = _compress(imageData, 0, compressionBuffer, compressedSize, nx, ny, precision);
+
+            // use "raster->add_image_data(compressionBuffers[i].data(), compressedSizes[i])" for multi-thread calculations
+            raster->add_image_data(compressionBuffer.data(), compressedSize);
+            raster->add_nan_encodings((char*) nanEncodings.data(), nanEncodings.size() * sizeof(int)); // This item is necessary !!
+
+            qDebug() << "[DataSource] Apply ZFP compression (status=" << status << ", precision=" << precision
+                     << ", number of subsets= 1" << ", NaN encodings size=" << nanEncodings.size() << ")";
+        }
     } else {
-
         // without compression
         raster->set_compression_type(CARTA::CompressionType::NONE);
         raster->set_compression_quality(0);
         raster->add_image_data(imageData.data(), imageData.size() * sizeof(float));
-
         qDebug() << "[DataSource] w/o ZFP compression!";
     }
 
@@ -860,7 +928,147 @@ PBMSharedPtr DataSource::_getRasterImageData(int fileId, int xMin, int xMax, int
 
     qDebug() << "[DataSource] .......................................................................Done";
 
+    // check if need to calculate the histogram data
+    if (changeFrame) {
+        RegionHistogramData result = _getPixels2HistogramData(fileId, regionId, frameLow, frameHigh, stokeFrame,
+                                                              numberOfBins, converter);
+        // check if the calculation result is valid
+        if (result.bins.size() > 0) {
+            // add RegionHistogramData in the RasterImageData message
+            CARTA::RegionHistogramData* region_histogram_data = new CARTA::RegionHistogramData();
+            region_histogram_data->set_file_id(result.fileId);
+            region_histogram_data->set_region_id(result.regionId);
+            region_histogram_data->set_stokes(result.stokeFrame);
+
+            CARTA::Histogram* histogram = region_histogram_data->add_histograms();
+            histogram->set_channel(result.frameLow);
+            histogram->set_num_bins(result.num_bins);
+            histogram->set_bin_width(result.bin_width);
+
+            // the minimum value of pixels is the first bin center
+            histogram->set_first_bin_center(result.first_bin_center);
+
+            // fill in the vector of the histogram data
+            for (auto intensity : result.bins) {
+                histogram->add_bins(intensity);
+            }
+            raster->set_allocated_channel_histogram_data(region_histogram_data);
+        }
+        // reset the m_changeFrame[fileId] = false; in the NewServerConnector obj
+        changeFrame = false;
+    }
+
     return raster;
+}
+
+PBMSharedPtr DataSource::_getXYProfiles(int fileId, int x, int y,
+    int frameLow, int frameHigh, int stokeFrame,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
+
+    qDebug() << "[DataSource] Get X/Y profiles...................................>";
+
+    std::vector<float> xProfile, yProfile;
+
+    // get the raw data of image
+    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
+    if (rawData == nullptr) {
+        qCritical() << "[DataSource] Error: could not retrieve image data to get X/Y profiles.";
+        return nullptr;
+    }
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
+    Carta::Lib::NdArray::Double doubleView(view.get(), false);
+    const int imgWidth = view->dims()[0];
+    const int imgHeight = view->dims()[1];
+    int spectralIndex = Util::getAxisIndex(m_image, AxisInfo::KnownType::SPECTRAL);
+
+    // start timer for computing X/Y profiles
+    QElapsedTimer timer;
+    timer.start();
+
+    if (converter && converter->frameDependent) {
+        // Find Hz values if they are required for the unit transformation
+        std::vector<double> hertzValues = _getHertzValues(doubleView.dims());
+        for (size_t f = 0; f < hertzValues.size(); f++) {
+            double hertzVal = hertzValues[f];
+            Carta::Lib::NdArray::Double viewSlice = Carta::Lib::viewSliceForFrame(doubleView, spectralIndex, f);
+            _getXYProfiles(doubleView, imgWidth, imgHeight, x, y, xProfile, yProfile);
+        }
+    } else {
+        _getXYProfiles(doubleView, imgWidth, imgHeight, x, y, xProfile, yProfile);
+    }
+
+    // end of timer for computing X/Y profiles
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to get X/Y profiles:" << elapsedTime << "ms";
+    }
+
+    // create spatial profile data
+    std::shared_ptr<CARTA::SpatialProfileData> spatialProfileData(new CARTA::SpatialProfileData());
+    spatialProfileData->set_file_id(fileId);
+    spatialProfileData->set_region_id(0);
+    spatialProfileData->set_x(x);
+    spatialProfileData->set_y(y);
+    spatialProfileData->set_channel(frameLow);
+    spatialProfileData->set_stokes(stokeFrame);
+    if (xProfile.size() > x) {
+        spatialProfileData->set_value(xProfile[x]);
+    } else if (yProfile.size() > y) {
+        spatialProfileData->set_value(yProfile[y]);
+    }
+
+    // Add X/Y profiles to spatial profile data
+    if (false == _addProfile(spatialProfileData, xProfile, "x")) {
+        qDebug() << "Add X profile to spatial profile data failed.";
+        return nullptr;
+    }
+    if (false == _addProfile(spatialProfileData, yProfile, "y")) {
+        qDebug() << "Add Y profile to spatial profile data failed.";
+        return nullptr;
+    }
+
+    qDebug() << "[DataSource] .......................................................................Done";
+
+    return spatialProfileData;
+}
+
+void DataSource::_getXYProfiles(Carta::Lib::NdArray::Double doubleView, const int imgWidth, const int imgHeight,
+    const int x, const int y, std::vector<float> & xProfile, std::vector<float> & yProfile) const {
+
+    // get X profile
+    for (int index = 0; index < imgWidth; index++) {
+        float val = (float)doubleView.get({index,y});
+        std::isfinite(val) ? xProfile.push_back(val) : xProfile.push_back(0);
+    }
+
+    // get Y profile
+    for (int index = 0; index < imgHeight; index++) {
+        float val = (float)doubleView.get({x,index});
+        std::isfinite(val) ? yProfile.push_back(val) : yProfile.push_back(0);
+    }
+}
+
+bool DataSource::_addProfile(std::shared_ptr<CARTA::SpatialProfileData> spatialProfileData,
+    const std::vector<float> & profile, const std::string coordinate) const {
+    if(nullptr == spatialProfileData) {
+        qDebug() << "Spatial profile data is null.";
+        return false;
+    }
+
+    CARTA::SpatialProfile* spatialProfile = spatialProfileData->add_profiles();
+    if (nullptr == spatialProfile) {
+        qDebug() << "Add spatial profile to spatial profile data error.";
+        return false;
+    }
+
+    spatialProfile->set_start(0);
+    spatialProfile->set_end(profile.size() - 1);
+    for (auto val = profile.begin(); val != profile.end(); val++) {
+        spatialProfile->add_values(*val);
+    }
+    spatialProfile->set_coordinate(coordinate);
+
+    return true;
 }
 
 // This function is provided by Angus
@@ -1693,6 +1901,27 @@ void DataSource::_viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
 }
 
+void DataSource::_getSpectralProfile() {
+
+    auto result = Globals::instance()->pluginManager()
+        -> prepare <Carta::Lib::Hooks::ProfileHook>(m_image, nullptr/*region info (nullptr is for all region)*/, m_profileInfo);
+
+    auto lam = [=] (const Carta::Lib::Hooks::ProfileResult &data) {
+        m_profileResult = data;
+    };
+
+    try {
+        result.forEach(lam);
+    }
+    catch (char*& error) {
+        qDebug() << "[DataSource] ProfileRenderWorker::run: caught error: " << error;
+        m_profileResult.setError( QString(error) );
+    }
+
+    // ********* std::pair<double,double> profileData(xValues[i], jyValues[i]);
+    std::vector< std::pair<double,double> > profileData = m_profileResult.getData();
+
+}
 
 DataSource::~DataSource() {
 

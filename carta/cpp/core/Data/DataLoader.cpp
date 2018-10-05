@@ -13,6 +13,7 @@
 #include "State/UtilState.h"
 
 #include <set>
+#include <math.h>
 
 using Carta::Lib::AxisInfo;
 
@@ -243,11 +244,15 @@ DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileLis
 }
 
 DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfoRequest) {
+    std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
 
     QString fileDir = QString::fromStdString(fileInfoRequest.directory());
     if (!QDir(fileDir).exists()) {
-        qWarning() << "[File Info] File directory doesn't exist! (" << fileDir << ")";
-        return nullptr;
+        QString message = "[File Info] File directory doesn't exist! (" + fileDir + ")";
+        qWarning() << message;
+        fileInfoResponse->set_success(false);
+        fileInfoResponse->set_message(message.toStdString());
+        return fileInfoResponse;
     }
 
     QString fileName = QString::fromStdString(fileInfoRequest.file());
@@ -259,8 +264,11 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     if (!res.isNull()) {
         image = res.val();
     } else {
-        qWarning() << "[File Info] Can not open the image file! (" << file << ")";
-        return nullptr;
+        QString message = "[File Info] Can not open the image file! (" + file + ")";
+        qWarning() << message;
+        fileInfoResponse->set_success(false);
+        fileInfoResponse->set_message(message.toStdString());
+        return fileInfoResponse;
     }
 
     // FileInfo: set name & type
@@ -313,16 +321,16 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     std::vector<std::vector<QString>> pairs = {};
     if (false == _arrangeFileInfo(infoMap, pairs)) {
         qDebug() << "Sort file info entry error.";
-    }
-
-    // insert Part 1, Part 2 to fileInfoExt
-    for (auto iter = pairs.begin(); iter != pairs.end(); iter++) {
-        auto *infoEntries = fileInfoExt->add_computed_entries();
-        if (nullptr != infoEntries) {
-            infoEntries->set_name((*iter)[0].toLocal8Bit().constData());
-            infoEntries->set_value((*iter)[1].toLocal8Bit().constData());
-        } else {
-            qDebug() << "Insert info entry to fileInfoExt error.";
+    } else {
+        // insert Part 1, Part 2 to fileInfoExt
+        for (auto iter = pairs.begin(); iter != pairs.end(); iter++) {
+            auto *infoEntries = fileInfoExt->add_computed_entries();
+            if (nullptr != infoEntries) {
+                infoEntries->set_name((*iter)[0].toLocal8Bit().constData());
+                infoEntries->set_value((*iter)[1].toLocal8Bit().constData());
+            } else {
+                qDebug() << "Insert info entry to fileInfoExt error.";
+            }
         }
     }
 
@@ -332,7 +340,6 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     }
 
     // FileInfoResponse
-    std::shared_ptr<CARTA::FileInfoResponse> fileInfoResponse(new CARTA::FileInfoResponse());
     fileInfoResponse->set_success(true);
     fileInfoResponse->set_allocated_file_info(fileInfo);
     fileInfoResponse->set_allocated_file_info_extended(fileInfoExt);
@@ -351,18 +358,18 @@ bool DataLoader::getFitsHeaders(CARTA::FileInfoExtended* fileInfoExt,
     // get fits header map using FitsHeaderExtractor
     FitsHeaderExtractor fhExtractor;
     fhExtractor.setInput(image);
-    std::map<QString, QString> headerMap = fhExtractor.getHeaderMap();
+    std::vector<std::vector<QString>> headerList = fhExtractor.getHeaderList();
     
     // traverse whole map to return all entries for frontend to render (AST)
-    for (auto iter = headerMap.begin(); iter != headerMap.end(); iter++) {
+    for (auto iter = headerList.begin(); iter != headerList.end(); iter++) {
         // insert (key, value) to header entry
         CARTA::HeaderEntry* headerEntry = fileInfoExt->add_header_entries();
-        if (nullptr == headerEntry) {
-            qDebug() << "Insert (" << iter->first << ", " << iter->second << ") to header entry error.";
+        if ((*iter).size() != 2 || nullptr == headerEntry) {
+            qDebug() << "Insert header to header entry error.";
             return false;
         }
-        headerEntry->set_name((iter->first).toLocal8Bit().constData());
-        headerEntry->set_value((iter->second).toLocal8Bit().constData());
+        headerEntry->set_name((*iter)[0].toLocal8Bit().constData());
+        headerEntry->set_value((*iter)[1].toLocal8Bit().constData());
     }
 
     return true;
@@ -381,38 +388,38 @@ bool DataLoader::_getStatisticInfo(std::map<QString, QString>& infoMap,
     images.push_back(image);
     
     // regions is an empty setting so far
-    std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase>> regions;
+//    std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase>> regions;
     
     // get the statistical data of the whole image
     std::vector<int> frameIndices(image->dims().size(), -1);
 
-    if (images.size() > 0) { // [TODO]: do we really need this if statement?
-        // Prepare to use the ImageStats plugin.
-        auto result = Globals::instance()->pluginManager()
-                -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
+//    if (images.size() > 0) { // [TODO]: do we really need this if statement?
+//        // Prepare to use the ImageStats plugin.
+//        auto result = Globals::instance()->pluginManager()
+//                -> prepare <Carta::Lib::Hooks::ImageStatisticsHook>(images, regions, frameIndices);
 
-        // lamda function for traverse
-        auto lam = [&] (const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data) {
-            //An array for each image
-            for (int i = 0; i < data.size(); i++) {
-                // Each element of the image array contains an array of statistics.
-                // Go through each set of statistics for the image.
-                for (int j = 0; j < data[i].size(); j++) {
-                    for (int k = 0; k < data[i][j].size(); k++) {
-                        infoMap[data[i][j][k].getLabel()] = data[i][j][k].getValue();
-                    }
-                }
-            }
-        };
+//        // lamda function for traverse
+//        auto lam = [&] (const Carta::Lib::Hooks::ImageStatisticsHook::ResultType &data) {
+//            //An array for each image
+//            for (int i = 0; i < data.size(); i++) {
+//                // Each element of the image array contains an array of statistics.
+//                // Go through each set of statistics for the image.
+//                for (int j = 0; j < data[i].size(); j++) {
+//                    for (int k = 0; k < data[i][j].size(); k++) {
+//                        infoMap[data[i][j][k].getLabel()] = data[i][j][k].getValue();
+//                    }
+//                }
+//            }
+//        };
 
-        try {
-            result.forEach(lam);
-        } catch (char*& error) {
-            QString errorStr(error);
-            qDebug() << "[File Info] There is an error message: " << errorStr;
-            return false;
-        }
-    }
+//        try {
+//            result.forEach(lam);
+//        } catch (char*& error) {
+//            QString errorStr(error);
+//            qDebug() << "[File Info] There is an error message: " << errorStr;
+//            return false;
+//        }
+//    }
 
     return true;
 }
@@ -534,7 +541,7 @@ bool DataLoader::_genStokesChannelsInfo(std::map<QString, QString>& infoMap,
     return true;
 }
 
-// Generate customized pixel size info according to CDELT1, CDELT2, CUNIT1
+// Generate customized pixel size info according to CDELT1, CDELT2, CUNIT1, CUNIT2
 bool DataLoader::_genPixelSizeInfo(std::map<QString, QString>& infoMap,
                                    const std::map<QString, QString> headerMap) {
     // check whether headerMap is empty
@@ -543,61 +550,23 @@ bool DataLoader::_genPixelSizeInfo(std::map<QString, QString>& infoMap,
         return false;
     }
 
-    // generate value
-    QString value = "";
+    // check whether corresponding fields can be found in map
     auto cdelt1 = headerMap.find("CDELT1");
     auto cdelt2 = headerMap.find("CDELT2");
-    if (cdelt1 != headerMap.end() && cdelt2 != headerMap.end()) {
-        // get CDELT1, CDELT2 & convert them to double
-        QString delstr1 = cdelt1->second;
-        QString delstr2 = cdelt2->second;
-        bool ok = false;
-        double d1 = 0, d2 = 0;
-        d1 = (delstr1).toDouble(&ok);
-        if (!ok) {
-            qDebug() << "Convert degree to double error.";
-            return false;
-        }
-        d2 = (delstr2).toDouble(&ok);
-        if (!ok) {
-            qDebug() << "Convert degree to double error.";
-            return false;
-        }
-
-        // get unit & convert CDELT1 CDELT2 to arcsec if unit is degree
-        auto unit = headerMap.find("CUNIT1");
-        if (unit == headerMap.end()) {
-            qDebug() << "Cannot find CUNIT1.";
-            return false;
-        }
-
-        if ((unit->second).contains("deg", Qt::CaseInsensitive)) {
-            QString arcs1 = "", arcs2 = "";
-            if(false == _deg2arcsec(delstr1, arcs1)) {
-                qDebug() << "Convert CDELT1 to arcsec error.";
-                return false;
-            }
-            if(false == _deg2arcsec(delstr2, arcs2)) {
-                qDebug() << "Convert CDELT2 to arcsec error.";
-                return false;
-            }
-            delstr1 = arcs1;
-            delstr2 = arcs2;
-        } else { // not degree
-            delstr1 = delstr1 + " " + unit->second;
-            delstr2 = delstr2 + " " + unit->second;
-        }
-
-        // check whether CDELT1 & CDELT2 are the same(squre)
-        if (abs(d1) == abs(d2)) {
-            value = (d1 > 0) ? delstr1 : delstr2;
-        } else {
-            value = delstr1 + ", " + delstr2;
-        }
+    auto unit1 = headerMap.find("CUNIT1");
+    auto unit2 = headerMap.find("CUNIT2");
+    if (cdelt1 == headerMap.end() || cdelt2 == headerMap.end() ||
+        unit1 == headerMap.end() || unit2 == headerMap.end()) {
+        qDebug() << "Cannot find CDELT1 CDELT2 CUNIT1 CUNIT2.";
+        return false;
     }
 
+    // unit conversion
+    QString str1 = _unitConversion(cdelt1->second, unit1->second);
+    QString str2 = _unitConversion(cdelt2->second, unit2->second);
+
     // insert (label, value) to info entry
-    infoMap["Pixel size"] = value;
+    infoMap["Pixel size"] = str1 + ", " + str2;
 
     return true;
 }
@@ -618,8 +587,28 @@ bool DataLoader::_genCoordTypeInfo(std::map<QString, QString>& infoMap,
         return false;
     }
 
-    // insert (label, value) to info entry
-    infoMap["Coordinate type"] = ctype1->second + ", " + ctype2->second;
+    // coordinate should be [RA, DEC], [GLON, GLAT], [others]
+    QString c1Str = ctype1->second;
+    QString c2Str = ctype2->second;
+    if (c1Str.contains("RA", Qt::CaseInsensitive) && c2Str.contains("DEC", Qt::CaseInsensitive)) {
+        infoMap["Coordinate type"] = "RA, DEC";
+
+        // find projection, "RA---SIN", projection = SIN
+        QStringList list = c1Str.split(QRegExp("[\-]+"));
+        if (list.size() > 1) {
+            infoMap["Projection"] = list[1];
+        }
+    } else if (c1Str.contains("GLON", Qt::CaseInsensitive) && c2Str.contains("GLAT", Qt::CaseInsensitive)) {
+        infoMap["Coordinate type"] = "GLON, GLAT";
+
+        // find projection, "GLON---SIN", projection = SIN
+        QStringList list = c1Str.split(QRegExp("[\-]+"));
+        if (list.size() > 1) {
+            infoMap["Projection"] = list[1];
+        }
+    } else {
+        infoMap["Coordinate type"] = c1Str + ", " + c2Str;
+    }
 
     return true;
 }
@@ -661,16 +650,28 @@ bool DataLoader::_genImgRefCoordInfo(std::map<QString, QString>& infoMap,
 
     // set CRPIX1, CRPIX2, CRVAL1, CRVAL2 with specific format
     char buf[512];
-    snprintf(buf, sizeof(buf), "%d", p1);
+    snprintf(buf, sizeof(buf), "%d", (int)p1);
     QString pix1Str = QString(buf);
-    snprintf(buf, sizeof(buf), "%d", p2);
+    snprintf(buf, sizeof(buf), "%d", (int)p2);
     QString pix2Str = QString(buf);
-    snprintf(buf, sizeof(buf), "%.4f", v1);
-    QString val1Str = QString(buf);
-    snprintf(buf, sizeof(buf), "%.4f", v2);
-    QString val2Str = QString(buf);
 
-    // convert to arcsec if unit is degree
+    QString val1Str = "";
+    QString val2Str = "";
+    // convert to MHz if unit is Hz
+    if ((cunit1->second).contains("Hz", Qt::CaseInsensitive)) {
+        val1Str = _convertHz(v1);
+    } else {
+        snprintf(buf, sizeof(buf), "%.4f", v1);
+        val1Str = QString(buf) + " " + cunit1->second;
+    }
+    if ((cunit2->second).contains("Hz", Qt::CaseInsensitive)) {
+        val2Str = _convertHz(v2);
+    } else {
+        snprintf(buf, sizeof(buf), "%.4f", v2);
+        val2Str = QString(buf) + " " + cunit2->second;
+    }
+
+    // generate arcsec if unit is degree
     QString arcsecStr = "";
     if ((cunit1->second).contains("deg", Qt::CaseInsensitive)) {
         char buf[512];
@@ -685,7 +686,7 @@ bool DataLoader::_genImgRefCoordInfo(std::map<QString, QString>& infoMap,
         int dec_dd = (int)v2;
         int dec_mm = (int)((v2 - dec_dd) * 60);
         double dec_ss = (((v2 - dec_dd) * 60) - dec_mm) * 60;
-        snprintf(buf, sizeof(buf), "%d:%d:%.4f", dec_dd, abs(dec_mm), abs(dec_ss));
+        snprintf(buf, sizeof(buf), "%d:%d:%.4f", dec_dd, abs(dec_mm), fabs(dec_ss));
         tmp2 = QString(buf);
 
         arcsecStr = " [" + tmp1 + ", " + tmp2 + "]";
@@ -693,7 +694,7 @@ bool DataLoader::_genImgRefCoordInfo(std::map<QString, QString>& infoMap,
 
     // insert (label, value) to info entry
     QString value = "[" + pix1Str + ", " + pix2Str + "] [" +
-                    val1Str + " " + cunit1->second + ", " + val2Str + " " + cunit2->second + "]" +
+                    val1Str + ", " + val2Str + "]" +
                     arcsecStr;
     infoMap["Image reference coordinate"] = value;
 
@@ -709,32 +710,35 @@ bool DataLoader::_genCelestialFrameInfo(std::map<QString, QString>& infoMap,
         return false;
     }
 
+    // find RADESYS
     auto radesys = headerMap.find("RADESYS");
-    auto equinox = headerMap.find("EQUINOX");
-    if (radesys == headerMap.end() || equinox == headerMap.end()) {
-        qDebug() << "Cannot find RADESYS EQUINOX.";
+    if (radesys == headerMap.end()) {
+        qDebug() << "Cannot find RADESYS.";
         return false;
     }
-
-    // get value of RADESYS, EQUINOX
     QString rad = radesys->second;
-    QString equ = equinox->second;
 
-    // FK4 => B1950, FK5 => J2000, others => not modified 
-    if (rad.contains("FK4", Qt::CaseInsensitive)) {
-        bool ok = false;
-        int e = equ.toDouble(&ok);
-        if (!ok) {return false;}
-        equ = "B" + QString(std::to_string(e).c_str());
-    } else if (rad.contains("FK5", Qt::CaseInsensitive)) {
-        bool ok = false;
-        int e = equ.toDouble(&ok);
-        if (!ok) {return false;}
-        equ = "J" + QString(std::to_string(e).c_str());
+    // find EQUINOX
+    auto equinox = headerMap.find("EQUINOX");
+    if (equinox != headerMap.end()) {
+        QString equ = equinox->second;
+
+        // FK4 => B1950, FK5 => J2000, others => not modified
+        if (rad.contains("FK4", Qt::CaseInsensitive)) {
+            bool ok = false;
+            int e = equ.toDouble(&ok);
+            if (!ok) {return false;}
+            rad += (", B" + QString(std::to_string(e).c_str()));
+        } else if (rad.contains("FK5", Qt::CaseInsensitive)) {
+            bool ok = false;
+            int e = equ.toDouble(&ok);
+            if (!ok) {return false;}
+            rad += (", J" + QString(std::to_string(e).c_str()));
+        }
     }
 
     // insert (label, value) to info entry
-    infoMap["Celestial frame"] = rad + ", " + equ;
+    infoMap["Celestial frame"] = rad;
 
     return true;
 }
@@ -770,7 +774,13 @@ bool DataLoader::_genRemainInfo(std::map<QString, QString>& infoMap,
         qDebug() << "VELREF not found.";
         return false;
     }
-    infoMap["Velocity definition"] = found->second;
+    if ((found->second).contains("Radio", Qt::CaseInsensitive)) {
+        infoMap["Velocity definition"] = "Radio";
+    } else if ((found->second).contains("Optical", Qt::CaseInsensitive)) {
+        infoMap["Velocity definition"] = "Optical";
+    } else {
+        infoMap["Velocity definition"] = found->second;
+    }
 
     return true;
 }
@@ -944,9 +954,11 @@ bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std:
         "Velocity Range",
         "Celestial frame",
         "Coordinate type",
+        "Projection",
         "Spectral frame",
         "Velocity definition",
         "Restoring Beam",
+        "Median Restoring Beam",
         "Beam Area",
         "Pixel unit",
         "Pixel size"
@@ -954,7 +966,9 @@ bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std:
 
     for (auto iter = keys.begin(); iter != keys.end(); iter++) {
         auto found = infoMap.find(*iter);
-        if (found != infoMap.end()) { // found key
+
+        // omit empty field
+        if (found != infoMap.end() && "" != found->second) {
             pairs.push_back({found->first, found->second});
         }
     }
@@ -962,34 +976,71 @@ bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std:
     return true;
 }
 
-// Unit conversion: convert degree to arcsec
-bool DataLoader::_deg2arcsec(const QString degree, QString& arcsec) {
-    // convert degree to double
-    bool ok = false;
-    double deg = degree.toDouble(&ok);
+// Unit conversion: returns "value + unit"
+QString DataLoader::_unitConversion(const QString value, const QString unit){
+    QString result = "";
 
-    if(!ok) {
-        qDebug() << "Convert degree to double error.";
-        return false;
+    // convert value to double
+    bool ok = false;
+    double num = 0;
+    num = value.toDouble(&ok);
+    if (!ok) {
+        qDebug() << "Convert string " << value << " to double error.";
+        result = value + " " + unit;
+        return result;
     }
 
+    // check unit: degree, Hz, arcsec, etc...
+    if (unit.contains("deg", Qt::CaseInsensitive)) {
+        result = _deg2arcsec(num);
+    } else if (unit.contains("Hz", Qt::CaseInsensitive)) {
+        result = _convertHz(num);
+    } else if (unit.contains("arcsec", Qt::CaseInsensitive)) {
+        char buf[512];
+        snprintf(buf, sizeof(buf), "%.3f\"", num);
+        result = QString(buf);
+    } else { // unknown
+        char buf[512];
+        snprintf(buf, sizeof(buf), "%.3f", num);
+        result = QString(buf) + " " + unit;
+    }
+
+    return result;
+}
+
+// Unit conversion: convert degree to arcsec
+QString DataLoader::_deg2arcsec(const double degree) {
     // 1 degree = 60 arcmin = 60*60 arcsec
-    double arcs = deg * 3600;
+    double arcs = fabs(degree * 3600);
 
     // customized format of arcsec
     char buf[512];
     if (arcs >= 60.0){ // arcs >= 60, convert to arcmin
-        snprintf(buf, sizeof(buf), "%.2f\'", arcs/60);
+        snprintf(buf, sizeof(buf), "%.2f\'", degree < 0 ? -1*arcs/60 : arcs/60);
     } else if (arcs < 60.0 && arcs > 0.1) { // 0.1 < arcs < 60
-        snprintf(buf, sizeof(buf), "%.2f\"", arcs);
+        snprintf(buf, sizeof(buf), "%.2f\"", degree < 0 ? -1*arcs : arcs);
     } else if (arcs <= 0.1 && arcs > 0.01) { // 0.01 < arcs <= 0.1
-        snprintf(buf, sizeof(buf), "%.3f\"", arcs);
+        snprintf(buf, sizeof(buf), "%.3f\"", degree < 0 ? -1*arcs : arcs);
     } else { // arcs <= 0.01
-        snprintf(buf, sizeof(buf), "%.4f\"", arcs);
+        snprintf(buf, sizeof(buf), "%.4f\"", degree < 0 ? -1*arcs : arcs);
     }
 
-    arcsec = QString(buf);
-    return true;
+    return QString(buf);
+}
+
+// Unit conversion: convert Hz to MHz or GHz
+QString DataLoader::_convertHz(const double hz) {
+    char buf[512];
+
+    if (hz >= 1.0e9) {
+        snprintf(buf, sizeof(buf), "%.4f GHz", hz/1.0e9);
+    } else if (hz < 1.0e9 && hz >= 1.0e6) {
+        snprintf(buf, sizeof(buf), "%.4f MHz", hz/1.0e6);
+    } else {
+        snprintf(buf, sizeof(buf), "%.4f Hz", hz);
+    }
+
+    return QString(buf);
 }
 
 DataLoader::~DataLoader(){

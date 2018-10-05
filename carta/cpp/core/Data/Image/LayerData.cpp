@@ -53,31 +53,31 @@ LayerData::LayerData(const QString& path, const QString& id) :
     m_drawSync( nullptr ),
     m_stateColor( nullptr ){
 
-        m_renderQueued = false;
+//        m_renderQueued = false;
 
-        _initializeState();
+//        _initializeState();
 
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        ColorState* colorObj = objMan->createObject<ColorState>();
-        m_stateColor.reset( colorObj );
-        connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
+//        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+//        ColorState* colorObj = objMan->createObject<ColorState>();
+//        m_stateColor.reset( colorObj );
+//        connect( m_stateColor.get(), SIGNAL( colorStateChanged()), this, SLOT(_colorChanged()));
 
 
-        DataGrid* gridObj = objMan->createObject<DataGrid>();
-        m_dataGrid.reset( gridObj );
-        m_dataGrid->_initializeGridRenderer();
-        _colorChanged();
+//        DataGrid* gridObj = objMan->createObject<DataGrid>();
+//        m_dataGrid.reset( gridObj );
+//        m_dataGrid->_initializeGridRenderer();
+//        _colorChanged();
 
-        std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
-        std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
+//        std::shared_ptr<Carta::Lib::IWcsGridRenderService> gridService = m_dataGrid->_getRenderer();
+//        std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = m_dataSource->_getRenderer();
 
         // create the synchronizer
-        m_drawSync.reset( new DrawSynchronizer( imageService, gridService, this ) );
+//        m_drawSync.reset( new DrawSynchronizer( imageService, gridService, this ) );
 
 
         // connect its done() slot to our renderingSlot()
-        connect( m_drawSync.get(), & DrawSynchronizer::done,
-                         this, & LayerData::_renderingDone );
+//        connect( m_drawSync.get(), & DrawSynchronizer::done,
+//                         this, & LayerData::_renderingDone );
 
 }
 
@@ -401,21 +401,37 @@ int LayerData::_getSpectralIndicator() const {
     return result;
 }
 
-PBMSharedPtr LayerData::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
-    int numberOfBins, int stokeFrame,
+PBMSharedPtr LayerData::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+    int numberOfBins,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
     PBMSharedPtr results;
     if ( m_dataSource ){
-        results = m_dataSource->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+        results = m_dataSource->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, stokeFrame, numberOfBins, converter);
     }
     return results;
 }
 
-PBMSharedPtr LayerData::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
-    int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const {
+PBMSharedPtr LayerData::_getXYProfiles(int fileId, int x, int y,
+    int frameLow, int frameHigh, int stokeFrame,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
+    PBMSharedPtr results;
+    if ( m_dataSource ){
+        results = m_dataSource->_getXYProfiles(fileId, x, y, frameLow, frameHigh, stokeFrame, converter);
+    }
+    return results;
+}
+
+PBMSharedPtr LayerData::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
+    int frameLow, int frameHigh, int stokeFrame,
+    bool isZFP, int precision, int numSubsets,
+    bool &changeFrame, int regionId, int numberOfBins,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
     PBMSharedPtr results;
     if (m_dataSource) {
-        results = m_dataSource->_getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
+        results = m_dataSource->_getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip,
+                                                    frameLow, frameHigh, stokeFrame,
+                                                    isZFP, precision, numSubsets,
+                                                    changeFrame, regionId, numberOfBins, converter);
     }
     return results;
 }

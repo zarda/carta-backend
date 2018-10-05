@@ -15,6 +15,15 @@
 
 #include "CartaLib/Proto/region_histogram.pb.h"
 #include "CartaLib/Proto/raster_image.pb.h"
+#include "CartaLib/Proto/spatial_profile.pb.h"
+
+//#include "CartaLib/Regions/IRegion.h"
+//#include "CartaLib/Regions/Ellipse.h"
+//#include "CartaLib/Regions/Point.h"
+//#include "CartaLib/Regions/Rectangle.h"
+
+#include "CartaLib/ProfileInfo.h"
+#include "CartaLib/Hooks/ProfileHook.h"
 
 typedef Carta::Lib::RegionHistogramData RegionHistogramData;
 typedef std::shared_ptr<google::protobuf::MessageLite> PBMSharedPtr;
@@ -249,7 +258,7 @@ private:
      */
     std::vector<double> _getIntensity( int frameLow, int frameHigh,
             const std::vector<double>& percentiles, int stokeFrame,
-            Carta::Lib::IntensityUnitConverter::SharedPtr converter);
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
 
     /**
      * Returns the histogram of pixels.
@@ -260,9 +269,13 @@ private:
      * @param converter - used to convert the pixel values for different unit.
      * @return - a struct RegionHistogramData.
      */
-    PBMSharedPtr _getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
-            int numberOfBins, int stokeFrame,
-            Carta::Lib::IntensityUnitConverter::SharedPtr converter);
+    PBMSharedPtr _getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+            int numberOfBins,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
+
+    RegionHistogramData _getPixels2HistogramData(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+            int numberOfBins,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
 
     int _getStokeIndicator();
     int _getSpectralIndicator();
@@ -280,13 +293,35 @@ private:
      * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
      * @return - vector of pixels.
      */
-    PBMSharedPtr _getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
-            int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const;
+    PBMSharedPtr _getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
+        int frameLow, int frameHigh, int stokeFrame,
+        bool isZFP, int precision, int numSubsets,
+        bool &changeFrame, int regionId, int numberOfBins,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
 
     int _compress(std::vector<float>& array, size_t offset, std::vector<char>& compressionBuffer,
             size_t& compressedSize, uint32_t nx, uint32_t ny, uint32_t precision) const;
 
     std::vector<int32_t> _getNanEncodingsBlock(std::vector<float>& array, int offset, int w, int h) const;
+
+    /**
+     * Returns a spatial profile data
+     * @param x - x coordinate of cursor
+     * @param y - y coordinate of cursor
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
+     * @return - vectors of x profile/y profile.
+     */
+    PBMSharedPtr _getXYProfiles(int fileId, int x, int y,
+        int frameLow, int frameHigh, int stokeFrame,
+        Carta::Lib::IntensityUnitConverter::SharedPtr converter) const;
+
+    void _getXYProfiles(Carta::Lib::NdArray::Double doubleView, const int imgWidth, const int imgHeight,
+    const int x, const int y, std::vector<float> & xProfile, std::vector<float> & yProfile) const;
+
+    bool _addProfile(std::shared_ptr<CARTA::SpatialProfileData> spatialProfileData,
+        const std::vector<float> & profile, const std::string coordinate) const;
 
     /**
      * Returns the color used to draw nan pixels.
@@ -559,6 +594,9 @@ private:
     void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames );
 
+    // calculate spectral profile (z-profile)
+    void _getSpectralProfile();
+
     /**
      *  Constructor.
      */
@@ -573,6 +611,15 @@ private:
     //Pointer to image interface.
     std::shared_ptr<Carta::Lib::Image::ImageInterface> m_image;
     std::shared_ptr<Carta::Lib::Image::ImageInterface> m_permuteImage;
+
+    // region
+    //std::shared_ptr<Carta::Lib::Regions::RegionBase> m_region;
+
+    // profile info
+    Carta::Lib::ProfileInfo m_profileInfo;
+
+    // profile calculation result
+    Carta::Lib::Hooks::ProfileResult m_profileResult;
 
     /// coordinate formatter
     std::shared_ptr<CoordinateFormatterInterface> m_coordinateFormatter;
@@ -598,6 +645,8 @@ private:
     const static int INDEX_FRAME_LOW;
     const static int INDEX_FRAME_HIGH;
     const static bool APPROXIMATION_GET_LOCATION;
+    const static bool IS_MULTITHREAD_ZFP;
+    const static int MAX_SUBSETS;
 
     DataSource(const DataSource& other);
     DataSource& operator=(const DataSource& other);

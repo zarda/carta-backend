@@ -73,26 +73,26 @@ Controller::Controller( const QString& path, const QString& id ) :
         		CartaObject( CLASS_NAME, path, id),
 				m_stateMouse(UtilState::getLookup(path, Util::VIEW)){
 
-	_initializeState();
+//	_initializeState();
 
 	Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
 
 	//Stack
-	Stack* layerGroupRoot = objMan->createObject<Stack>();
-	QString viewName = Carta::State::UtilState::getLookup( path, Util::VIEW);
-	layerGroupRoot->_setViewName( viewName );
-	m_stack.reset( layerGroupRoot );
-	connect( m_stack.get(), SIGNAL( frameChanged(Carta::Lib::AxisInfo::KnownType)),
-			this, SLOT(_notifyFrameChange( Carta::Lib::AxisInfo::KnownType)));
-	connect( m_stack.get(), SIGNAL( viewLoad()), this, SLOT(_loadViewQueued()));
+    Stack* layerGroupRoot = objMan->createObject<Stack>();
+//	QString viewName = Carta::State::UtilState::getLookup( path, Util::VIEW);
+//	layerGroupRoot->_setViewName( viewName );
+    m_stack.reset( layerGroupRoot ); // necessary !!
+//	connect( m_stack.get(), SIGNAL( frameChanged(Carta::Lib::AxisInfo::KnownType)),
+//			this, SLOT(_notifyFrameChange( Carta::Lib::AxisInfo::KnownType)));
+//	connect( m_stack.get(), SIGNAL( viewLoad()), this, SLOT(_loadViewQueued()));
 	connect( m_stack.get(), SIGNAL(contourSetAdded(Layer*,const QString&)),
 			this, SLOT(_contourSetAdded(Layer*, const QString&)));
 	connect( m_stack.get(), SIGNAL(contourSetRemoved(const QString&)),
 			this, SLOT(_contourSetRemoved(const QString&)));
-    connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT(_emitColorChanged()));
-	connect( m_stack.get(), SIGNAL(saveImageResult( bool)), this, SIGNAL(saveImageResult(bool)));
-	connect( m_stack.get(), SIGNAL(inputEvent(  InputEvent)), this,
-			SLOT( _onInputEvent( InputEvent )));
+//    connect( m_stack.get(), SIGNAL(colorStateChanged()), this, SLOT(_emitColorChanged()));
+//	connect( m_stack.get(), SIGNAL(saveImageResult( bool)), this, SIGNAL(saveImageResult(bool)));
+//	connect( m_stack.get(), SIGNAL(inputEvent(  InputEvent)), this,
+//			SLOT( _onInputEvent( InputEvent )));
 
 	// GridControls* gridObj = objMan->createObject<GridControls>();
 	// m_gridControls.reset( gridObj );
@@ -107,10 +107,10 @@ Controller::Controller( const QString& path, const QString& id ) :
 	connect( m_contourControls.get(), SIGNAL(drawContoursChanged()),
 			this, SLOT(_loadViewQueued()));
 
-	Settings* settingsObj = objMan->createObject<Settings>();
-	m_settings.reset( settingsObj );
+//	Settings* settingsObj = objMan->createObject<Settings>();
+//	m_settings.reset( settingsObj );
 
-	_initializeCallbacks();
+//	_initializeCallbacks();
 
 	RegionControls* regionObj = objMan->createObject<RegionControls>();
 	connect( regionObj, SIGNAL(regionsChanged()), this, SLOT(_regionsChanged()));
@@ -298,13 +298,13 @@ std::shared_ptr<DataSource> Controller::getDataSource() const {
     return m_stack->_getDataSource();
 }
 
-QPointF Controller::getImagePt( bool* valid ) const {
-    int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X);
-    int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y);
-    QPointF mousePt( mouseX, mouseY );
-    QSize outputSize = getOutputSize();
-    return m_stack->_getImagePt( mousePt,  outputSize, valid  );
-}
+//QPointF Controller::getImagePt( bool* valid ) const {
+//    int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X);
+//    int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y);
+//    QPointF mousePt( mouseX, mouseY );
+//    QSize outputSize = getOutputSize();
+//    return m_stack->_getImagePt( mousePt,  outputSize, valid  );
+//}
 
 
 std::vector< std::shared_ptr<Layer> > Controller::getLayers() {
@@ -397,26 +397,39 @@ int Controller::getSpectralIndicator() const {
     return result;
 }
 
-PBMSharedPtr Controller::getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
-    PBMSharedPtr result = m_stack->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+PBMSharedPtr Controller::getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame, int numberOfBins, Lib::IntensityUnitConverter::SharedPtr converter) const {
+    PBMSharedPtr result = m_stack->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, stokeFrame, numberOfBins, converter);
     return result;
 }
 
-PBMSharedPtr Controller::getRasterImageData(int fileId, int x_min, int x_max, int y_min, int y_max,
-    int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const {
-    PBMSharedPtr result = m_stack->_getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
+PBMSharedPtr Controller::getXYProfiles(int fileId, int x, int y,
+            int frameLow, int frameHigh, int stokeFrame,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
+    PBMSharedPtr result = m_stack->_getXYProfiles(fileId, x, y, frameLow, frameHigh, stokeFrame, converter);
     return result;
 }
 
-QRectF Controller::_getInputRectangle(  ) const {
-    return m_stack->_getInputRectangle( );
-}
-
-
-QSize Controller::getOutputSize( ) const {
-    QSize result = m_stack->_getOutputSize();
+PBMSharedPtr Controller::getRasterImageData(int fileId, int x_min, int x_max, int y_min, int y_max, int mip,
+    int frameLow, int frameHigh, int stokeFrame,
+    bool isZFP, int precision, int numSubsets,
+    bool &changeFrame, int regionId, int numberOfBins,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
+    PBMSharedPtr result = m_stack->_getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip,
+                                                       frameLow, frameHigh, stokeFrame,
+                                                       isZFP, precision, numSubsets,
+                                                       changeFrame, regionId, numberOfBins, converter);
     return result;
 }
+
+//QRectF Controller::_getInputRectangle(  ) const {
+//    return m_stack->_getInputRectangle( );
+//}
+
+
+//QSize Controller::getOutputSize( ) const {
+//    QSize result = m_stack->_getOutputSize();
+//    return result;
+//}
 
 
 std::vector<double> Controller::getPercentiles( int frameLow, int frameHigh, std::vector<double> intensities, Carta::Lib::IntensityUnitConverter::SharedPtr converter ) const {
@@ -538,857 +551,857 @@ double Controller::getZoomLevel( ) const {
 //     _setSkyCSName();
 // }
 
-void Controller::_onInputEvent( InputEvent  ev ){
+//void Controller::_onInputEvent( InputEvent  ev ){
 
-	Carta::Lib::InputEvents::HoverEvent hover( ev );
-	if ( hover.isValid() ){
-		QPointF target = hover.pos();
-		int mouseX = target.x();
-		int mouseY = target.y();
-		_updateCursor( mouseX, mouseY );
+//	Carta::Lib::InputEvents::HoverEvent hover( ev );
+//	if ( hover.isValid() ){
+//		QPointF target = hover.pos();
+//		int mouseX = target.x();
+//		int mouseY = target.y();
+//		_updateCursor( mouseX, mouseY );
 
-	}
+//	}
 
-	Carta::Lib::InputEvents::PointerEvent pointer( ev );
-	if ( pointer.isValid() ){
-		bool valid = false;
-		QSize outputSize = getOutputSize();
-		QPointF pointPt = pointer.pos();
-		QPointF imagePixelPt = m_stack->_getImagePt( pointPt,  outputSize, &valid  );
-		if ( valid ){
-			//Only handle region events that are inside the image itself.
-			Carta::Lib::AxisInfo::KnownType xType = m_stack->_getAxisXType();
-			Carta::Lib::AxisInfo::KnownType yType = m_stack->_getAxisYType();
-			int frameCountX = m_stack->_getFrameCount( xType );
-			int frameCountY = m_stack->_getFrameCount( yType );
-
-
-			if ( 0 <= imagePixelPt.x() && imagePixelPt.x() <= frameCountX ){
-				if ( 0 <= imagePixelPt.y() && imagePixelPt.y() <= frameCountY ){
-					m_regionControls->_onInputEvent( ev, imagePixelPt );
-				}
-			}
-		}
-	}
-
-	//Note:  we set the event consumed if we are editing a region to prevent
-	//a subsequent pan operation.
-	if ( ! ev.isConsumed() ){
-		Carta::Lib::InputEvents::DoubleTapEvent doubleTap( ev );
-		if ( doubleTap.isValid() ){
-			QPointF target = doubleTap.pos();
-			int mouseX = target.x();
-			int mouseY = target.y();
-			updatePan( mouseX, mouseY );
-		}
-	}
-}
-
-void Controller::_initializeCallbacks(){
-
-    // addCommandCallback( "testProtoBuf", [=] (const QString & /*cmd*/,
-    //         const QString & params, const QString & /*sessionId*/) -> QString {
-    //     QString result;
-    //     std::string data;
-    //     lm::helloworld msg1;
-    //     msg1.set_id(101);
-    //     msg1.set_str("hello");
-    //     msg1.SerializeToString(&data);
-    //     result = QString::fromStdString(data);
-    //     return result;
-    // });
-    //addMessageCallback( "testProtoBuf", [=] (const QString & /*cmd*/,
-    //        const QString & params, const QString & /*sessionId*/) -> PBMSharedPtr {
-    //    std::shared_ptr<lm::helloworld> msg1(new lm::helloworld());
-    //    msg1->set_id(101);
-    //    msg1->set_str("hello");
-    //    return static_cast<PBMSharedPtr>(msg1);
-    //});
-
-    // addMessageCallback( "OPEN_FILE", [=] (const QString & /*cmd*/,
-    //         const QString & params, const QString & /*sessionId*/) -> PBMSharedPtr {
-
-    //     CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
-    //     fileInfo->set_name("test");
-    //     fileInfo->set_type()
-
-    //     std::shared_ptr<CARTA::OpenFileAck> ack(new CARAT::OpenFileAck());
-    //     ack->set_success(true);
-    //     ack->set_allocated_file_info(fileInfo);
-    // });
-
-    addCommandCallback( "hideImage", [=] (const QString & /*cmd*/,
-                        const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {Util::ID};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString idStr = dataValues[*keys.begin()];
-        QString result = setImageVisibility( /*imageIndex*/idStr, false );
-        Util::commandPostProcess( result );
-        return result;
-    });
-
-    addCommandCallback( "moveLayers", [=] (const QString & /*cmd*/,
-                                    const QString & params, const QString & /*sessionId*/) -> QString {
-                std::set<QString> keys = {"moveDown"};
-                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-                QString moveDownStr = dataValues[*keys.begin()];
-                bool validBool = false;
-                bool moveDown = Util::toBool( moveDownStr, &validBool );
-                QString result;
-                if ( validBool ){
-                    result = moveSelectedLayers( moveDown );
-                }
-                else {
-                    result = "Whether to move up or down selected layers must be true/false: "+params;
-                }
-                Util::commandPostProcess( result );
-                return result;
-            });
-
-    addCommandCallback( "setGroup", [=] (const QString & /*cmd*/,
-                                const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = {Layer::GROUP};
-            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-            QString groupSelects = dataValues[*keys.begin()];
-            bool validBool = false;
-            bool group = Util::toBool( groupSelects, &validBool );
-            QString result;
-            if ( validBool ){
-                result = setSelectedLayersGrouped( group );
-            }
-            else {
-                result = "Grouping layers must be true/false: "+params;
-            }
-            Util::commandPostProcess( result );
-            return result;
-        });
-
-    addCommandCallback( "showImage", [=] (const QString & /*cmd*/,
-                            const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {Util::ID};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString idStr = dataValues[*keys.begin()];
-        QString result = setImageVisibility( idStr, true );
-        Util::commandPostProcess( result );
-        return result;
-    });
+//	Carta::Lib::InputEvents::PointerEvent pointer( ev );
+//	if ( pointer.isValid() ){
+//		bool valid = false;
+//		QSize outputSize = getOutputSize();
+//		QPointF pointPt = pointer.pos();
+//		QPointF imagePixelPt = m_stack->_getImagePt( pointPt,  outputSize, &valid  );
+//		if ( valid ){
+//			//Only handle region events that are inside the image itself.
+//			Carta::Lib::AxisInfo::KnownType xType = m_stack->_getAxisXType();
+//			Carta::Lib::AxisInfo::KnownType yType = m_stack->_getAxisYType();
+//			int frameCountX = m_stack->_getFrameCount( xType );
+//			int frameCountY = m_stack->_getFrameCount( yType );
 
 
+//			if ( 0 <= imagePixelPt.x() && imagePixelPt.x() <= frameCountX ){
+//				if ( 0 <= imagePixelPt.y() && imagePixelPt.y() <= frameCountY ){
+//					m_regionControls->_onInputEvent( ev, imagePixelPt );
+//				}
+//			}
+//		}
+//	}
 
-    //Listen for updates to the clip and reload the frame.
-    addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
-                const QString & params, const QString & /*sessionId*/) -> QString {
-        QString result;
-        std::set<QString> keys = {"clipValue"};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        bool validClip = false;
-        QString clipKey = *keys.begin();
-        QString clipWithoutPercent = dataValues[clipKey].remove("%");
-        double clipVal = dataValues[clipKey].toDouble(&validClip);
-        if ( validClip ){
-            result = setClipValue( clipVal );
-        }
-        else {
-            result = "Invalid clip value: "+params;
-        }
-        Util::commandPostProcess( result );
-        return result;
-    });
+//	//Note:  we set the event consumed if we are editing a region to prevent
+//	//a subsequent pan operation.
+//	if ( ! ev.isConsumed() ){
+//		Carta::Lib::InputEvents::DoubleTapEvent doubleTap( ev );
+//		if ( doubleTap.isValid() ){
+//			QPointF target = doubleTap.pos();
+//			int mouseX = target.x();
+//			int mouseY = target.y();
+//			updatePan( mouseX, mouseY );
+//		}
+//	}
+//}
 
-    addCommandCallback( "setAutoClip", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {"autoClip"};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString clipKey = *keys.begin();
-        bool validBool = false;
-        bool autoClip = Util::toBool( dataValues[clipKey], &validBool );
-        QString result;
-        if ( validBool ){
-            setAutoClip( autoClip );
-        }
-        else {
-            result = "Auto clip must be true/false: "+params;
-        }
-        Util::commandPostProcess( result );
-        return result;
-    });
+//void Controller::_initializeCallbacks(){
 
-    addCommandCallback( "setPanZoomAll", [=] (const QString & /*cmd*/,
-                        const QString & params, const QString & /*sessionId*/) -> QString {
-            std::set<QString> keys = {"panZoomAll"};
-            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-            QString panZoomKey = *keys.begin();
-            bool validBool = false;
-            bool panZoomAll = Util::toBool( dataValues[panZoomKey], &validBool );
-            QString result;
-            if ( validBool ){
-                setPanZoomAll( panZoomAll );
-            }
-            else {
-                result = "Pan/Zoom All must be true/false: "+params;
-            }
-            Util::commandPostProcess( result );
-            return result;
-        });
+//    // addCommandCallback( "testProtoBuf", [=] (const QString & /*cmd*/,
+//    //         const QString & params, const QString & /*sessionId*/) -> QString {
+//    //     QString result;
+//    //     std::string data;
+//    //     lm::helloworld msg1;
+//    //     msg1.set_id(101);
+//    //     msg1.set_str("hello");
+//    //     msg1.SerializeToString(&data);
+//    //     result = QString::fromStdString(data);
+//    //     return result;
+//    // });
+//    //addMessageCallback( "testProtoBuf", [=] (const QString & /*cmd*/,
+//    //        const QString & params, const QString & /*sessionId*/) -> PBMSharedPtr {
+//    //    std::shared_ptr<lm::helloworld> msg1(new lm::helloworld());
+//    //    msg1->set_id(101);
+//    //    msg1->set_str("hello");
+//    //    return static_cast<PBMSharedPtr>(msg1);
+//    //});
 
-    /*QString pointerPath= UtilState::getLookup( getPath(), UtilState::getLookup( Util::VIEW, Util::POINTER_MOVE));
-    addStateCallback( pointerPath, [=] ( const QString& path, const QString& value ) {
-        QStringList mouseList = value.split( " ");
-        if ( mouseList.size() == 2 ){
-            bool validX = false;
-            int mouseX = mouseList[0].toInt( &validX );
-            bool validY = false;
-            int mouseY = mouseList[1].toInt( &validY );
-            if ( validX && validY ){
-                _updateCursor( mouseX, mouseY );
-                emit zoomChanged();
-            }
-        }
-    });*/
+//    // addMessageCallback( "OPEN_FILE", [=] (const QString & /*cmd*/,
+//    //         const QString & params, const QString & /*sessionId*/) -> PBMSharedPtr {
 
-    addCommandCallback( "inputEvent", [=] (const QString & /*cmd*/,
-    		const QString & params, const QString & /*sessionId*/) ->QString {
+//    //     CARTA::FileInfo* fileInfo = new CARTA::FileInfo();
+//    //     fileInfo->set_name("test");
+//    //     fileInfo->set_type()
 
-    	QJsonDocument doc = QJsonDocument::fromJson( params.toLatin1() );
-    	if ( doc.isObject() ) {
-    		InputEvent ev( doc.object() );
-    		_onInputEvent( ev );
-    	}
-    	else {
-    		qDebug() << "Input event doc not an object";
-    	}
-        return m_stateMouse.toString();
-    	// return "";
-    });
+//    //     std::shared_ptr<CARTA::OpenFileAck> ack(new CARAT::OpenFileAck());
+//    //     ack->set_success(true);
+//    //     ack->set_allocated_file_info(fileInfo);
+//    // });
 
-    addCommandCallback( CLOSE_IMAGE, [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) ->QString {
-        std::set<QString> keys = {IMAGE};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString imageId = dataValues[*keys.begin()];
-        QString result = closeImage( imageId );
-                return result;
-    });
+//    addCommandCallback( "hideImage", [=] (const QString & /*cmd*/,
+//                        const QString & params, const QString & /*sessionId*/) -> QString {
+//        std::set<QString> keys = {Util::ID};
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        QString idStr = dataValues[*keys.begin()];
+//        QString result = setImageVisibility( /*imageIndex*/idStr, false );
+//        Util::commandPostProcess( result );
+//        return result;
+//    });
+
+//    addCommandCallback( "moveLayers", [=] (const QString & /*cmd*/,
+//                                    const QString & params, const QString & /*sessionId*/) -> QString {
+//                std::set<QString> keys = {"moveDown"};
+//                std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//                QString moveDownStr = dataValues[*keys.begin()];
+//                bool validBool = false;
+//                bool moveDown = Util::toBool( moveDownStr, &validBool );
+//                QString result;
+//                if ( validBool ){
+//                    result = moveSelectedLayers( moveDown );
+//                }
+//                else {
+//                    result = "Whether to move up or down selected layers must be true/false: "+params;
+//                }
+//                Util::commandPostProcess( result );
+//                return result;
+//            });
+
+//    addCommandCallback( "setGroup", [=] (const QString & /*cmd*/,
+//                                const QString & params, const QString & /*sessionId*/) -> QString {
+//            std::set<QString> keys = {Layer::GROUP};
+//            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//            QString groupSelects = dataValues[*keys.begin()];
+//            bool validBool = false;
+//            bool group = Util::toBool( groupSelects, &validBool );
+//            QString result;
+//            if ( validBool ){
+//                result = setSelectedLayersGrouped( group );
+//            }
+//            else {
+//                result = "Grouping layers must be true/false: "+params;
+//            }
+//            Util::commandPostProcess( result );
+//            return result;
+//        });
+
+//    addCommandCallback( "showImage", [=] (const QString & /*cmd*/,
+//                            const QString & params, const QString & /*sessionId*/) -> QString {
+//        std::set<QString> keys = {Util::ID};
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        QString idStr = dataValues[*keys.begin()];
+//        QString result = setImageVisibility( idStr, true );
+//        Util::commandPostProcess( result );
+//        return result;
+//    });
 
 
-    addCommandCallback( Util::ZOOM, [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) ->QString {
-        bool error = false;
-        auto vals = Util::string2VectorDouble( params, &error );
-        if ( vals.size() > 2 ) {
-            double centerX = vals[0];
-            double centerY = vals[1];
-            double z = vals[2];
-            updatePanZoom( centerX, centerY, z );
-        }
-        return "";
-    });
 
-    addCommandCallback( "regionZoom", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) ->QString {
-        std::vector<std::shared_ptr<Region>> regions = m_regionControls->getRegions();
-        std::shared_ptr<DataSource> dataSource = this->getDataSource();
-        std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = dataSource->_getRenderer();
-        QJsonArray array;
-        for(int i = 0; i < regions.size(); i++) {
-            QJsonObject json = regions[i]->toJSON();
-            qreal x = json.value("x").toDouble();
-            qreal y = json.value("y").toDouble();
-            qreal width = json.value("width").toDouble();
-            qreal height = json.value("height").toDouble();
-            QPointF pt;
-            pt.setX(x - (width / 2));
-            pt.setY(y + (height / 2));
-            QPointF topLeft = imageService->img2screen(pt);
-            pt.setX(x + (width / 2));
-            QPointF topRight = imageService->img2screen(pt);
-            int w = static_cast<int>(topRight.x() - topLeft.x() + 0.5);
-            pt.setX(x - (width / 2));
-            pt.setY(y - (height / 2));
-            QPointF bottomLeft = imageService->img2screen(pt);
-            int h = static_cast<int>(bottomLeft.y() - topLeft.y() + 0.5);
-            QString str = "";
-            QJsonObject screenJson;
-            screenJson.insert("x", static_cast<int>(topLeft.x() + 0.5));
-            screenJson.insert("y", static_cast<int>(topLeft.y() + 0.5));
-            screenJson.insert("width", w);
-            screenJson.insert("height", h);
-            array.insert(i, QJsonValue(screenJson));
-        }
-        QString value = "";
-        QJsonDocument doc(array);
-        value = QString(doc.toJson());
-        return value;
-    });
+//    //Listen for updates to the clip and reload the frame.
+//    addCommandCallback( "setClipValue", [=] (const QString & /*cmd*/,
+//                const QString & params, const QString & /*sessionId*/) -> QString {
+//        QString result;
+//        std::set<QString> keys = {"clipValue"};
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        bool validClip = false;
+//        QString clipKey = *keys.begin();
+//        QString clipWithoutPercent = dataValues[clipKey].remove("%");
+//        double clipVal = dataValues[clipKey].toDouble(&validClip);
+//        if ( validClip ){
+//            result = setClipValue( clipVal );
+//        }
+//        else {
+//            result = "Invalid clip value: "+params;
+//        }
+//        Util::commandPostProcess( result );
+//        return result;
+//    });
 
-    addCommandCallback( "getDataGridState", [=] (const QString & /*cmd*/,
-            const QString & /*params*/, const QString & /*sessionId*/) ->QString {
-        Carta::State::StateInterface dataGridState = m_stack->_getDataGridState();
-        QString result = dataGridState.toString();
-        return result;
-    });
+//    addCommandCallback( "setAutoClip", [=] (const QString & /*cmd*/,
+//                    const QString & params, const QString & /*sessionId*/) -> QString {
+//        std::set<QString> keys = {"autoClip"};
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        QString clipKey = *keys.begin();
+//        bool validBool = false;
+//        bool autoClip = Util::toBool( dataValues[clipKey], &validBool );
+//        QString result;
+//        if ( validBool ){
+//            setAutoClip( autoClip );
+//        }
+//        else {
+//            result = "Auto clip must be true/false: "+params;
+//        }
+//        Util::commandPostProcess( result );
+//        return result;
+//    });
 
-    addCommandCallback( "newzoom", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) ->QString {
-        bool error = false;
-        auto vals = Util::string2VectorDouble( params, &error );
-        if ( vals.size() > 0 ) {
+//    addCommandCallback( "setPanZoomAll", [=] (const QString & /*cmd*/,
+//                        const QString & params, const QString & /*sessionId*/) -> QString {
+//            std::set<QString> keys = {"panZoomAll"};
+//            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//            QString panZoomKey = *keys.begin();
+//            bool validBool = false;
+//            bool panZoomAll = Util::toBool( dataValues[panZoomKey], &validBool );
+//            QString result;
+//            if ( validBool ){
+//                setPanZoomAll( panZoomAll );
+//            }
+//            else {
+//                result = "Pan/Zoom All must be true/false: "+params;
+//            }
+//            Util::commandPostProcess( result );
+//            return result;
+//        });
+
+//    /*QString pointerPath= UtilState::getLookup( getPath(), UtilState::getLookup( Util::VIEW, Util::POINTER_MOVE));
+//    addStateCallback( pointerPath, [=] ( const QString& path, const QString& value ) {
+//        QStringList mouseList = value.split( " ");
+//        if ( mouseList.size() == 2 ){
+//            bool validX = false;
+//            int mouseX = mouseList[0].toInt( &validX );
+//            bool validY = false;
+//            int mouseY = mouseList[1].toInt( &validY );
+//            if ( validX && validY ){
+//                _updateCursor( mouseX, mouseY );
+//                emit zoomChanged();
+//            }
+//        }
+//    });*/
+
+//    addCommandCallback( "inputEvent", [=] (const QString & /*cmd*/,
+//    		const QString & params, const QString & /*sessionId*/) ->QString {
+
+//    	QJsonDocument doc = QJsonDocument::fromJson( params.toLatin1() );
+//    	if ( doc.isObject() ) {
+//    		InputEvent ev( doc.object() );
+//    		_onInputEvent( ev );
+//    	}
+//    	else {
+//    		qDebug() << "Input event doc not an object";
+//    	}
+//        return m_stateMouse.toString();
+//    	// return "";
+//    });
+
+//    addCommandCallback( CLOSE_IMAGE, [=] (const QString & /*cmd*/,
+//                    const QString & params, const QString & /*sessionId*/) ->QString {
+//        std::set<QString> keys = {IMAGE};
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        QString imageId = dataValues[*keys.begin()];
+//        QString result = closeImage( imageId );
+//                return result;
+//    });
+
+
+//    addCommandCallback( Util::ZOOM, [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) ->QString {
+//        bool error = false;
+//        auto vals = Util::string2VectorDouble( params, &error );
+//        if ( vals.size() > 2 ) {
 //            double centerX = vals[0];
 //            double centerY = vals[1];
-            double z = vals[0];
-
-            // updateZoom( centerX, centerY, z );
-            updateZoom(z);
-
-            // original it is used by Python Client, use for new CARTA zoom in/out temporarily
-            // setZoomLevel(z);
-        }
-        return "";
-    });
-
-    addCommandCallback( "getStackData", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) ->QString {
-
-        if ( m_stack != nullptr ){
-            QString ttt= m_stack->getStateString();
-            return m_stack->getStateString();
-        }
-
-        return "";
-    });
-
-    // unused
-    addCommandCallback( "setPanAndZoomLevel", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) ->QString {
-        bool error = false;
-        auto vals = Util::string2VectorDouble( params, &error );
-        if ( vals.size() > 2 ) {
-            double centerX = vals[0];
-            double centerY = vals[1];
-            double level = vals[2];
-            double layerId = vals[3];
-            updatePanZoomLevelJS( centerX, centerY, level, layerId );
-        }
-        return "";
-    });
-
-    addCommandCallback( "setZoomLevel", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) ->QString {
-        bool error = false;
-        auto vals = Util::string2VectorDouble( params, &error );
-        if ( vals.size() > 0 ) {
-            double z = vals[0];
-            double layerId = vals[1];
-            setZoomLevelJS(z, layerId);
-        }
-        return "";
-    });
-
-    addCommandCallback( "registerContourControls", [=] (const QString & /*cmd*/,
-                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        QString result;
-        if ( m_contourControls.get() != nullptr ){
-            result = m_contourControls->getPath();
-        }
-        return result;
-    });
-
-    addCommandCallback( "registerStack", [=] (const QString & /*cmd*/,
-                                const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-            QString result;
-            if ( m_stack.get() != nullptr ){
-                result = m_stack->getPath();
-            }
-            return result;
-        });
-
-    addCommandCallback( "registerGridControls", [=] (const QString & /*cmd*/,
-                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        QString result;
-        // if ( m_gridControls.get() != nullptr ){
-        //     result = m_gridControls->getPath();
-        // }
-        return result;
-    });
-
-    addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
-                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        QString result = _getPreferencesId();
-        return result;
-   });
-
-    addCommandCallback( "registerRegionControls", [=] (const QString & /*cmd*/,
-                               const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-           QString result = _getRegionControlsId();
-           return result;
-      });
-
-
-    addCommandCallback( "resetPan", [=] (const QString & /*cmd*/,
-                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        QString result;
-        resetPan();
-        return result;
-    });
-
-
-    addCommandCallback( "resetZoom", [=] (const QString & /*cmd*/,
-                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
-        QString result;
-        resetZoom();
-        return result;
-    });
-
-    addCommandCallback( "setLayerName", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {Util::ID,Util::NAME};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString result = setLayerName( dataValues[Util::ID], dataValues[Util::NAME] );
-        Util::commandPostProcess( result );
-        return result;
-    });
-
-
-    addCommandCallback( "setLayersSelected", [=] (const QString & /*cmd*/,
-                        const QString & params, const QString & /*sessionId*/) -> QString {
-        QString result;
-        QStringList names = params.split(";");
-        if ( names.size() == 0 ){
-            result = "Please specify the layers to select.";
-        }
-        else {
-            result = setLayersSelected( names );
-        }
-        Util::commandPostProcess( result );
-        return result;
-    });
-
-    addCommandCallback( "saveImage", [=] (const QString & /*cmd*/,
-                    const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {DATA_PATH};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString result = saveImage( dataValues[DATA_PATH]);
-        Util::commandPostProcess( result );
-        return result;
-    });
-
-    addCommandCallback( "setMaskColor", [=] (const QString & /*cmd*/,
-                                const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {Util::ID, Util::RED, Util::GREEN, Util::BLUE};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString result;
-        QString id = dataValues[Util::ID];
-        QString redStr = dataValues[Util::RED];
-        bool validRed = false;
-        int redAmount = redStr.toInt( &validRed );
-        QString greenStr = dataValues[Util::GREEN];
-        bool validGreen = false;
-        int greenAmount = greenStr.toInt( &validGreen );
-        QString blueStr = dataValues[Util::BLUE];
-        bool validBlue = false;
-        int blueAmount = blueStr.toInt( &validBlue );
-        if ( validRed && validGreen && validBlue ){
-            QStringList errorList = setMaskColor( id, redAmount, greenAmount, blueAmount );
-            result = errorList.join(";");
-        }
-        else {
-            result = "Invalid mask color(s): "+params;
-        }
-
-        Util::commandPostProcess( result );
-        return result;
-    });
-
-    addCommandCallback( "setMaskAlpha", [=] (const QString & /*cmd*/,
-                                    const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = { Util::ID, Util::ALPHA };
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString result;
-        QString idStr = dataValues[Util::ID];
-        QString alphaStr = dataValues[Util::ALPHA];
-        bool validAlpha = false;
-        int alphaAmount = alphaStr.toInt( &validAlpha );
-        if ( validAlpha ){
-            result = setMaskAlpha( idStr, alphaAmount );
-        }
-        else {
-            result = "Invalid mask opacity: "+params;
-        }
-        Util::commandPostProcess( result );
-        return result;
-    });
-
-    addCommandCallback( "setStackSelectAuto", [=] (const QString & /*cmd*/,
-                       const QString & params, const QString & /*sessionId*/) -> QString {
-       std::set<QString> keys = {STACK_SELECT_AUTO};
-       std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-       QString autoModeStr = dataValues[STACK_SELECT_AUTO];
-       bool validBool = false;
-       bool autoSelect = Util::toBool( autoModeStr, &validBool );
-       QString result;
-       if ( validBool ){
-           setStackSelectAuto( autoSelect );
-       }
-       else {
-           result = "Please specify true/false when setting whether stack selection should be automatic: "+autoModeStr;
-       }
-       Util::commandPostProcess( result );
-       return result;
-   });
-
-    addCommandCallback( "setCompositionMode", [=] (const QString & /*cmd*/,
-                            const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {Util::ID, LayerGroup::COMPOSITION_MODE};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString compMode = dataValues[LayerGroup::COMPOSITION_MODE];
-        QString idStr = dataValues[Util::ID];
-        QString result = setCompositionMode( idStr, compMode );
-        Util::commandPostProcess( result );
-        return result;
-    });
-
-    addCommandCallback( "setRegionType", [=] (const QString & /*cmd*/,
-                                       const QString & params, const QString & /*sessionId*/) -> QString {
-               std::set<QString> keys = {Util::TYPE};
-               std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-               QString shape = dataValues[Util::TYPE];
-               QString result = m_regionControls->setRegionCreateType( shape );
-               return result;
-           });
-
-    addCommandCallback( "setTabIndex", [=] (const QString & /*cmd*/,
-                const QString & params, const QString & /*sessionId*/) -> QString {
-        QString result;
-        std::set<QString> keys = {Util::TAB_INDEX};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString tabIndexStr = dataValues[Util::TAB_INDEX];
-        bool validIndex = false;
-        int tabIndex = tabIndexStr.toInt( &validIndex );
-        if ( validIndex ){
-            result = setTabIndex( tabIndex );
-        }
-        else {
-            result = "Please check that the tab index is a number: " + params;
-        }
-        Util::commandPostProcess( result );
-        return result;
-    });
-
-
-
-////////// Copy the callback functions in gridcontrol here. A note for unfinished commands.
-
-    // addCommandCallback( "setApplyAll", [=] (const QString & /*cmd*/,
-    //                const QString & params, const QString & /*sessionId*/) -> QString {
-    //            QString result;
-    //            std::set<QString> keys = {ALL};
-    //            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //            QString applyAllStr = dataValues[ALL];
-    //            bool validBool = false;
-    //            bool applyAll = Util::toBool( applyAllStr, &validBool );
-    //            if ( validBool ){
-    //                setApplyAll( applyAll  );
-    //            }
-    //            else {
-    //                result = "Whether or not to apply grid changes to all images must be true/false:"+params;
-    //            }
-    //            Util::commandPostProcess( result );
-    //            return result;
-    //        });
-    //
-    //
-    // addCommandCallback( "setAxesColor", [=] (const QString & /*cmd*/,
-    //                                 const QString & params, const QString & /*sessionId*/) -> QString {
-    //     int redAmount = 0;
-    //     int greenAmount = 0;
-    //     int blueAmount = 0;
-    //     QStringList result = _parseColorParams( params, "Axes", &redAmount, &greenAmount, &blueAmount);
-    //     if ( result.size() == 0 ){
-    //         result = setAxesColor( redAmount, greenAmount, blueAmount );
-    //     }
-    //     QString errors;
-    //     if ( result.size() > 0 ){
-    //         errors = result.join( ",");
-    //     }
-    //     Util::commandPostProcess( errors );
-    //     return errors;
-    // });
-    //
-    addCommandCallback( "setAxesThickness", [=] (const QString & /*cmd*/,
-                                    const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::AXES_WIDTH;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-
-    addCommandCallback( "setAxesTransparency", [=] (const QString & /*cmd*/,
-                                    const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::AXES_ALPHA;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-
-    addCommandCallback( "setAxisX", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) ->QString {
-
-        QString result = m_stack->_setAxis( AxisMapper::AXIS_X, params );
-        return result;
-    });
-
-    addCommandCallback( "setAxisY", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) ->QString {
-
-        QString result = m_stack->_setAxis( AxisMapper::AXIS_Y, params );
-        return result;
-    });
-
-    addCommandCallback( "setCoordinateSystem", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString result = m_stack->_setCoordinateSystem( params );
-        return result;
-    });
-
-     addCommandCallback( "setGridLabelFormat", [=] (const QString & /*cmd*/,
-                         const QString & params, const QString & /*sessionId*/) -> QString {
-        std::set<QString> keys = {DataGrid::FORMAT, DataGrid::LABEL_SIDE};
-        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-        QString format = dataValues[DataGrid::FORMAT];
-                     //Because the map expects colons and the label format has colons,
-                     //the format colons are replaced with a - before sending from the
-                     //client and the server must restore the colons.
-        format = format.replace( "-", ":");
-        QString labelSide = dataValues[DataGrid::LABEL_SIDE];
-//                     QString result = setLabelFormat( labelSide, format );
-//                     Util::commandPostProcess( result );
-        QString directionLookup = Carta::State::UtilState::getLookup( DataGrid::LABEL_FORMAT, labelSide);
-        QString directionFormatLookup = Carta::State::UtilState::getLookup( directionLookup, DataGrid::FORMAT );
-        LabelFormats *m_formats = Util::findSingletonObject<LabelFormats>();
-        QString actualFormat = m_formats->getFormat(format);
-        QString result = m_stack->_setDataGridState(directionFormatLookup, actualFormat);
-        QString oppositeSide = m_formats->getOppositeSide(labelSide);
-        QString dLookup = Carta::State::UtilState::getLookup( DataGrid::LABEL_FORMAT, oppositeSide );
-        QString dFormatLookup = Carta::State::UtilState::getLookup( dLookup, DataGrid::FORMAT );
-        result = m_stack->_setDataGridState(dFormatLookup, LabelFormats::FORMAT_NONE);
-        return result;
-    });
-
-    // addCommandCallback( "setGridColor", [=] (const QString & /*cmd*/,
-    //                                     const QString & params, const QString & /*sessionId*/) -> QString {
-    //         int redAmount = 0;
-    //         int greenAmount = 0;
-    //         int blueAmount = 0;
-    //         QStringList result = _parseColorParams( params, DataGrid::GRID, &redAmount, &greenAmount, &blueAmount);
-    //         if ( result.size() == 0 ){
-    //             result = setGridColor( redAmount, greenAmount, blueAmount );
-    //         }
-    //         QString errors;
-    //         if ( result.size() > 0 ){
-    //             errors = result.join( ",");
-    //         }
-    //         Util::commandPostProcess( errors );
-    //         return errors;
-    //     });
-    //
-    addCommandCallback( "setFontFamily", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        // TODO: the function is unfinished
-        QString stateName = DataGrid::FONT_FAMILY;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-
-    addCommandCallback( "setFontSize", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::FONT_SIZE;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-
-    addCommandCallback( "setGridThickness", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::GRID_WIDTH;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-
-    addCommandCallback( "setGridSpacing", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::SPACING;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-
-    addCommandCallback( "setGridTransparency", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::GRID_ALPHA;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-
-    addCommandCallback( "setLabelDecimals", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::LABEL_DECIMAL_PLACES;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-
-    // addCommandCallback( "setLabelColor", [=] (const QString & /*cmd*/,
-    //                             const QString & params, const QString & /*sessionId*/) -> QString {
-    //         int redAmount = 0;
-    //         int greenAmount = 0;
-    //         int blueAmount = 0;
-    //         QStringList result = _parseColorParams( params, "Label", &redAmount, &greenAmount, &blueAmount);
-    //         if ( result.size() == 0 ){
-    //             result = setLabelColor( redAmount, greenAmount, blueAmount );
-    //         }
-    //         QString errors;
-    //         if ( result.size() > 0 ){
-    //             errors = result.join( ",");
-    //         }
-    //         Util::commandPostProcess( errors );
-    //         return errors;
-    //     });
-    //
-    addCommandCallback( "setShowAxis", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::SHOW_AXIS;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-
-    addCommandCallback( "setShowCoordinateSystem", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::SHOW_COORDS;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-
-    addCommandCallback( "setShowDefaultCoordinateSystem", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::SHOW_DEFAULT_COORDS;
-        QString result = m_stack->_setDataGridState( stateName, params );
-
-        Carta::State::StateInterface stackDataGridState = m_stack->_getDataGridState();
-        bool useDefault = stackDataGridState.getValue<bool>( DataGrid::SHOW_DEFAULT_COORDS );
-        if ( useDefault ){
-            CoordinateSystems* m_coords = Util::findSingletonObject<CoordinateSystems>();
-            QString defaultName = m_coords->getDefault();
-            result = m_stack->_setCoordinateSystem( defaultName );
-        }
-        return result;
-    });
-
-    addCommandCallback( "setShowGridLines", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::SHOW_GRID_LINES;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-
-    addCommandCallback( "setShowInternalLabels", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::SHOW_INTERNAL_LABELS;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-
-    addCommandCallback( "setShowTicks", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::SHOW_TICKS;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-    //
-    // addCommandCallback( "setShowStatistics", [=] (const QString & /*cmd*/,
-    //                     const QString & params, const QString & /*sessionId*/) -> QString {
-    //                 QString result;
-    //                 std::set<QString> keys = {DataGrid::SHOW_STATISTICS};
-    //                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //                 QString showStatisticsStr = dataValues[DataGrid::SHOW_STATISTICS];
-    //                 bool validBool = false;
-    //                 bool showStatistics = Util::toBool( showStatisticsStr, &validBool );
-    //                 if ( validBool ){
-    //                     result = setShowStatistics( showStatistics  );
-    //                 }
-    //                 else {
-    //                     result = "Making statistics visible/invisible must be true/false:"+params;
-    //                 }
-    //                 Util::commandPostProcess( result );
-    //                 return result;
-    //             });
-    //
-    // addCommandCallback( "setTickColor", [=] (const QString & /*cmd*/,
-    //                                        const QString & params, const QString & /*sessionId*/) -> QString {
-    //            int redAmount = 0;
-    //            int greenAmount = 0;
-    //            int blueAmount = 0;
-    //            QStringList result = _parseColorParams( params, DataGrid::TICK, &redAmount, &greenAmount, &blueAmount);
-    //            if ( result.size() == 0 ){
-    //                result = setTickColor( redAmount, greenAmount, blueAmount );
-    //            }
-    //            QString errors;
-    //            if ( result.size() > 0 ){
-    //                errors = result.join( ",");
-    //            }
-    //            Util::commandPostProcess( errors );
-    //            return errors;
-    //        });
-    //
-    addCommandCallback( "setTickLength", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::TICK_LENGTH;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-
-    addCommandCallback( "setTickThickness", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::TICK_WIDTH;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-
-    addCommandCallback( "setTickTransparency", [=] (const QString & /*cmd*/,
-            const QString & params, const QString & /*sessionId*/) -> QString {
-
-        QString stateName = DataGrid::TICK_ALPHA;
-        QString result = m_stack->_setDataGridState( stateName, params );
-        return result;
-    });
-    //
-    // addCommandCallback( "setTheme", [=] (const QString & /*cmd*/,
-    //                         const QString & params, const QString & /*sessionId*/) -> QString {
-    //                     std::set<QString> keys = {DataGrid::THEME};
-    //                     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
-    //                     QString themeStr = dataValues[DataGrid::THEME];
-    //                     QString result = setTheme( themeStr );
-    //                     Util::commandPostProcess( result );
-    //                     return result;
-    //                 });
-    addCommandCallback( "getColormaps", [=] (const QString & /*cmd*/,
-                        const QString & params, const QString & /*sessionId*/) -> QString {
-        Colormaps* colormaps = Util::findSingletonObject<Colormaps>();
-        QString result = colormaps->getColorMaps().join(",");
-        return result;
-    });
-}
+//            double z = vals[2];
+//            updatePanZoom( centerX, centerY, z );
+//        }
+//        return "";
+//    });
+
+//    addCommandCallback( "regionZoom", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) ->QString {
+//        std::vector<std::shared_ptr<Region>> regions = m_regionControls->getRegions();
+//        std::shared_ptr<DataSource> dataSource = this->getDataSource();
+//        std::shared_ptr<Carta::Core::ImageRenderService::Service> imageService = dataSource->_getRenderer();
+//        QJsonArray array;
+//        for(int i = 0; i < regions.size(); i++) {
+//            QJsonObject json = regions[i]->toJSON();
+//            qreal x = json.value("x").toDouble();
+//            qreal y = json.value("y").toDouble();
+//            qreal width = json.value("width").toDouble();
+//            qreal height = json.value("height").toDouble();
+//            QPointF pt;
+//            pt.setX(x - (width / 2));
+//            pt.setY(y + (height / 2));
+//            QPointF topLeft = imageService->img2screen(pt);
+//            pt.setX(x + (width / 2));
+//            QPointF topRight = imageService->img2screen(pt);
+//            int w = static_cast<int>(topRight.x() - topLeft.x() + 0.5);
+//            pt.setX(x - (width / 2));
+//            pt.setY(y - (height / 2));
+//            QPointF bottomLeft = imageService->img2screen(pt);
+//            int h = static_cast<int>(bottomLeft.y() - topLeft.y() + 0.5);
+//            QString str = "";
+//            QJsonObject screenJson;
+//            screenJson.insert("x", static_cast<int>(topLeft.x() + 0.5));
+//            screenJson.insert("y", static_cast<int>(topLeft.y() + 0.5));
+//            screenJson.insert("width", w);
+//            screenJson.insert("height", h);
+//            array.insert(i, QJsonValue(screenJson));
+//        }
+//        QString value = "";
+//        QJsonDocument doc(array);
+//        value = QString(doc.toJson());
+//        return value;
+//    });
+
+//    addCommandCallback( "getDataGridState", [=] (const QString & /*cmd*/,
+//            const QString & /*params*/, const QString & /*sessionId*/) ->QString {
+//        Carta::State::StateInterface dataGridState = m_stack->_getDataGridState();
+//        QString result = dataGridState.toString();
+//        return result;
+//    });
+
+//    addCommandCallback( "newzoom", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) ->QString {
+//        bool error = false;
+//        auto vals = Util::string2VectorDouble( params, &error );
+//        if ( vals.size() > 0 ) {
+////            double centerX = vals[0];
+////            double centerY = vals[1];
+//            double z = vals[0];
+
+//            // updateZoom( centerX, centerY, z );
+//            updateZoom(z);
+
+//            // original it is used by Python Client, use for new CARTA zoom in/out temporarily
+//            // setZoomLevel(z);
+//        }
+//        return "";
+//    });
+
+//    addCommandCallback( "getStackData", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) ->QString {
+
+//        if ( m_stack != nullptr ){
+//            QString ttt= m_stack->getStateString();
+//            return m_stack->getStateString();
+//        }
+
+//        return "";
+//    });
+
+//    // unused
+//    addCommandCallback( "setPanAndZoomLevel", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) ->QString {
+//        bool error = false;
+//        auto vals = Util::string2VectorDouble( params, &error );
+//        if ( vals.size() > 2 ) {
+//            double centerX = vals[0];
+//            double centerY = vals[1];
+//            double level = vals[2];
+//            double layerId = vals[3];
+//            updatePanZoomLevelJS( centerX, centerY, level, layerId );
+//        }
+//        return "";
+//    });
+
+//    addCommandCallback( "setZoomLevel", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) ->QString {
+//        bool error = false;
+//        auto vals = Util::string2VectorDouble( params, &error );
+//        if ( vals.size() > 0 ) {
+//            double z = vals[0];
+//            double layerId = vals[1];
+//            setZoomLevelJS(z, layerId);
+//        }
+//        return "";
+//    });
+
+//    addCommandCallback( "registerContourControls", [=] (const QString & /*cmd*/,
+//                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+//        QString result;
+//        if ( m_contourControls.get() != nullptr ){
+//            result = m_contourControls->getPath();
+//        }
+//        return result;
+//    });
+
+//    addCommandCallback( "registerStack", [=] (const QString & /*cmd*/,
+//                                const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+//            QString result;
+//            if ( m_stack.get() != nullptr ){
+//                result = m_stack->getPath();
+//            }
+//            return result;
+//        });
+
+//    addCommandCallback( "registerGridControls", [=] (const QString & /*cmd*/,
+//                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+//        QString result;
+//        // if ( m_gridControls.get() != nullptr ){
+//        //     result = m_gridControls->getPath();
+//        // }
+//        return result;
+//    });
+
+//    addCommandCallback( "registerPreferences", [=] (const QString & /*cmd*/,
+//                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+//        QString result = _getPreferencesId();
+//        return result;
+//   });
+
+//    addCommandCallback( "registerRegionControls", [=] (const QString & /*cmd*/,
+//                               const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+//           QString result = _getRegionControlsId();
+//           return result;
+//      });
+
+
+//    addCommandCallback( "resetPan", [=] (const QString & /*cmd*/,
+//                            const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+//        QString result;
+//        resetPan();
+//        return result;
+//    });
+
+
+//    addCommandCallback( "resetZoom", [=] (const QString & /*cmd*/,
+//                        const QString & /*params*/, const QString & /*sessionId*/) -> QString {
+//        QString result;
+//        resetZoom();
+//        return result;
+//    });
+
+//    addCommandCallback( "setLayerName", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+//        std::set<QString> keys = {Util::ID,Util::NAME};
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        QString result = setLayerName( dataValues[Util::ID], dataValues[Util::NAME] );
+//        Util::commandPostProcess( result );
+//        return result;
+//    });
+
+
+//    addCommandCallback( "setLayersSelected", [=] (const QString & /*cmd*/,
+//                        const QString & params, const QString & /*sessionId*/) -> QString {
+//        QString result;
+//        QStringList names = params.split(";");
+//        if ( names.size() == 0 ){
+//            result = "Please specify the layers to select.";
+//        }
+//        else {
+//            result = setLayersSelected( names );
+//        }
+//        Util::commandPostProcess( result );
+//        return result;
+//    });
+
+//    addCommandCallback( "saveImage", [=] (const QString & /*cmd*/,
+//                    const QString & params, const QString & /*sessionId*/) -> QString {
+//        std::set<QString> keys = {DATA_PATH};
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        QString result = saveImage( dataValues[DATA_PATH]);
+//        Util::commandPostProcess( result );
+//        return result;
+//    });
+
+//    addCommandCallback( "setMaskColor", [=] (const QString & /*cmd*/,
+//                                const QString & params, const QString & /*sessionId*/) -> QString {
+//        std::set<QString> keys = {Util::ID, Util::RED, Util::GREEN, Util::BLUE};
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        QString result;
+//        QString id = dataValues[Util::ID];
+//        QString redStr = dataValues[Util::RED];
+//        bool validRed = false;
+//        int redAmount = redStr.toInt( &validRed );
+//        QString greenStr = dataValues[Util::GREEN];
+//        bool validGreen = false;
+//        int greenAmount = greenStr.toInt( &validGreen );
+//        QString blueStr = dataValues[Util::BLUE];
+//        bool validBlue = false;
+//        int blueAmount = blueStr.toInt( &validBlue );
+//        if ( validRed && validGreen && validBlue ){
+//            QStringList errorList = setMaskColor( id, redAmount, greenAmount, blueAmount );
+//            result = errorList.join(";");
+//        }
+//        else {
+//            result = "Invalid mask color(s): "+params;
+//        }
+
+//        Util::commandPostProcess( result );
+//        return result;
+//    });
+
+//    addCommandCallback( "setMaskAlpha", [=] (const QString & /*cmd*/,
+//                                    const QString & params, const QString & /*sessionId*/) -> QString {
+//        std::set<QString> keys = { Util::ID, Util::ALPHA };
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        QString result;
+//        QString idStr = dataValues[Util::ID];
+//        QString alphaStr = dataValues[Util::ALPHA];
+//        bool validAlpha = false;
+//        int alphaAmount = alphaStr.toInt( &validAlpha );
+//        if ( validAlpha ){
+//            result = setMaskAlpha( idStr, alphaAmount );
+//        }
+//        else {
+//            result = "Invalid mask opacity: "+params;
+//        }
+//        Util::commandPostProcess( result );
+//        return result;
+//    });
+
+//    addCommandCallback( "setStackSelectAuto", [=] (const QString & /*cmd*/,
+//                       const QString & params, const QString & /*sessionId*/) -> QString {
+//       std::set<QString> keys = {STACK_SELECT_AUTO};
+//       std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//       QString autoModeStr = dataValues[STACK_SELECT_AUTO];
+//       bool validBool = false;
+//       bool autoSelect = Util::toBool( autoModeStr, &validBool );
+//       QString result;
+//       if ( validBool ){
+//           setStackSelectAuto( autoSelect );
+//       }
+//       else {
+//           result = "Please specify true/false when setting whether stack selection should be automatic: "+autoModeStr;
+//       }
+//       Util::commandPostProcess( result );
+//       return result;
+//   });
+
+//    addCommandCallback( "setCompositionMode", [=] (const QString & /*cmd*/,
+//                            const QString & params, const QString & /*sessionId*/) -> QString {
+//        std::set<QString> keys = {Util::ID, LayerGroup::COMPOSITION_MODE};
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        QString compMode = dataValues[LayerGroup::COMPOSITION_MODE];
+//        QString idStr = dataValues[Util::ID];
+//        QString result = setCompositionMode( idStr, compMode );
+//        Util::commandPostProcess( result );
+//        return result;
+//    });
+
+//    addCommandCallback( "setRegionType", [=] (const QString & /*cmd*/,
+//                                       const QString & params, const QString & /*sessionId*/) -> QString {
+//               std::set<QString> keys = {Util::TYPE};
+//               std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//               QString shape = dataValues[Util::TYPE];
+//               QString result = m_regionControls->setRegionCreateType( shape );
+//               return result;
+//           });
+
+//    addCommandCallback( "setTabIndex", [=] (const QString & /*cmd*/,
+//                const QString & params, const QString & /*sessionId*/) -> QString {
+//        QString result;
+//        std::set<QString> keys = {Util::TAB_INDEX};
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        QString tabIndexStr = dataValues[Util::TAB_INDEX];
+//        bool validIndex = false;
+//        int tabIndex = tabIndexStr.toInt( &validIndex );
+//        if ( validIndex ){
+//            result = setTabIndex( tabIndex );
+//        }
+//        else {
+//            result = "Please check that the tab index is a number: " + params;
+//        }
+//        Util::commandPostProcess( result );
+//        return result;
+//    });
+
+
+
+//////////// Copy the callback functions in gridcontrol here. A note for unfinished commands.
+
+//    // addCommandCallback( "setApplyAll", [=] (const QString & /*cmd*/,
+//    //                const QString & params, const QString & /*sessionId*/) -> QString {
+//    //            QString result;
+//    //            std::set<QString> keys = {ALL};
+//    //            std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//    //            QString applyAllStr = dataValues[ALL];
+//    //            bool validBool = false;
+//    //            bool applyAll = Util::toBool( applyAllStr, &validBool );
+//    //            if ( validBool ){
+//    //                setApplyAll( applyAll  );
+//    //            }
+//    //            else {
+//    //                result = "Whether or not to apply grid changes to all images must be true/false:"+params;
+//    //            }
+//    //            Util::commandPostProcess( result );
+//    //            return result;
+//    //        });
+//    //
+//    //
+//    // addCommandCallback( "setAxesColor", [=] (const QString & /*cmd*/,
+//    //                                 const QString & params, const QString & /*sessionId*/) -> QString {
+//    //     int redAmount = 0;
+//    //     int greenAmount = 0;
+//    //     int blueAmount = 0;
+//    //     QStringList result = _parseColorParams( params, "Axes", &redAmount, &greenAmount, &blueAmount);
+//    //     if ( result.size() == 0 ){
+//    //         result = setAxesColor( redAmount, greenAmount, blueAmount );
+//    //     }
+//    //     QString errors;
+//    //     if ( result.size() > 0 ){
+//    //         errors = result.join( ",");
+//    //     }
+//    //     Util::commandPostProcess( errors );
+//    //     return errors;
+//    // });
+//    //
+//    addCommandCallback( "setAxesThickness", [=] (const QString & /*cmd*/,
+//                                    const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::AXES_WIDTH;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setAxesTransparency", [=] (const QString & /*cmd*/,
+//                                    const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::AXES_ALPHA;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setAxisX", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) ->QString {
+
+//        QString result = m_stack->_setAxis( AxisMapper::AXIS_X, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setAxisY", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) ->QString {
+
+//        QString result = m_stack->_setAxis( AxisMapper::AXIS_Y, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setCoordinateSystem", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString result = m_stack->_setCoordinateSystem( params );
+//        return result;
+//    });
+
+//     addCommandCallback( "setGridLabelFormat", [=] (const QString & /*cmd*/,
+//                         const QString & params, const QString & /*sessionId*/) -> QString {
+//        std::set<QString> keys = {DataGrid::FORMAT, DataGrid::LABEL_SIDE};
+//        std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//        QString format = dataValues[DataGrid::FORMAT];
+//                     //Because the map expects colons and the label format has colons,
+//                     //the format colons are replaced with a - before sending from the
+//                     //client and the server must restore the colons.
+//        format = format.replace( "-", ":");
+//        QString labelSide = dataValues[DataGrid::LABEL_SIDE];
+////                     QString result = setLabelFormat( labelSide, format );
+////                     Util::commandPostProcess( result );
+//        QString directionLookup = Carta::State::UtilState::getLookup( DataGrid::LABEL_FORMAT, labelSide);
+//        QString directionFormatLookup = Carta::State::UtilState::getLookup( directionLookup, DataGrid::FORMAT );
+//        LabelFormats *m_formats = Util::findSingletonObject<LabelFormats>();
+//        QString actualFormat = m_formats->getFormat(format);
+//        QString result = m_stack->_setDataGridState(directionFormatLookup, actualFormat);
+//        QString oppositeSide = m_formats->getOppositeSide(labelSide);
+//        QString dLookup = Carta::State::UtilState::getLookup( DataGrid::LABEL_FORMAT, oppositeSide );
+//        QString dFormatLookup = Carta::State::UtilState::getLookup( dLookup, DataGrid::FORMAT );
+//        result = m_stack->_setDataGridState(dFormatLookup, LabelFormats::FORMAT_NONE);
+//        return result;
+//    });
+
+//    // addCommandCallback( "setGridColor", [=] (const QString & /*cmd*/,
+//    //                                     const QString & params, const QString & /*sessionId*/) -> QString {
+//    //         int redAmount = 0;
+//    //         int greenAmount = 0;
+//    //         int blueAmount = 0;
+//    //         QStringList result = _parseColorParams( params, DataGrid::GRID, &redAmount, &greenAmount, &blueAmount);
+//    //         if ( result.size() == 0 ){
+//    //             result = setGridColor( redAmount, greenAmount, blueAmount );
+//    //         }
+//    //         QString errors;
+//    //         if ( result.size() > 0 ){
+//    //             errors = result.join( ",");
+//    //         }
+//    //         Util::commandPostProcess( errors );
+//    //         return errors;
+//    //     });
+//    //
+//    addCommandCallback( "setFontFamily", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        // TODO: the function is unfinished
+//        QString stateName = DataGrid::FONT_FAMILY;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setFontSize", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::FONT_SIZE;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setGridThickness", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::GRID_WIDTH;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setGridSpacing", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::SPACING;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setGridTransparency", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::GRID_ALPHA;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setLabelDecimals", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::LABEL_DECIMAL_PLACES;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+
+//    // addCommandCallback( "setLabelColor", [=] (const QString & /*cmd*/,
+//    //                             const QString & params, const QString & /*sessionId*/) -> QString {
+//    //         int redAmount = 0;
+//    //         int greenAmount = 0;
+//    //         int blueAmount = 0;
+//    //         QStringList result = _parseColorParams( params, "Label", &redAmount, &greenAmount, &blueAmount);
+//    //         if ( result.size() == 0 ){
+//    //             result = setLabelColor( redAmount, greenAmount, blueAmount );
+//    //         }
+//    //         QString errors;
+//    //         if ( result.size() > 0 ){
+//    //             errors = result.join( ",");
+//    //         }
+//    //         Util::commandPostProcess( errors );
+//    //         return errors;
+//    //     });
+//    //
+//    addCommandCallback( "setShowAxis", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::SHOW_AXIS;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setShowCoordinateSystem", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::SHOW_COORDS;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setShowDefaultCoordinateSystem", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::SHOW_DEFAULT_COORDS;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+
+//        Carta::State::StateInterface stackDataGridState = m_stack->_getDataGridState();
+//        bool useDefault = stackDataGridState.getValue<bool>( DataGrid::SHOW_DEFAULT_COORDS );
+//        if ( useDefault ){
+//            CoordinateSystems* m_coords = Util::findSingletonObject<CoordinateSystems>();
+//            QString defaultName = m_coords->getDefault();
+//            result = m_stack->_setCoordinateSystem( defaultName );
+//        }
+//        return result;
+//    });
+
+//    addCommandCallback( "setShowGridLines", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::SHOW_GRID_LINES;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setShowInternalLabels", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::SHOW_INTERNAL_LABELS;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setShowTicks", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::SHOW_TICKS;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+//    //
+//    // addCommandCallback( "setShowStatistics", [=] (const QString & /*cmd*/,
+//    //                     const QString & params, const QString & /*sessionId*/) -> QString {
+//    //                 QString result;
+//    //                 std::set<QString> keys = {DataGrid::SHOW_STATISTICS};
+//    //                 std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//    //                 QString showStatisticsStr = dataValues[DataGrid::SHOW_STATISTICS];
+//    //                 bool validBool = false;
+//    //                 bool showStatistics = Util::toBool( showStatisticsStr, &validBool );
+//    //                 if ( validBool ){
+//    //                     result = setShowStatistics( showStatistics  );
+//    //                 }
+//    //                 else {
+//    //                     result = "Making statistics visible/invisible must be true/false:"+params;
+//    //                 }
+//    //                 Util::commandPostProcess( result );
+//    //                 return result;
+//    //             });
+//    //
+//    // addCommandCallback( "setTickColor", [=] (const QString & /*cmd*/,
+//    //                                        const QString & params, const QString & /*sessionId*/) -> QString {
+//    //            int redAmount = 0;
+//    //            int greenAmount = 0;
+//    //            int blueAmount = 0;
+//    //            QStringList result = _parseColorParams( params, DataGrid::TICK, &redAmount, &greenAmount, &blueAmount);
+//    //            if ( result.size() == 0 ){
+//    //                result = setTickColor( redAmount, greenAmount, blueAmount );
+//    //            }
+//    //            QString errors;
+//    //            if ( result.size() > 0 ){
+//    //                errors = result.join( ",");
+//    //            }
+//    //            Util::commandPostProcess( errors );
+//    //            return errors;
+//    //        });
+//    //
+//    addCommandCallback( "setTickLength", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::TICK_LENGTH;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setTickThickness", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::TICK_WIDTH;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+
+//    addCommandCallback( "setTickTransparency", [=] (const QString & /*cmd*/,
+//            const QString & params, const QString & /*sessionId*/) -> QString {
+
+//        QString stateName = DataGrid::TICK_ALPHA;
+//        QString result = m_stack->_setDataGridState( stateName, params );
+//        return result;
+//    });
+//    //
+//    // addCommandCallback( "setTheme", [=] (const QString & /*cmd*/,
+//    //                         const QString & params, const QString & /*sessionId*/) -> QString {
+//    //                     std::set<QString> keys = {DataGrid::THEME};
+//    //                     std::map<QString,QString> dataValues = Carta::State::UtilState::parseParamMap( params, keys );
+//    //                     QString themeStr = dataValues[DataGrid::THEME];
+//    //                     QString result = setTheme( themeStr );
+//    //                     Util::commandPostProcess( result );
+//    //                     return result;
+//    //                 });
+//    addCommandCallback( "getColormaps", [=] (const QString & /*cmd*/,
+//                        const QString & params, const QString & /*sessionId*/) -> QString {
+//        Colormaps* colormaps = Util::findSingletonObject<Colormaps>();
+//        QString result = colormaps->getColorMaps().join(",");
+//        return result;
+//    });
+//}
 
 
 void Controller::_initializeState(){
@@ -1465,11 +1478,11 @@ void Controller::removeContourSet( std::shared_ptr<DataContours> contourSet ){
     m_stack->_removeContourSet( contourSet );
 }
 
-void Controller::_renderZoom( double factor ){
-    int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
-    int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
-    m_stack->_renderZoom( mouseX, mouseY, factor  );
-}
+//void Controller::_renderZoom( double factor ){
+//    int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
+//    int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
+//    m_stack->_renderZoom( mouseX, mouseY, factor  );
+//}
 
 void Controller::_renderContext( double zoomFactor ){
     m_stack->_renderContext( zoomFactor );
@@ -1627,10 +1640,10 @@ void Controller::recallClipValue() {
 // }
 
 
-void Controller::_setFrameAxis(int value, AxisInfo::KnownType axisType ) {
-    m_stack->_setFrameAxis( value, axisType );
-    _updateCursorText( true );
-}
+//void Controller::_setFrameAxis(int value, AxisInfo::KnownType axisType ) {
+//    m_stack->_setFrameAxis( value, axisType );
+//    _updateCursorText( true );
+//}
 
 void Controller::setFrameImage( int val) {
     if ( val < 0 ){
@@ -1782,23 +1795,23 @@ QString Controller::setCompositionMode( const QString& id, const QString& compMo
     return result;
 }
 
-QString Controller::setSelectedLayersGrouped( bool grouped ){
-    QString result;
-    bool operationPerformed = m_stack->_setLayersGrouped( grouped );
-    if ( operationPerformed ){
-        //Notify others there has been a change to the data.
-        emit dataChanged( this );
-    }
-    else {
-        if ( grouped ){
-            result = "The selected layer(s) could not be grouped.";
-        }
-        else {
-            result = "Unable to remove group.";
-        }
-    }
-    return result;
-}
+//QString Controller::setSelectedLayersGrouped( bool grouped ){
+//    QString result;
+//    bool operationPerformed = m_stack->_setLayersGrouped( grouped );
+//    if ( operationPerformed ){
+//        //Notify others there has been a change to the data.
+//        emit dataChanged( this );
+//    }
+//    else {
+//        if ( grouped ){
+//            result = "The selected layer(s) could not be grouped.";
+//        }
+//        else {
+//            result = "Unable to remove group.";
+//        }
+//    }
+//    return result;
+//}
 
 QString Controller::setTabIndex( int index ){
     QString result;
@@ -1833,41 +1846,41 @@ void Controller::setZoomLevelJS( double zoomFactor, double layerId ){
     m_stack->_setZoomLevelForLayerId( zoomFactor, layerId );
 }
 
-void Controller::_updateCursor( int mouseX, int mouseY ){
-    if ( m_stack->_getStackSize() == 0 ){
-        return;
-    }
+//void Controller::_updateCursor( int mouseX, int mouseY ){
+//    if ( m_stack->_getStackSize() == 0 ){
+//        return;
+//    }
 
-    int oldMouseX = m_stateMouse.getValue<int>( ImageView::MOUSE_X );
-    int oldMouseY = m_stateMouse.getValue<int>( ImageView::MOUSE_Y );
-    if ( oldMouseX != mouseX || oldMouseY != mouseY ){
-        m_stateMouse.setValue<int>( ImageView::MOUSE_X, mouseX);
-        m_stateMouse.setValue<int>( ImageView::MOUSE_Y, mouseY );
-        _updateCursorText( false );
-        m_stateMouse.flushState();
-    }
-}
+//    int oldMouseX = m_stateMouse.getValue<int>( ImageView::MOUSE_X );
+//    int oldMouseY = m_stateMouse.getValue<int>( ImageView::MOUSE_Y );
+//    if ( oldMouseX != mouseX || oldMouseY != mouseY ){
+//        m_stateMouse.setValue<int>( ImageView::MOUSE_X, mouseX);
+//        m_stateMouse.setValue<int>( ImageView::MOUSE_Y, mouseY );
+//        _updateCursorText( false );
+//        m_stateMouse.flushState();
+//    }
+//}
 
-void Controller::_updateCursorText(bool notifyClients ){
-    QString formattedCursor;
-    int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
-    int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
+//void Controller::_updateCursorText(bool notifyClients ){
+//    QString formattedCursor;
+//    int mouseX = m_stateMouse.getValue<int>(ImageView::MOUSE_X );
+//    int mouseY = m_stateMouse.getValue<int>(ImageView::MOUSE_Y );
 
-    // get Quantile information and show them on the image viewer
-    double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
-    double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
-    bool isAutoClip = m_state.getValue<bool>(AUTO_CLIP);
-    QString cursorText = m_stack->_getCursorText(isAutoClip, minPercent, maxPercent, mouseX, mouseY);
+//    // get Quantile information and show them on the image viewer
+//    double minPercent = m_state.getValue<double>(CLIP_VALUE_MIN);
+//    double maxPercent = m_state.getValue<double>(CLIP_VALUE_MAX);
+//    bool isAutoClip = m_state.getValue<bool>(AUTO_CLIP);
+//    QString cursorText = m_stack->_getCursorText(isAutoClip, minPercent, maxPercent, mouseX, mouseY);
 
-    if ( !cursorText.isEmpty()){
-        if ( cursorText != m_stateMouse.getValue<QString>(CURSOR)){
-            m_stateMouse.setValue<QString>( CURSOR, cursorText );
-            if ( notifyClients ){
-                m_stateMouse.flushState();
-            }
-        }
-    }
-}
+//    if ( !cursorText.isEmpty()){
+//        if ( cursorText != m_stateMouse.getValue<QString>(CURSOR)){
+//            m_stateMouse.setValue<QString>( CURSOR, cursorText );
+//            if ( notifyClients ){
+//                m_stateMouse.flushState();
+//            }
+//        }
+//    }
+//}
 
 
 // void Controller::_updateDisplayAxes(){
@@ -1884,18 +1897,18 @@ void Controller::_updateCursorText(bool notifyClients ){
 //     }
 // }
 
-void Controller::updatePanZoomLevelJS( double centerX, double centerY, double zoomLevel, double layerId ){
-    m_stack->_updatePanZoom( centerX, centerY, -1, false, zoomLevel, layerId);
-    emit contextChanged();
-    emit zoomChanged();
-}
+//void Controller::updatePanZoomLevelJS( double centerX, double centerY, double zoomLevel, double layerId ){
+//    m_stack->_updatePanZoom( centerX, centerY, -1, false, zoomLevel, layerId);
+//    emit contextChanged();
+//    emit zoomChanged();
+//}
 
-void Controller::updatePanZoom( double centerX, double centerY, double zoomFactor ){
-    bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
-    m_stack->_updatePanZoom( centerX, centerY, zoomFactor, zoomPanAll, -1, -1);
-    emit contextChanged();
-    emit zoomChanged();
-}
+//void Controller::updatePanZoom( double centerX, double centerY, double zoomFactor ){
+//    bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
+//    m_stack->_updatePanZoom( centerX, centerY, zoomFactor, zoomPanAll, -1, -1);
+//    emit contextChanged();
+//    emit zoomChanged();
+//}
 
 void Controller::updateZoom(double zoomFactor){
     bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
@@ -1905,13 +1918,13 @@ void Controller::updateZoom(double zoomFactor){
 }
 
 
-void Controller::updatePan( double centerX , double centerY){
-    bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
-    m_stack->_updatePan( centerX, centerY, zoomPanAll );
-    _updateCursorText( true );
-    emit contextChanged();
-    emit zoomChanged();
-}
+//void Controller::updatePan( double centerX , double centerY){
+//    bool zoomPanAll = m_state.getValue<bool>(PAN_ZOOM_ALL);
+//    m_stack->_updatePan( centerX, centerY, zoomPanAll );
+//    _updateCursorText( true );
+//    emit contextChanged();
+//    emit zoomChanged();
+//}
 
 
 

@@ -246,12 +246,25 @@ protected:
      * @param converter - used to convert the pixel values for different unit
      * @return - a struct RegionHistogramData
      */
-    virtual PBMSharedPtr _getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
-            int numberOfBins, int stokeFrame,
+    virtual PBMSharedPtr _getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+            int numberOfBins,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const Q_DECL_OVERRIDE;
 
     virtual int _getStokeIndicator() const Q_DECL_OVERRIDE;
     virtual int _getSpectralIndicator() const Q_DECL_OVERRIDE;
+
+    /**
+     * Returns a spatial profile data
+     * @param x - x coordinate of cursor
+     * @param y - y coordinate of cursor
+     * @param frameLow - a lower bound for the image channels or -1 if there is no lower bound.
+     * @param frameHigh - an upper bound for the image channels or -1 if there is no upper bound.
+     * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
+     * @return - vectors of x profile/y profile.
+     */
+    virtual PBMSharedPtr _getXYProfiles(int fileId, int x, int y,
+            int frameLow, int frameHigh, int stokeFrame,
+            Carta::Lib::IntensityUnitConverter::SharedPtr converter) const Q_DECL_OVERRIDE;
 
     /**
      * Returns a vector of pixels.
@@ -266,8 +279,11 @@ protected:
      * @param stokeFrame - a stoke frame (-1: no stoke, 0: stoke I, 1: stoke Q, 2: stoke U, 3: stoke V)
      * @return - vector of pixels.
      */
-    virtual PBMSharedPtr _getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
-            int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const Q_DECL_OVERRIDE;
+    virtual PBMSharedPtr _getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
+        int frameLow, int frameHigh, int stokeFrame,
+        bool isZFP, int precision, int numSubsets,
+        bool &changeFrame, int regionId, int numberOfBins,
+        Lib::IntensityUnitConverter::SharedPtr converter) const Q_DECL_OVERRIDE;
 
     /**
      * Return the layer with the given name, if a name is specified; otherwise, return the current

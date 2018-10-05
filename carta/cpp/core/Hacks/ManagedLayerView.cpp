@@ -15,23 +15,23 @@ ManagedLayerBase::ManagedLayerBase( ManagedLayerView * mlv, QString name )
     m_id = m_mlv-> p_addLayer( this );
 }
 
-void
-ManagedLayerBase::setRaster( const QImage & image )
-{
-    m_vgListBuff = Carta::Lib::VectorGraphics::VGList();
-    m_rasterBuff = image;
-    m_isRaster = true;
-    m_mlv-> scheduleRepaint();
-}
+//void
+//ManagedLayerBase::setRaster( const QImage & image )
+//{
+//    m_vgListBuff = Carta::Lib::VectorGraphics::VGList();
+//    m_rasterBuff = image;
+//    m_isRaster = true;
+//    m_mlv-> scheduleRepaint();
+//}
 
-void
-ManagedLayerBase::setVG( const Lib::VectorGraphics::VGList & vgList )
-{
-    m_rasterBuff = QImage();
-    m_vgListBuff = vgList;
-    m_isRaster = false;
-    m_mlv-> scheduleRepaint();
-}
+//void
+//ManagedLayerBase::setVG( const Lib::VectorGraphics::VGList & vgList )
+//{
+//    m_rasterBuff = QImage();
+//    m_vgListBuff = vgList;
+//    m_isRaster = false;
+//    m_mlv-> scheduleRepaint();
+//}
 
 ManagedLayerView::ManagedLayerView( QString viewName,
                                     IConnector * connector,
@@ -45,17 +45,17 @@ ManagedLayerView::ManagedLayerView( QString viewName,
     m_lrv.reset( new Carta::Lib::LayeredViewArbitrary( m_connector, viewName, this ) );
 
     // listen for resize events
-    connect( m_lrv.get(), & Carta::Lib::LayeredViewArbitrary::sizeChanged,
-             this, & Me::clientSizeChangedCB );
+//    connect( m_lrv.get(), & Carta::Lib::LayeredViewArbitrary::sizeChanged,
+//             this, & Me::clientSizeChangedCB );
 
-    // listen for input events
-    connect( m_lrv.get(), & Carta::Lib::LayeredViewArbitrary::inputEvent,
-             this, & Me::inputEventCB );
+//    // listen for input events
+//    connect( m_lrv.get(), & Carta::Lib::LayeredViewArbitrary::inputEvent,
+//             this, & Me::inputEventCB );
 
     // connect the repaint timer
     m_repaintTimer.setInterval( 0 );
     m_repaintTimer.setSingleShot( true );
-    connect( & m_repaintTimer, & QTimer::timeout, this, & Me::repaintTimerCB );
+//    connect( & m_repaintTimer, & QTimer::timeout, this, & Me::repaintTimerCB );
 }
 
 void
@@ -194,37 +194,37 @@ ManagedLayerView::scheduleRepaint()
     return m_repaintId;
 } // scheduleRepaint
 
-void
-ManagedLayerView::clientSizeChangedCB()
-{
-    // tell all layers about the size changes
-    auto clientSize = m_lrv-> getClientSize();
-    for ( auto * layer : m_layers ) {
-        layer-> onResize( clientSize );
-    }
-}
-
-void
-ManagedLayerView::inputEventCB( Lib::InputEvent e )
-{
-    qDebug() << "Received input event" << e.json()["type"].toString();
-
-    // now go through our list of input layers and invoke their input event callbacks
-    for ( auto layer : m_layers ) {
-        if ( layer-> hasInput() ) {
-            layer-> onInputEvent( e );
-
-            // abort once the event is consumed
-            if ( e.isConsumed() ) {
-                break;
-            }
-        }
-    }
-
-//    if( CARTA_RUNTIME_CHECKS && ! e.isConsumed()) {
-//        qWarning() << "Unconsumed event" << e.type();
+//void
+//ManagedLayerView::clientSizeChangedCB()
+//{
+//    // tell all layers about the size changes
+//    auto clientSize = m_lrv-> getClientSize();
+//    for ( auto * layer : m_layers ) {
+//        layer-> onResize( clientSize );
 //    }
-} // inputEventCB
+//}
+
+//void
+//ManagedLayerView::inputEventCB( Lib::InputEvent e )
+//{
+//    qDebug() << "Received input event" << e.json()["type"].toString();
+
+//    // now go through our list of input layers and invoke their input event callbacks
+//    for ( auto layer : m_layers ) {
+//        if ( layer-> hasInput() ) {
+//            layer-> onInputEvent( e );
+
+//            // abort once the event is consumed
+//            if ( e.isConsumed() ) {
+//                break;
+//            }
+//        }
+//    }
+
+////    if( CARTA_RUNTIME_CHECKS && ! e.isConsumed()) {
+////        qWarning() << "Unconsumed event" << e.type();
+////    }
+//} // inputEventCB
 
 /*
 void
@@ -252,34 +252,34 @@ ManagedLayerView::repaintTimerCB()
     m_lrv-> scheduleRepaint( m_repaintId );
 } // inputEventCB
 */
-void
-ManagedLayerView::repaintTimerCB()
-{
-    m_lrv-> removeAllLayers();
-    int layerInd = 0;
+//void
+//ManagedLayerView::repaintTimerCB()
+//{
+//    m_lrv-> removeAllLayers();
+//    int layerInd = 0;
 
-//    int vgInd = 0;
-    for ( auto * l : m_layers ) {
-        if ( l-> isRaster() ) {
-            m_lrv-> setLayerRaster( layerInd, l-> raster() );
-            m_lrv-> setLayerCombiner( layerInd, l-> rasterCombiner() );
-        }
-        else {
-            m_lrv-> setLayerVG( layerInd, l-> vgList() );
-        }
-        layerInd++;
-    }
-
+////    int vgInd = 0;
 //    for ( auto * l : m_layers ) {
 //        if ( l-> isRaster() ) {
-//            continue;
+//            m_lrv-> setLayerRaster( layerInd, l-> raster() );
+//            m_lrv-> setLayerCombiner( layerInd, l-> rasterCombiner() );
 //        }
-//        m_lrv-> setVGLayer( vgInd, l-> vgList() );
-//        vgInd++;
+//        else {
+//            m_lrv-> setLayerVG( layerInd, l-> vgList() );
+//        }
+//        layerInd++;
 //    }
 
-    m_lrv-> scheduleRepaint( m_repaintId );
-} // inputEventCB
+////    for ( auto * l : m_layers ) {
+////        if ( l-> isRaster() ) {
+////            continue;
+////        }
+////        m_lrv-> setVGLayer( vgInd, l-> vgList() );
+////        vgInd++;
+////    }
+
+//    m_lrv-> scheduleRepaint( m_repaintId );
+//} // inputEventCB
 
 ManagedLayerBase::ID
 ManagedLayerView::p_addLayer( ManagedLayerBase * layer )

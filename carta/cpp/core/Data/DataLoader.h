@@ -20,7 +20,7 @@
 
 // File_Info implementation needs
 #include "CartaLib/Hooks/LoadAstroImage.h"
-#include "CartaLib/Hooks/ImageStatisticsHook.h"
+//#include "CartaLib/Hooks/ImageStatisticsHook.h"
 #include "Globals.h"
 
 namespace Carta {
@@ -161,8 +161,14 @@ private:
     // customized arrange file info
     bool _arrangeFileInfo(const std::map<QString, QString> infoMap, std::vector<std::vector<QString>>& pairs);
 
+    // Unit conversion: returns "value + unit"
+    QString _unitConversion(const QString value, const QString unit);
+
     // Unit conversion: convert degree to arcsec
-    bool _deg2arcsec(const QString degree, QString& arcsec);
+    QString _deg2arcsec(const double degree);
+
+    // Unit conversion: convert Hz to MHz or GHz
+    QString _convertHz(const double hz);
 };
 }
 }

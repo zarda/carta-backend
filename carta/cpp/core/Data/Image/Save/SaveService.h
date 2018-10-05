@@ -9,6 +9,7 @@
 #include <QSize>
 #include <QImage>
 #include <QList>
+#include <QFile>
 #include <memory>
 #include "CartaLib/CartaLib.h"
 
@@ -73,9 +74,9 @@ signals:
 
 private slots:
 
-    void _scheduleSave(/*const QImage& qImage,
-            const Carta::Lib::VectorGraphics::VGList& vg, const QString& layerName*/
-            const std::shared_ptr<RenderResponse>& response);
+//    void _scheduleSave(/*const QImage& qImage,
+//            const Carta::Lib::VectorGraphics::VGList& vg, const QString& layerName*/
+//            const std::shared_ptr<RenderResponse>& response);
 
 private:
 

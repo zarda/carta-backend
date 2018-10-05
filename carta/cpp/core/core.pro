@@ -5,8 +5,9 @@
 TEMPLATE = lib
 
 ###CONFIG += staticlib
-QT += widgets network
+QT += network
 QT += xml
+QT += concurrent
 
 HEADERS += \
     IConnector.h \

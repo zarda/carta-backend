@@ -35,10 +35,14 @@ void FitsLine::_parse(QString &key, QString &value, QString &comment) {
         return;
     if( _raw[vStart] != '\'') { // it's an unquoted value
         // non-string value, find the end
-        vEnd = _raw.indexOf( '/', vStart + 1); if( vEnd != -1) vEnd --; else vEnd = 79;
-        //            vEnd = vStart + 1;
-        //            while( ! _raw[vEnd].isSpace()) { if( vEnd >= 80) break; else vEnd ++; }
-        //            vEnd --;
+        // vEnd = _raw.indexOf( '/', vStart + 1); if( vEnd != -1) vEnd --; else vEnd = 79;
+        vEnd = 79;
+        while(_raw[vEnd].isSpace()) {
+            if(vEnd <= vStart)
+                break;
+            else
+                vEnd--;
+        }
     } else { // it's s quoted string
         // temporarily remove all occurrences of double single-quotes and then find the next single quote
         QString tmp = _raw; for(int i=0;i<=vStart;i++){tmp[i]=' ';} tmp.replace( "''", "..");
@@ -110,19 +114,42 @@ FitsHeaderExtractor::getHeader()
     return result;
 } // getHeader
 
+// parse header per line & build an unsorted {key, value} list
+std::vector<std::vector<QString>>
+FitsHeaderExtractor::getHeaderList()
+{
+    // get whole header as a list of lines
+    const QStringList headerLines = this->getHeader();
+
+    // create a empty list
+    std::vector<std::vector<QString>> headerList = {};
+
+    // traverse each line to build the map if headerList is not empty
+    if (!headerLines.isEmpty()){
+        for (auto iter = headerLines.begin(); iter != headerLines.end(); iter++) {
+            // use FitsLine to extract key, value from line & insert (key, value) to headerMap
+            FitsLine line(*iter);
+            if (!line.key().isEmpty()) {
+                headerList.push_back({line.key(), line.value()});
+            }
+        }
+    }
+
+    return headerList;
+}
 // parse header per line & build a (key, value) map
 std::map<QString, QString>
 FitsHeaderExtractor::getHeaderMap()
 {
     // get whole header as a list of lines
-    QStringList headerList = this->getHeader();
+    const QStringList headerLines = this->getHeader();
 
     // create a empty map
     std::map<QString, QString> headerMap = std::map<QString, QString> ();
 
     // traverse each line to build the map if headerList is not empty
-    if (!headerList.isEmpty()){
-        for (auto iter = headerList.begin(); iter != headerList.end(); iter++) {
+    if (!headerLines.isEmpty()){
+        for (auto iter = headerLines.begin(); iter != headerLines.end(); iter++) {
             // use FitsLine to extract key, value from line & insert (key, value) to headerMap
             FitsLine line(*iter);
             if (!line.key().isEmpty()) {

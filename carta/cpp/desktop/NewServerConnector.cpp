@@ -5,8 +5,6 @@
 #include "NewServerConnector.h"
 
 #include <iostream>
-#include <QImage>
-#include <QPainter>
 #include <QXmlInputSource>
 #include <cmath>
 #include <QTime>
@@ -149,7 +147,7 @@ IConnector::CallbackID NewServerConnector::addStateCallback(
 void NewServerConnector::registerView(IView * view)
 {
     // let the view know it's registered, and give it access to the connector
-    view->registration( this);
+//    view->registration( this);
 
     // insert this view int our list of views
     ViewInfo * viewInfo = new ViewInfo( view);
@@ -211,7 +209,8 @@ void NewServerConnector::removeStateCallback(const IConnector::CallbackID & /*id
 
 Carta::Lib::IRemoteVGView * NewServerConnector::makeRemoteVGView(QString viewName)
 {
-    return new Carta::Core::SimpleRemoteVGView( this, viewName, this);
+//    return new Carta::Core::SimpleRemoteVGView( this, viewName, this);
+    return nullptr;
 }
 
 NewServerConnector::ViewInfo * NewServerConnector::findViewInfo( const QString & viewName)
@@ -273,7 +272,7 @@ void NewServerConnector::onTextMessage(QString message){
     emit jsTextMessageResultSignal(result);
 }
 
-void NewServerConnector::onBinaryMessageSignalSlot(char* message, size_t length){
+void NewServerConnector::onBinaryMessageSignalSlot(const char *message, size_t length){
     if (length < EVENT_NAME_LENGTH + EVENT_ID_LENGTH){
         qFatal("Illegal message.");
         return;
@@ -298,34 +297,6 @@ void NewServerConnector::onBinaryMessageSignalSlot(char* message, size_t length)
     if (eventName == "REGISTER_VIEWER") {
         // The message should be handled in sessionDispatcher
         qFatal("Illegal request in NewServerConnector. Please handle it in SessionDispatcher.");
-        return;
-
-    } else if (eventName == "FILE_LIST_REQUEST") {
-        respName = "FILE_LIST_RESPONSE";
-
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
-
-        CARTA::FileListRequest fileListRequest;
-        fileListRequest.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-        msg = dataLoader->getFileList(fileListRequest);
-
-        // send the serialized message to the frontend
-        sendSerializedMessage(respName, eventId, msg);
-        return;
-
-    } else if (eventName == "FILE_INFO_REQUEST") {
-        respName = "FILE_INFO_RESPONSE";
-
-        Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
-        Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
-
-        CARTA::FileInfoRequest fileInfoRequest;
-        fileInfoRequest.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
-        msg = dataLoader->getFileInfo(fileInfoRequest);
-
-        // send the serialized message to the frontend
-        sendSerializedMessage(respName, eventId, msg);
         return;
 
     } else if (eventName == "CLOSE_FILE") {
@@ -358,6 +329,26 @@ void NewServerConnector::onBinaryMessageSignalSlot(char* message, size_t length)
     // socket->send(binaryPayloadCache.data(), requiredSize, uWS::BINARY);
     // emit jsTextMessageResultSignal(result);
     return;
+}
+
+void NewServerConnector::fileListRequestSignalSlot(uint32_t eventId, CARTA::FileListRequest fileListRequest) {
+    // get DataLoader obj
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
+    PBMSharedPtr msg = dataLoader->getFileList(fileListRequest);
+
+    // send the serialized message to the frontend
+    sendSerializedMessage("FILE_LIST_RESPONSE", eventId, msg);
+}
+
+void NewServerConnector::fileInfoRequestSignalSlot(uint32_t eventId, CARTA::FileInfoRequest fileInfoRequest) {
+    // get DataLoader obj
+    Carta::State::ObjectManager* objMan = Carta::State::ObjectManager::objectManager();
+    Carta::Data::DataLoader *dataLoader = objMan->createObject<Carta::Data::DataLoader>();
+    PBMSharedPtr msg = dataLoader->getFileInfo(fileInfoRequest);
+
+    // send the serialized message to the frontend
+    sendSerializedMessage("FILE_INFO_RESPONSE", eventId, msg);
 }
 
 void NewServerConnector::openFileSignalSlot(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId) {
@@ -448,37 +439,26 @@ void NewServerConnector::openFileSignalSlot(uint32_t eventId, QString fileDir, Q
 
     // set spectral and stoke frame ranges to calculate the pixel to histogram data
     //m_calHistRange[fileId] = {0, m_lastFrame[fileId], 0}; // {frameLow, frameHigh, stokeFrame}
-    m_calHistRange[fileId] = {0, 0, 0}; // {frameLow, frameHigh, stokeFrame}
+    //m_calHistRange[fileId] = {0, 0, 0}; // {frameLow, frameHigh, stokeFrame}
 
-    m_changeFrame[fileId] = false;
-
-    /////////////////////////////////////////////////////////////////////
-    respName = "REGION_HISTOGRAM_DATA";
-
-    // calculate pixels to histogram data
-    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-    PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
-
-    msg = region_histogram_data;
-
-    // send the serialized message to the frontend
-    sendSerializedMessage(respName, eventId, msg);
-    /////////////////////////////////////////////////////////////////////
+    // set image changed is true
+    m_changeFrame[fileId] = true;
 }
 
 void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
     bool isZFP, int precision, int numSubsets) {
-    qDebug() << "[NewServerConnector] Set image bounds [x_min, x_max, y_min, y_max, mip]=["
-             << xMin << "," << xMax << "," << yMin << "," << yMax << "," << mip << "], fileId=" << fileId;
+    QString respName = "RASTER_IMAGE_DATA";
 
     // check if need to reset image bounds
     if (xMin != m_imageBounds[fileId][0] || xMax != m_imageBounds[fileId][1] ||
         yMin != m_imageBounds[fileId][2] || yMax != m_imageBounds[fileId][3] ||
         mip != m_imageBounds[fileId][4]) {
+        //qDebug() << "[NewServerConnector] Set image bounds [x_min, x_max, y_min, y_max, mip]=["
+        //         << xMin << "," << xMax << "," << yMin << "," << yMax << "," << mip << "], fileId=" << fileId;
         // update image viewer bounds with respect to the fileId
         m_imageBounds[fileId] = {xMin, xMax, yMin, yMax, mip};
     } else {
-        qDebug() << "[NewServerConnector] Frontend image viewer signal is repeated, just ignore the signal!!";
+        //qDebug() << "[NewServerConnector] Frontend image viewer signal is repeated, just ignore the signal!!";
         return;
     }
 
@@ -488,69 +468,48 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
         m_ZFPSet[fileId] = {precision, numSubsets};
     }
 
-    QString respName;
-
     // get the controller
     Carta::Data::Controller* controller = _getController();
 
     // set the file id as the private parameter in the Stack object
     controller->setFileId(fileId);
 
+    // set the current channel
     int frameLow = m_currentChannel[fileId][0];
     int frameHigh = frameLow;
     int stokeFrame = m_currentChannel[fileId][1];
 
-    // check if need to re-calculate the histogram!!
-    if (m_changeFrame[fileId]) {
-        qDebug() << "Re-calculate the pixel histogram!!";
-        /////////////////////////////////////////////////////////////////////
-        respName = "REGION_HISTOGRAM_DATA";
+    // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
+    int regionId = -1;
 
-        // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
-        int regionId = -1;
-
-        // calculate pixels to histogram data
-        Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-        PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
-
-        // send the serialized message to the frontend
-        sendSerializedMessage(respName, eventId, region_histogram_data);
-
-        m_changeFrame[fileId] = false;
-        /////////////////////////////////////////////////////////////////////
-    }
-
-    /////////////////////////////////////////////////////////////////////
-    respName = "RASTER_IMAGE_DATA";
+    // do not include unit converter for pixel values
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr;
 
     // get the down sampling raster image raw data
-    PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
+    PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip,
+                                                         frameLow, frameHigh, stokeFrame,
+                                                         isZFP, precision, numSubsets,
+                                                         m_changeFrame[fileId], regionId, numberOfBins, converter);
 
     // send the serialized message to the frontend
     sendSerializedMessage(respName, eventId, raster);
-    /////////////////////////////////////////////////////////////////////
 }
 
 void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int fileId, int channel, int stoke) {
-    qDebug() << "[NewServerConnector] Set image channel=" << channel << ", fileId=" << fileId << ", stoke=" << stoke;
-
-    QString respName;
-    PBMSharedPtr msg;
+    QString respName = "RASTER_IMAGE_DATA";
 
     if (m_currentChannel[fileId][0] != channel || m_currentChannel[fileId][1] != stoke) {
+        //qDebug() << "[NewServerConnector] Set image channel=" << channel << ", fileId=" << fileId << ", stoke=" << stoke;
         // update the current channel and stoke
-        m_currentChannel[fileId][0] = channel;
-        m_currentChannel[fileId][1] = stoke;
+        m_currentChannel[fileId] = {channel, stoke};
     } else {
-        qDebug() << "[NewServerConnector] Internal signal is repeated!! Don't know the reason yet, just ignore the signal!!";
+        //qDebug() << "[NewServerConnector] Internal signal is repeated!! Don't know the reason yet, just ignore the signal!!";
         return;
     }
 
     // set spectral and stoke frame ranges to calculate the pixel to histogram data
     //m_calHistRange[fileId] = {0, m_lastFrame[fileId], 0};
-    m_calHistRange[fileId] = {channel, channel, stoke};
-
-    m_changeFrame[fileId] = true;
+    //m_calHistRange[fileId] = {channel, channel, stoke};
 
     // get the controller
     Carta::Data::Controller* controller = _getController();
@@ -558,34 +517,25 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
     // set the file id as the private parameter in the Stack object
     controller->setFileId(fileId);
 
-    /////////////////////////////////////////////////////////////////////
-    respName = "REGION_HISTOGRAM_DATA";
-
-    // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
-    int regionId = -1;
-
-    // calculate pixels to histogram data
-    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr; // do not include unit converter for pixel values
-    PBMSharedPtr region_histogram_data = controller->getPixels2Histogram(fileId, regionId, m_calHistRange[fileId][0], m_calHistRange[fileId][1], numberOfBins, m_calHistRange[fileId][2], converter);
-
-    msg = region_histogram_data;
-
-    // send the serialized message to the frontend
-    sendSerializedMessage(respName, eventId, msg);
-    /////////////////////////////////////////////////////////////////////
-
-    /////////////////////////////////////////////////////////////////////
-    respName = "RASTER_IMAGE_DATA";
-
+    // set the current channel
     int frameLow = m_currentChannel[fileId][0];
     int frameHigh = frameLow;
     int stokeFrame = m_currentChannel[fileId][1];
 
+    // If the histograms correspond to the entire current 2D image, the region ID has a value of -1.
+    int regionId = -1;
+
+    // do not include unit converter for pixel values
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr;
+
+    // set image changed is true
+    m_changeFrame[fileId] = true;
+
     // get image viewer bounds with respect to the fileId
-    int x_min = m_imageBounds[fileId][0];
-    int x_max = m_imageBounds[fileId][1];
-    int y_min = m_imageBounds[fileId][2];
-    int y_max = m_imageBounds[fileId][3];
+    int xMin = m_imageBounds[fileId][0];
+    int xMax = m_imageBounds[fileId][1];
+    int yMin = m_imageBounds[fileId][2];
+    int yMax = m_imageBounds[fileId][3];
     int mip = m_imageBounds[fileId][4];
 
     bool isZFP = m_isZFP[fileId];
@@ -593,12 +543,40 @@ void NewServerConnector::imageChannelUpdateSignalSlot(uint32_t eventId, int file
     int numSubsets = m_ZFPSet[fileId][1];
 
     // use image bounds with respect to the fileID and get the down sampling raster image raw data
-    PBMSharedPtr raster = controller->getRasterImageData(fileId, x_min, x_max, y_min, y_max, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
-    msg = raster;
+    PBMSharedPtr raster = controller->getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip,
+                                                         frameLow, frameHigh, stokeFrame,
+                                                         isZFP, precision, numSubsets,
+                                                         m_changeFrame[fileId], regionId, numberOfBins, converter);
 
     // send the serialized message to the frontend
-    sendSerializedMessage(respName, eventId, msg);
-    /////////////////////////////////////////////////////////////////////
+    sendSerializedMessage(respName, eventId, raster);
+}
+
+void NewServerConnector::setCursorSignalSlot(uint32_t eventId, int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs) {
+    qDebug() << "[NewServerConnector] set cursor file id=" << fileId;
+
+    // Part 1: Caculate spatial profile data
+    // get the controller
+    Carta::Data::Controller* controller = _getController();
+
+    // set the file id as the private parameter in the Stack object
+    controller->setFileId(fileId);
+
+    // set the current channel
+    int frameLow = m_currentChannel[fileId][0];
+    int frameHigh = frameLow;
+    int stokeFrame = m_currentChannel[fileId][1];
+
+    // do not include unit converter for pixel values
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter = nullptr;
+
+    // get X/Y profile & fill in the response
+    int x = (int)round(point.x());
+    int y = (int)round(point.y());
+    PBMSharedPtr pbMsg = controller->getXYProfiles(fileId, x, y, frameLow, frameHigh, stokeFrame, converter);
+
+    // send the serialized message to the frontend
+    sendSerializedMessage("SPATIAL_PROFILE_DATA", eventId, pbMsg);
 }
 
 void NewServerConnector::sendSerializedMessage(QString respName, uint32_t eventId, PBMSharedPtr msg) {

@@ -18,17 +18,17 @@ DrawImageViewsSynchronizer::DrawImageViewsSynchronizer( QObject* parent)
 
 void DrawImageViewsSynchronizer::_doneMain( bool /*drawn*/){
     m_busy = false;
-    _startNextDraw();
+//    _startNextDraw();
 }
 
 void DrawImageViewsSynchronizer::_doneContext( bool /*drawn*/ ){
     m_busy = false;
-    _startNextDraw();
+//    _startNextDraw();
 }
 
 void DrawImageViewsSynchronizer::_doneZoom( bool /*drawn*/){
     m_busy = false;
-    _startNextDraw();
+//    _startNextDraw();
 }
 
 bool DrawImageViewsSynchronizer::isContextView() const {
@@ -68,7 +68,7 @@ void DrawImageViewsSynchronizer::render( const std::shared_ptr<RenderRequest>& r
 		}
 
 		//Store the data & request.
-		_startNextDraw();
+//		_startNextDraw();
 	}
 }
 
@@ -93,25 +93,25 @@ void DrawImageViewsSynchronizer::setViewDrawZoom( std::shared_ptr<DrawStackSynch
     }
 }
 
-void DrawImageViewsSynchronizer::_startNextDraw(){
-    if ( m_requests.size() > 0 ){
-        m_busy = true;
-        std::shared_ptr<RenderRequest> request = m_requests.dequeue();
-        if ( request->isRequestMain() ){
-            //Start the main renderer
-            request->setOutputSize( m_drawMain->getClientSize() );
-            m_drawMain-> _render( request);
-        }
-        else if ( request->isRequestContext() ){
-            request->setOutputSize( m_drawContext->getClientSize() );
-            m_drawContext-> _render(request);
-        }
-        else if ( request->isRequestZoom() ){
-            request->setOutputSize( m_drawZoom->getClientSize() );
-            m_drawZoom->_render(request);
-        }
-    }
-}
+//void DrawImageViewsSynchronizer::_startNextDraw(){
+//    if ( m_requests.size() > 0 ){
+//        m_busy = true;
+//        std::shared_ptr<RenderRequest> request = m_requests.dequeue();
+//        if ( request->isRequestMain() ){
+//            //Start the main renderer
+//            request->setOutputSize( m_drawMain->getClientSize() );
+//            m_drawMain-> _render( request);
+//        }
+//        else if ( request->isRequestContext() ){
+//            request->setOutputSize( m_drawContext->getClientSize() );
+//            m_drawContext-> _render(request);
+//        }
+//        else if ( request->isRequestZoom() ){
+//            request->setOutputSize( m_drawZoom->getClientSize() );
+//            m_drawZoom->_render(request);
+//        }
+//    }
+//}
 
 
 DrawImageViewsSynchronizer::~DrawImageViewsSynchronizer(){

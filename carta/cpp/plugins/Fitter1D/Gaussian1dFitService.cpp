@@ -1,10 +1,3 @@
-//#include "common.h"
-
-//#include "FitsParser.h"
-//#include "RaiCache.h"
-//#include "Optimization/LMGaussFitter1d.h"
-//#include "Optimization/LBTAGauss1dFitter.h"
-//#include "Optimization/HeuristicGauss1dFitter.h"
 #include "Gaussian1dFitService.h"
 #include "HeuristicGauss1dFitter.h"
 #include "LBTAGauss1dFitter.h"
@@ -20,14 +13,11 @@ namespace Gaussian1dFitService
 static bool
 registerMetaTypes()
 {
-    std::cerr << "Registering metatype\n";
-    std::cerr << "Gaussian1dFitService::Results = "
-              << qRegisterMetaType < Gaussian1dFitService::ResultsG1dFit > ( "ResultsG1dFit" ) <<
-        "\n";
-    std::cerr << "Gaussian1dFitService::InputParameters = "
-              << qRegisterMetaType < Gaussian1dFitService::InputParametersG1dFit > (
-        "InputParametersG1dFit" )
-              << "\n";
+    qDebug() << "Registering metatype";
+    qDebug() << "Gaussian1dFitService::Results = "
+             << qRegisterMetaType<Gaussian1dFitService::ResultsG1dFit>( "ResultsG1dFit" );
+    qDebug() << "Gaussian1dFitService::InputParameters = "
+             << qRegisterMetaType < Gaussian1dFitService::InputParametersG1dFit >("InputParametersG1dFit");
     return true;
 }
 

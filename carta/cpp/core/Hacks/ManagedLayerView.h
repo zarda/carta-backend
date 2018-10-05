@@ -53,12 +53,12 @@ public:
     onInputEvent( Carta::Lib::InputEvent & event ) { Q_UNUSED( event ); }
 
     /// call this to update the rendering of raster
-    void
-    setRaster( const QImage & image );
+//    void
+//    setRaster( const QImage & image );
 
     /// call this to update the rendering vector graphics
-    void
-    setVG( const Carta::Lib::VectorGraphics::VGList & vgList );
+//    void
+//    setVG( const Carta::Lib::VectorGraphics::VGList & vgList );
 
     /// does the layer have input?
     bool
@@ -90,18 +90,18 @@ private:
     isRaster() { return m_isRaster; }
 
     bool m_isRaster = true;
-    QImage m_rasterBuff;
+//    QImage m_rasterBuff;
     Carta::Lib::IQImageCombiner::SharedPtr m_rasterCombiner;
-    Carta::Lib::VectorGraphics::VGList m_vgListBuff;
+//    Carta::Lib::VectorGraphics::VGList m_vgListBuff;
 
     Carta::Lib::IQImageCombiner::SharedPtr
     rasterCombiner() { return m_rasterCombiner; }
 
-    const QImage &
-    raster() { return m_rasterBuff; }
+//    const QImage &
+//    raster() { return m_rasterBuff; }
 
-    const Carta::Lib::VectorGraphics::VGList &
-    vgList() { return m_vgListBuff; }
+//    const Carta::Lib::VectorGraphics::VGList &
+//    vgList() { return m_vgListBuff; }
 
     /// does the layer receive input?
     bool m_hasInput = false;
@@ -169,16 +169,16 @@ public slots:
 private slots:
 
     // callback for client size changes from LayeredRemoteVGView
-    void
-    clientSizeChangedCB();
+//    void
+//    clientSizeChangedCB();
 
-    // callback for input events
-    void
-    inputEventCB( Carta::Lib::InputEvent e );
+//    // callback for input events
+//    void
+//    inputEventCB( Carta::Lib::InputEvent e );
 
     // internal repaint timer callback
-    void
-    repaintTimerCB();
+//    void
+//    repaintTimerCB();
 
 private:
 

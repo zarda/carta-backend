@@ -63,7 +63,7 @@ void StatisticsCASARegion::_getStatsFromCalculator( casacore::ImageInterface<cas
     casacore::ImageRegion* imgBox = new casacore::ImageRegion( box );
     std::shared_ptr<casacore::SubImage<casacore::Float> > boxImage( new casacore::SubImage<Float>(*image, *imgBox ) );
 
-    casa::ImageStatsCalculator calc( boxImage, &region, "", true);
+    casa::ImageStatsCalculator<Float> calc( boxImage, &region, "", true);
     calc.setList(false);
     Record result = calc.calculate();
     const casacore::String blcKey( "blc");

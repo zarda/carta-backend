@@ -556,22 +556,39 @@ int LayerGroup::_getSpectralIndicator() const {
     return result;
 }
 
-PBMSharedPtr LayerGroup::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh,
-    int numberOfBins, int stokeFrame, Lib::IntensityUnitConverter::SharedPtr converter) const {
+PBMSharedPtr LayerGroup::_getPixels2Histogram(int fileId, int regionId, int frameLow, int frameHigh, int stokeFrame,
+    int numberOfBins, Lib::IntensityUnitConverter::SharedPtr converter) const {
     PBMSharedPtr results;
     int dataIndex = _getIndexCurrent();
     if ( dataIndex >= 0 ){
-        results = m_children[dataIndex]->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, numberOfBins, stokeFrame, converter);
+        results = m_children[dataIndex]->_getPixels2Histogram(fileId, regionId, frameLow, frameHigh, stokeFrame, numberOfBins, converter);
     }
     return results;
 }
 
-PBMSharedPtr LayerGroup::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax,
-    int mip, int frameLow, int frameHigh, int stokeFrame, bool isZFP, int precision, int numSubsets) const {
+PBMSharedPtr LayerGroup::_getXYProfiles(int fileId, int x, int y,
+    int frameLow, int frameHigh, int stokeFrame,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
+    PBMSharedPtr results;
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex >= 0 ){
+        results = m_children[dataIndex]->_getXYProfiles(fileId, x, y, frameLow, frameHigh, stokeFrame, converter);
+    }
+    return results;
+}
+
+PBMSharedPtr LayerGroup::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
+    int frameLow, int frameHigh, int stokeFrame,
+    bool isZFP, int precision, int numSubsets,
+    bool &changeFrame, int regionId, int numberOfBins,
+    Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
     PBMSharedPtr results;
     int dataIndex = _getIndexCurrent();
     if (dataIndex >= 0) {
-        results = m_children[dataIndex]->_getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip, frameLow, frameHigh, stokeFrame, isZFP, precision, numSubsets);
+        results = m_children[dataIndex]->_getRasterImageData(fileId, xMin, xMax, yMin, yMax, mip,
+                                                             frameLow, frameHigh, stokeFrame,
+                                                             isZFP, precision, numSubsets,
+                                                             changeFrame, regionId, numberOfBins, converter);
     }
     return results;
 }

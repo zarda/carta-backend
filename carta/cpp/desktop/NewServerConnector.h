@@ -63,8 +63,7 @@ public:
     void unregisterView( const QString& viewName ) override;
     virtual qint64 refreshView( IView * view) override;
     virtual void removeStateCallback( const CallbackID & id) override;
-    virtual Carta::Lib::IRemoteVGView *
-    makeRemoteVGView( QString viewName) override;
+    virtual Carta::Lib::IRemoteVGView * makeRemoteVGView( QString viewName) override;
 
     /// Return the location where the state is saved.
     virtual QString getStateLocation( const QString& saveName ) const override;
@@ -78,13 +77,17 @@ public slots:
 
     void startViewerSlot(const QString & sessionID);
     void onTextMessage(QString message);
-    void onBinaryMessageSignalSlot(char* message, size_t length);
+    void onBinaryMessageSignalSlot(const char* message, size_t length);
     void sendSerializedMessage(QString respName, uint32_t eventId, PBMSharedPtr msg);
 
     void imageChannelUpdateSignalSlot(uint32_t eventId, int fileId, int channel, int stoke);
     void setImageViewSignalSlot(uint32_t eventId, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
                                 bool isZFP, int precision, int numSubsets);
     void openFileSignalSlot(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId);
+    void setCursorSignalSlot(uint32_t eventId, int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs);
+
+    void fileListRequestSignalSlot(uint32_t eventId, CARTA::FileListRequest fileListRequest);
+    void fileInfoRequestSignalSlot(uint32_t eventId, CARTA::FileInfoRequest fileInfoRequest);
 
 signals:
 
@@ -93,7 +96,7 @@ signals:
     //new arch
     void startViewerSignal(const QString & sessionID);
     void onTextMessageSignal(QString message);
-    void onBinaryMessageSignal(char* message, size_t length);
+    void onBinaryMessageSignal(const char* message, size_t length);
 
     void jsTextMessageResultSignal(QString result);
     void jsBinaryMessageResultSignal(QString respName, uint32_t eventId, PBMSharedPtr message);
@@ -102,6 +105,10 @@ signals:
     void setImageViewSignal(uint32_t eventId, int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
                             bool isZFP, int precision, int numSubsets);
     void openFileSignal(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId);
+    void setCursorSignal(uint32_t eventId, int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs);
+
+    void fileListRequestSignal(uint32_t eventId, CARTA::FileListRequest fileListRequest);
+    void fileInfoRequestSignal(uint32_t eventId, CARTA::FileInfoRequest fileInfoRequest);
 
     // /// we emit this signal when state is changed (either by c++ or by javascript)
     // /// we listen to this signal, and so does javascript
@@ -162,7 +169,7 @@ private:
     std::map<int, bool> m_isZFP; // whether if ZFP compression is required by the frontend
     std::map<int, std::vector<int> > m_ZFPSet; // m_ZFPSet[fileId] = {precision, numSubsets}
     std::map<int, std::vector<int> > m_currentChannel; // m_currentChannel[fileId] = {spectralFrame, stokeFrame}
-    std::map<int, std::vector<int> > m_calHistRange; // m_calHistRange[fileId] = {frameLow, frameHigh, stokeFrame}
+    //std::map<int, std::vector<int> > m_calHistRange; // m_calHistRange[fileId] = {frameLow, frameHigh, stokeFrame}
     std::map<int, int> m_lastFrame; // m_lastFrame[fileId] = lastFrame (for the spectral axis)
     std::map<int, bool> m_changeFrame;
     const int numberOfBins = 10000; // define number of bins for calculating pixels to histogram data

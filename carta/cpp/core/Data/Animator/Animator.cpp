@@ -209,34 +209,34 @@ void Animator::_axesChanged(){
     }
 }
 
-void Animator::changeFrame( int index, const QString& animName ){
-    int linkCount = m_linkImpl->getLinkCount();
-    for( int i = 0; i < linkCount; i++ ){
-        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
-        if ( controller != nullptr ){
-            if ( animName == Selection::IMAGE ){
-                controller->setFrameImage( index );
-            }
-            else if ( animName == Selection::REGION ){
-            	controller->setFrameRegion( index );
-            }
-            else {
-                AxisInfo::KnownType axisType = AxisMapper::getType( animName );
-                if ( axisType != AxisInfo::KnownType::OTHER ){
-                    controller->_setFrameAxis( index, axisType );
-                }
-            }
-        }
-    }
-}
+//void Animator::changeFrame( int index, const QString& animName ){
+//    int linkCount = m_linkImpl->getLinkCount();
+//    for( int i = 0; i < linkCount; i++ ){
+//        Controller* controller = dynamic_cast<Controller*>( m_linkImpl->getLink(i));
+//        if ( controller != nullptr ){
+//            if ( animName == Selection::IMAGE ){
+//                controller->setFrameImage( index );
+//            }
+//            else if ( animName == Selection::REGION ){
+//            	controller->setFrameRegion( index );
+//            }
+//            else {
+//                AxisInfo::KnownType axisType = AxisMapper::getType( animName );
+//                if ( axisType != AxisInfo::KnownType::OTHER ){
+//                    controller->_setFrameAxis( index, axisType );
+//                }
+//            }
+//        }
+//    }
+//}
 
 void Animator::clear(){
     m_linkImpl->clear();
 }
 
-void Animator::_frameChanged( int index, const QString& axisName ){
-    changeFrame( index, axisName );
-}
+//void Animator::_frameChanged( int index, const QString& axisName ){
+//    changeFrame( index, axisName );
+//}
 
 AnimatorType* Animator::getAnimator( const QString& type ){
     AnimatorType* animator = nullptr;

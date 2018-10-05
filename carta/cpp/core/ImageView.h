@@ -1,6 +1,7 @@
 #include "IView.h"
-#include <QImage>
-#include <QColor>
+//#include <QImage>
+//#include <QColor>
+#include <QObject>
 
 class IConnector;
 
@@ -16,20 +17,20 @@ Q_OBJECT
 
 public:
 
-    ImageView(const QString & viewName, QColor bgColor, QImage img, Carta::State::StateInterface* mouseState);
+//    ImageView(const QString & viewName, QColor bgColor, QImage img, Carta::State::StateInterface* mouseState);
 
-    void resetImage(QImage img);
+//    void resetImage(QImage img);
     /**
      * Refresh the view.
      */
-    void scheduleRedraw();
+//    void scheduleRedraw();
     virtual void registration(IConnector *connector) override;
     virtual const QString & name() const override;
-    virtual QSize size() override;
-    virtual const QImage & getBuffer() override;
-    virtual void handleResizeRequest(const QSize & size) override;
-    virtual void handleMouseEvent(const QMouseEvent & ev) override;
-    virtual void handleKeyEvent(const QKeyEvent & /*event*/) override {}
+//    virtual QSize size() override;
+//    virtual const QImage & getBuffer() override;
+//    virtual void handleResizeRequest(const QSize & size) override;
+//    virtual void handleMouseEvent(const QMouseEvent & ev) override;
+//    virtual void handleKeyEvent(const QKeyEvent & /*event*/) override {}
     virtual void viewRefreshed( qint64 /*id*/) override {}
     static const QString MOUSE;
     static const QString MOUSE_X;
@@ -42,15 +43,15 @@ signals:
 
 protected:
 
-    void redrawBuffer();
+//    void redrawBuffer();
 
-    QColor m_bgColor;
-    QImage m_defaultImage;
+//    QColor m_bgColor;
+//    QImage m_defaultImage;
     IConnector * m_connector;
-    QImage m_qimage;
+//    QImage m_qimage;
     QString m_viewName;
     int m_timerId;
-    QPointF m_lastMouse;
+//    QPointF m_lastMouse;
     Carta::State::StateInterface* m_mouseState;
 
 
