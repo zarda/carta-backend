@@ -16,6 +16,8 @@
 #include "CartaLib/Proto/region_histogram.pb.h"
 #include "CartaLib/Proto/raster_image.pb.h"
 #include "CartaLib/Proto/spatial_profile.pb.h"
+#include "CartaLib/Proto/spectral_profile.pb.h"
+#include "CartaLib/Proto/region_requirements.pb.h"
 
 //#include "CartaLib/Regions/IRegion.h"
 //#include "CartaLib/Regions/Ellipse.h"
@@ -598,8 +600,12 @@ private:
     void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames );
 
+    // set spectral requirements
+    bool _setSpectralRequirements(int fileId, int regionId, int stokeFrame,
+            google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles);
+
     // calculate spectral profile (z-profile)
-    void _getSpectralProfile();
+    PBMSharedPtr _getSpectralProfile(int fileId, int x, int y, int stoke);
 
     /**
      *  Constructor.
