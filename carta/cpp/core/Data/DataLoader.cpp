@@ -307,12 +307,10 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     }
 
     // generate information and insert to fileInfoExt
-    // Part 1: get statistic information using ImageStats plugin
+    // [TODO] Part 1: get statistic information using ImageStats plugin,
+    //                it is broken after updating casacore (_getStatisticInfo())
     // Part 2: generate some customized information
     std::map<QString, QString> infoMap = {};
-    if (false == _getStatisticInfo(infoMap, image)) {
-        qDebug() << "[File Info] Get statistic informtion error.";
-    }  
     if (false == _genCustomizedInfo(infoMap, image)) {
         qDebug() << "[File Info] Generate file information error.";
     }
@@ -388,7 +386,7 @@ bool DataLoader::_getStatisticInfo(std::map<QString, QString>& infoMap,
     images.push_back(image);
     
     // regions is an empty setting so far
-//    std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase>> regions;
+    // std::vector<std::shared_ptr<Carta::Lib::Regions::RegionBase>> regions;
     
     // get the statistical data of the whole image
     std::vector<int> frameIndices(image->dims().size(), -1);
@@ -437,7 +435,12 @@ bool DataLoader::_genCustomizedInfo(std::map<QString, QString>& infoMap,
     fhExtractor.setInput(image);
     std::map<QString, QString> headerMap = fhExtractor.getHeaderMap();
 
-    // generate customized info 1~6
+    // generate customized info 0~7
+    // 0. Generate image dimension info & insert to entry
+    if (false == _genImgDimensionInfo(infoMap, headerMap)) {
+        qDebug() << "Generate image dimension info & insert to entry failed.";
+    }
+
     // 1. Generate customized stokes + channels info & insert to entry
     if (false == _genStokesChannelsInfo(infoMap, headerMap)) {
         qDebug() << "Generate stokes + channels info & insert to entry failed.";
@@ -466,7 +469,55 @@ bool DataLoader::_genCustomizedInfo(std::map<QString, QString>& infoMap,
     // 6. Generate customized velocity definition info & insert to entry
     if (false == _genRemainInfo(infoMap, headerMap)) {
         qDebug() << "Generate velocity definition info & insert to entry failed.";
-    }    
+    }
+
+    // 7. Generate customized restoring beam info & insert to entry
+    if (false == _genRestoringBeam(infoMap, headerMap)) {
+        qDebug() << "Generate restoring beam info & insert to entry failed.";
+    }
+
+    return true;
+}
+
+// Generate image dimension info according to NAXIS, NAXIS1, NAXIS2, NAXIS3...
+bool DataLoader::_genImgDimensionInfo(std::map<QString, QString>& infoMap, const std::map<QString, QString> headerMap) {
+    // check whether headerMap is empty
+    if (headerMap.empty()) {
+        qDebug() << "Empty argument: headerMap.";
+        return false;
+    }
+
+    // check whether corresponding fields can be found in map
+    auto naxis = headerMap.find("NAXIS");
+    if (naxis == headerMap.end()) {
+        qDebug() << "Cannot find NAXIS.";
+        return false;
+    }
+
+    // convert NAXIS to integer
+    bool ok = false;
+    int N = (naxis->second).toInt(&ok);
+    if(!ok) {qDebug() << "Convert NAXIS to integer error."; return false;}
+
+    // traverse each axis
+    QString result = "[";
+    for(int index = 1; index <= N; index++) {
+        QString temp = "NAXIS" + QString::number(index);
+        auto found = headerMap.find(temp);
+        if (found == headerMap.end()) {
+            qDebug() << "Cannot find " << temp << ".";
+            return false;
+        }
+
+        result += found->second;
+        if (index < N) {
+            result += ", ";
+        }
+    }
+    result += "]";
+
+    // insert (label, value) to info entry
+    infoMap["Shape"] =  result;
 
     return true;
 }
@@ -785,6 +836,51 @@ bool DataLoader::_genRemainInfo(std::map<QString, QString>& infoMap,
     return true;
 }
 
+// Generate customized restoring beam info according to BMAJ, BMIN, BPA
+bool DataLoader::_genRestoringBeam(std::map<QString, QString>& infoMap, const std::map<QString, QString> headerMap) {
+    // check whether headerMap is empty
+    if (headerMap.empty()) {
+        qDebug() << "Empty argument: headerMap.";
+        return false;
+    }
+
+    // check whether corresponding fields can be found in map
+    auto bmaj = headerMap.find("BMAJ");
+    auto bmin = headerMap.find("BMIN");
+    auto bpa = headerMap.find("BPA");
+    if (bmaj == headerMap.end() || bmin == headerMap.end() || bpa == headerMap.end()) {
+        qDebug() << "Cannot find BMAJ BMIN BPA.";
+        return false;
+    }
+
+    // generate result: BMAJ(arcsec) X BMIN(arcsec), BPA(degree)
+    QString result = "";
+    bool ok = false;
+    double num = 0;
+
+    // BMAJ
+    num = (bmaj->second).toDouble(&ok);
+    if(!ok) {qDebug() << "Convert BMAJ to double error."; return false;}
+    result += (_deg2arcsec(num) + " X ");
+
+    // BMIN
+    num = (bmin->second).toDouble(&ok);
+    if(!ok) {qDebug() << "Convert BMIN to double error."; return false;}
+    result += (_deg2arcsec(num) + ", ");
+
+    // BPA
+    num = (bpa->second).toDouble(&ok);
+    if(!ok) {qDebug() << "Convert BPA to double error."; return false;}
+    char buf[512];
+    snprintf(buf, sizeof(buf), "%.4f", num);
+    result += QString(buf);
+
+    // insert (label, value) to info entry
+    infoMap["Restoring Beam"] =  result;
+
+    return true;
+}
+
 void DataLoader::_initCallbacks(){
 
     //Callback for returning a list of data files that can be loaded.
@@ -950,8 +1046,6 @@ bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std:
         "Image reference coordinate",
         "RA Range",
         "Dec Range",
-        "Frequency Range",
-        "Velocity Range",
         "Celestial frame",
         "Coordinate type",
         "Projection",
