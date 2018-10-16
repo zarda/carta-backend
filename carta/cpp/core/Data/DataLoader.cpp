@@ -617,7 +617,7 @@ bool DataLoader::_genPixelSizeInfo(std::map<QString, QString>& infoMap,
     QString str2 = _unitConversion(cdelt2->second, unit2->second);
 
     // insert (label, value) to info entry
-    infoMap["Pixel size"] = str1 + ", " + str2;
+    infoMap["Pixel increment"] = str1 + ", " + str2;
 
     return true;
 }
@@ -713,13 +713,13 @@ bool DataLoader::_genImgRefCoordInfo(std::map<QString, QString>& infoMap,
         val1Str = _convertHz(v1);
     } else {
         snprintf(buf, sizeof(buf), "%.4f", v1);
-        val1Str = QString(buf) + " " + cunit1->second;
+        val1Str = QString(buf);
     }
     if ((cunit2->second).contains("Hz", Qt::CaseInsensitive)) {
         val2Str = _convertHz(v2);
     } else {
         snprintf(buf, sizeof(buf), "%.4f", v2);
-        val2Str = QString(buf) + " " + cunit2->second;
+        val2Str = QString(buf);
     }
 
     // generate arcsec if unit is degree
@@ -744,10 +744,9 @@ bool DataLoader::_genImgRefCoordInfo(std::map<QString, QString>& infoMap,
     }
 
     // insert (label, value) to info entry
-    QString value = "[" + pix1Str + ", " + pix2Str + "] [" +
-                    val1Str + ", " + val2Str + "]" +
-                    arcsecStr;
-    infoMap["Image reference coordinate"] = value;
+    infoMap["Image reference coordinate (pixel)"] = "[" + pix1Str + ", " + pix2Str + "]";
+    infoMap["Image reference coordinate (degree)"] = "[" + val1Str + ", " + val2Str + "]";
+    infoMap["Image reference coordinate (sexagesimal)"] = arcsecStr;
 
     return true;
 }
@@ -872,7 +871,7 @@ bool DataLoader::_genRestoringBeam(std::map<QString, QString>& infoMap, const st
     num = (bpa->second).toDouble(&ok);
     if(!ok) {qDebug() << "Convert BPA to double error."; return false;}
     char buf[512];
-    snprintf(buf, sizeof(buf), "%.4f", num);
+    snprintf(buf, sizeof(buf), "%.4f deg", num);
     result += QString(buf);
 
     // insert (label, value) to info entry
@@ -1043,7 +1042,9 @@ bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std:
         "Shape",
         "Number of Stokes",
         "Number of Channels",
-        "Image reference coordinate",
+        "Image reference coordinate (pixel)",
+        "Image reference coordinate (degree)",
+        "Image reference coordinate (sexagesimal)",
         "RA Range",
         "Dec Range",
         "Celestial frame",
@@ -1055,7 +1056,7 @@ bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std:
         "Median Restoring Beam",
         "Beam Area",
         "Pixel unit",
-        "Pixel size"
+        "Pixel increment"
     };
 
     for (auto iter = keys.begin(); iter != keys.end(); iter++) {
