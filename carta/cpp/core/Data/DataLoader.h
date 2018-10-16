@@ -140,6 +140,9 @@ private:
     bool _genCustomizedInfo(std::map<QString, QString>& infoMap,
                          const std::shared_ptr<Carta::Lib::Image::ImageInterface> image);
 
+    // Generate image dimension info & insert to entry
+    bool _genImgDimensionInfo(std::map<QString, QString>& infoMap, const std::map<QString, QString> headerMap);
+
     // Generate customized stokes & channels info & insert to entry
     bool _genStokesChannelsInfo(std::map<QString, QString>& infoMap, const std::map<QString, QString> headerMap);
 
@@ -157,6 +160,9 @@ private:
 
     // Generate customized remaining info & insert to entry
     bool _genRemainInfo(std::map<QString, QString>& infoMap, const std::map<QString, QString> headerMap);
+
+    // Generate customized restoring beam info & insert to entry
+    bool _genRestoringBeam(std::map<QString, QString>& infoMap, const std::map<QString, QString> headerMap);
 
     // customized arrange file info
     bool _arrangeFileInfo(const std::map<QString, QString> infoMap, std::vector<std::vector<QString>>& pairs);
