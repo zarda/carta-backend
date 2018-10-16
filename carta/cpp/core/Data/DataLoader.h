@@ -165,7 +165,7 @@ private:
     bool _genRestoringBeam(std::map<QString, QString>& infoMap, const std::map<QString, QString> headerMap);
 
     // customized arrange file info
-    bool _arrangeFileInfo(const std::map<QString, QString> infoMap, std::vector<std::vector<QString>>& pairs);
+    bool _arrangeFileInfo(const std::map<QString, QString> infoMap, std::vector<std::pair<QString,QString>>& pairs);
 
     // Unit conversion: returns "value + unit"
     QString _unitConversion(const QString value, const QString unit);
