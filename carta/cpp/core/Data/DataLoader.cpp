@@ -316,7 +316,7 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
     }
 
     // customized arrange file info into an array[] of {key, value}
-    std::vector<std::vector<QString>> pairs = {};
+    std::vector<std::pair<QString,QString>> pairs;
     if (false == _arrangeFileInfo(infoMap, pairs)) {
         qDebug() << "Sort file info entry error.";
     } else {
@@ -324,8 +324,8 @@ DataLoader::PBMSharedPtr DataLoader::getFileInfo(CARTA::FileInfoRequest fileInfo
         for (auto iter = pairs.begin(); iter != pairs.end(); iter++) {
             auto *infoEntries = fileInfoExt->add_computed_entries();
             if (nullptr != infoEntries) {
-                infoEntries->set_name((*iter)[0].toLocal8Bit().constData());
-                infoEntries->set_value((*iter)[1].toLocal8Bit().constData());
+                infoEntries->set_name((*iter).first.toLocal8Bit().constData());
+                infoEntries->set_value((*iter).second.toLocal8Bit().constData());
             } else {
                 qDebug() << "Insert info entry to fileInfoExt error.";
             }
@@ -1029,7 +1029,7 @@ void DataLoader::_makeFolderNode( QJsonArray& parentArray, const QString& fileNa
 }
 
 // customized arrange file info
-bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std::vector<std::vector<QString>>& pairs){
+bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std::vector<std::pair<QString,QString>>& pairs){
     // check whether headerMap is empty
     if (infoMap.empty()) {
         qDebug() << "Empty argument: infoMap.";
@@ -1064,7 +1064,7 @@ bool DataLoader::_arrangeFileInfo(const std::map<QString, QString> infoMap, std:
 
         // omit empty field
         if (found != infoMap.end() && "" != found->second) {
-            pairs.push_back({found->first, found->second});
+            pairs.push_back(std::make_pair(found->first, found->second));
         }
     }
 
