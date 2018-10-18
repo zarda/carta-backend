@@ -24,6 +24,9 @@
 #include <cmath>
 #include <QFuture>
 #include <QtConcurrent>
+#include <QFileInfo>
+
+#define MAXHISTOGRAMCACHESIZE 20000
 
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
@@ -688,7 +691,10 @@ RegionHistogramData DataSource::_getPixels2HistogramData(int fileId, int regionI
     hashidsxx::Hashids hashIds;
     auto m_fileNameTemp = m_fileName;
     m_fileNameTemp.remove('/').remove('\\').remove('.');
-    std::string hashKey =  m_fileNameTemp.toUtf8().constData() + hashIds.encode(fileId, frameLow, stokeFrame);
+    QFileInfo m_fileInfo(m_fileName);
+    std::string hashKey =
+            m_fileNameTemp.toUtf8().constData() +
+            hashIds.encode(fileId, frameLow, stokeFrame, static_cast<int>(m_fileInfo.lastModified().toMSecsSinceEpoch()));
     qDebug() << "[DataSource] Historgram Hash Key =" << QString::fromStdString(hashKey);
 
     auto pCache = SqLitePCacheVector(QDir::homePath()+"/CARTA/cache/pcache_histogram.sqlite");
@@ -714,12 +720,12 @@ RegionHistogramData DataSource::_getPixels2HistogramData(int fileId, int regionI
         auto resultTemp         = std::vector<uint32_t>(cacheVector.begin()+7, cacheVector.end());
         result.bins.clear();
         result.bins.insert(result.bins.end(), resultTemp.begin(), resultTemp.end());
-        qDebug() << "[DataSource] Load Historgram Cache.";
+        qDebug() << "[DataSource] Load Histogram Cache.";
 
         // end of timer for loading Historgram Cache
         int elapsedTime = timer.elapsed();
         if (CARTA_RUNTIME_CHECKS) {
-            qCritical() << "<> Time to load Historgram Cache:" << elapsedTime << "ms";
+            qCritical() << "<> Time to load Histogram Cache:" << elapsedTime << "ms";
         }
 
     } else {
@@ -781,7 +787,7 @@ RegionHistogramData DataSource::_getPixels2HistogramData(int fileId, int regionI
 
         pCache.setEntry(hashKey, cacheVector);
 
-        while(listTemp.size()>20000){
+        while(MAXHISTOGRAMCACHESIZE < listTemp.size()){
             pCache.deleteTable(listTemp.front());
             pCache.listTable(listTemp);
         }
