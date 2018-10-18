@@ -25,6 +25,10 @@
 #include "CartaLib/ProfileInfo.h"
 #include "CartaLib/Hooks/ProfileHook.h"
 
+#include "core/Data/Image/hashidsxx/hashids.h"
+#include "PCacheSqlite3.h"
+#include <algorithm>
+
 typedef Carta::Lib::RegionHistogramData RegionHistogramData;
 typedef std::shared_ptr<google::protobuf::MessageLite> PBMSharedPtr;
 
