@@ -512,26 +512,25 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
 
 
     // If the disk cache exists, try to look up cached intensity values
+//    for (size_t i = 0; i < percentiles.size(); i++) {
+//        std::shared_ptr<Carta::Lib::IntensityValue> cachedValue = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame, transformationLabel);
 
-    for (size_t i = 0; i < percentiles.size(); i++) {
-        std::shared_ptr<Carta::Lib::IntensityValue> cachedValue = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame, transformationLabel);
+//        if (cachedValue /* this intensity cache exists */ &&
+//            cachedValue->error <= calculator->error /* already has an intensity error order smaller than the current choice */ ) {
+//            intensities[i] = cachedValue->value;
 
-        if (cachedValue /* this intensity cache exists */ &&
-            cachedValue->error <= calculator->error /* already has an intensity error order smaller than the current choice */ ) {
-            intensities[i] = cachedValue->value;
+//            qDebug() << "++++++++ Found percentile" << percentiles[i] << "in cache. Intensity:" << intensities[i] << "+/- (max-min)*" << cachedValue->error;
 
-            qDebug() << "++++++++ Found percentile" << percentiles[i] << "in cache. Intensity:" << intensities[i] << "+/- (max-min)*" << cachedValue->error;
+//            // We only cache statistics for each distinct frame-dependent calculation
+//            // But we need to apply any constant multipliers
+//            if (converter) {
+//                intensities[i] = intensities[i] * converter->multiplier;
+//            }
 
-            // We only cache statistics for each distinct frame-dependent calculation
-            // But we need to apply any constant multipliers
-            if (converter) {
-                intensities[i] = intensities[i] * converter->multiplier;
-            }
-
-            found[i] = true;
-            foundCount++;
-        }
-    }
+//            found[i] = true;
+//            foundCount++;
+//        }
+//    }
 
     // Not all percentiles were in the cache.  We are going to have to look some up.
     if (foundCount < percentiles.size()) {
@@ -561,7 +560,6 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         }
 
         // if the algorithm is approximate, add extra percentiles from clips, but only if they are not cached
-
         if (calculator->isApproximate) {
             std::shared_ptr<Carta::Data::Clips> m_clips;
             std::vector<double> percentilesFromClips = m_clips->getAllClips2percentiles();
@@ -619,14 +617,13 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         clips_map = calculator->percentile2pixels(doubleView, percentilesToCalculate, spectralIndex, converter, hertzValues);
 
         // add all the calculated values to the cache
+//        for (auto &m : clips_map) {
+//            // TODO: check what happens with the close values. Do we also need to cache the value with a different key, or does the serialisation unify them?
+//            // put calculated values in the disk cache if it exists
+//            _setIntensityCache(m.second, calculator->error, frameLow, frameHigh, m.first, stokeFrame, transformationLabel);
 
-        for (auto &m : clips_map) {
-            // TODO: check what happens with the close values. Do we also need to cache the value with a different key, or does the serialisation unify them?
-            // put calculated values in the disk cache if it exists
-            _setIntensityCache(m.second, calculator->error, frameLow, frameHigh, m.first, stokeFrame, transformationLabel);
-
-            qDebug() << "++++++++ [set cache] for percentile" << m.first << ", intensity=" << m.second << "+/- (max-min)*" << calculator->error;
-        }
+//            qDebug() << "++++++++ [set cache] for percentile" << m.first << ", intensity=" << m.second << "+/- (max-min)*" << calculator->error;
+//        }
 
         // set return values (only the intensities which were requested)
 
@@ -694,7 +691,7 @@ RegionHistogramData DataSource::_getPixels2HistogramData(int fileId, int regionI
     std::string hashKey =  m_fileNameTemp.toUtf8().constData() + hashIds.encode(fileId, frameLow, stokeFrame);
     qDebug() << "[DataSource] Historgram Hash Key =" << QString::fromStdString(hashKey);
 
-    auto pCache = SqLitePCacheVector("/tmp/pcache.sqlite");
+    auto pCache = SqLitePCacheVector(QDir::homePath()+"/CARTA/cache/pcache_histogram.sqlite");
 
     std::vector<double> cacheVector;
     std::vector<std::string> listTemp;
@@ -702,6 +699,10 @@ RegionHistogramData DataSource::_getPixels2HistogramData(int fileId, int regionI
     pCache.listTable(listTemp);
 
     if(std::find(listTemp.begin(), listTemp.end(), hashKey)!=listTemp.end()){
+        // start timer for loading Historgram Cache
+        QElapsedTimer timer;
+        timer.start();
+
         pCache.readEntry(hashKey, cacheVector);
         result.fileId           = static_cast<int>(cacheVector[0]);
         result.regionId         = static_cast<int>(cacheVector[1]);
@@ -714,6 +715,12 @@ RegionHistogramData DataSource::_getPixels2HistogramData(int fileId, int regionI
         result.bins.clear();
         result.bins.insert(result.bins.end(), resultTemp.begin(), resultTemp.end());
         qDebug() << "[DataSource] Load Historgram Cache.";
+
+        // end of timer for loading Historgram Cache
+        int elapsedTime = timer.elapsed();
+        if (CARTA_RUNTIME_CHECKS) {
+            qCritical() << "<> Time to load Historgram Cache:" << elapsedTime << "ms";
+        }
 
     } else {
         qDebug() << "[DataSource] Calculating the regional histogram data...................................>";
