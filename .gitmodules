@@ -1,3 +1,6 @@
 [submodule "carta/cpp/CartaLib/Proto"]
 	path = carta/cpp/CartaLib/Proto
 	url = https://github.com/idia-astro/carta-protobuf.git
+[submodule "carta/cpp/core/Data/Image/hashidsxx"]
+	path = carta/cpp/core/Data/Image/hashidsxx
+	url = https://github.com/schoentoon/hashidsxx.git
