@@ -647,50 +647,103 @@ PBMSharedPtr DataSource::_getPixels2Histogram(int fileId, int regionId, int fram
     int numberOfBins, int stokeFrame,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) {
 
-    qDebug() << "[DataSource] Calculating the regional histogram data...................................>";
+    qDebug() << "[DataSource] Acquiring the regional histogram data...................................>";
     RegionHistogramData result; // results from the "percentileAlgorithms.h"
 
-    // get the raw data
-    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
-    if (rawData == nullptr) {
-        qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
-        return nullptr;
-    }
+    /// Prepare hash id
+    hashidsxx::Hashids hashIds;
+    auto m_fileNameTemp = m_fileName;
+    m_fileNameTemp.remove('/').remove('\\').remove('.');
+    std::string hashKey =  m_fileNameTemp.toUtf8().constData() + hashIds.encode(fileId, frameLow, stokeFrame);
+    qDebug() << "[DataSource] Historgram Hash Key =" << QString::fromStdString(hashKey);
 
-    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
-    Carta::Lib::NdArray::Double doubleView(view.get(), false);
+    auto pCache = SqLitePCacheVector("/tmp/pcache.sqlite");
 
-    // get the min/max intensities
-    double minIntensity = 0.0;
-    double maxIntensity = 0.0;
-    std::vector<double> minMaxIntensities = _getIntensity(frameLow, frameHigh, std::vector<double>({0, 1}), stokeFrame, converter);
-    if (minMaxIntensities.size() != 2) {
-        qCritical() << "Error: can not get the min/max intensities!!";
-        return nullptr;
+    std::vector<double> cacheVector;
+    std::vector<std::string> listTemp;
+
+    pCache.listTable(listTemp);
+
+    if(std::find(listTemp.begin(), listTemp.end(), hashKey)!=listTemp.end()){
+        pCache.readEntry(hashKey, cacheVector);
+        result.fileId           = static_cast<int>(cacheVector[0]);
+        result.regionId         = static_cast<int>(cacheVector[1]);
+        result.frameLow         = static_cast<int>(cacheVector[2]);
+        result.stokeFrame       = static_cast<int>(cacheVector[3]);
+        result.num_bins         = static_cast<int32_t>(cacheVector[4]);
+        result.bin_width        = static_cast<double>(cacheVector[5]);
+        result.first_bin_center = static_cast<double>(cacheVector[6]);
+        auto resultTemp         = std::vector<uint32_t>(cacheVector.begin()+7, cacheVector.end());
+        result.bins.clear();
+        result.bins.insert(result.bins.end(), resultTemp.begin(), resultTemp.end());
+        qDebug() << "[DataSource] Load Historgram Cache.";
+
     } else {
-        minIntensity = minMaxIntensities[0];
-        // assign the minimum of the pixel value as a private parameter
-        maxIntensity = minMaxIntensities[1];
+        qDebug() << "[DataSource] Calculating the regional histogram data...................................>";
+
+        // get the raw data
+        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
+        if (rawData == nullptr) {
+            qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
+            return nullptr;
+        }
+
+        std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
+        Carta::Lib::NdArray::Double doubleView(view.get(), false);
+
+        // get the min/max intensities
+        double minIntensity = 0.0;
+        double maxIntensity = 0.0;
+        std::vector<double> minMaxIntensities = _getIntensity(frameLow, frameHigh, std::vector<double>({0, 1}), stokeFrame, converter);
+        if (minMaxIntensities.size() != 2) {
+            qCritical() << "Error: can not get the min/max intensities!!";
+            return nullptr;
+        } else {
+            minIntensity = minMaxIntensities[0];
+            // assign the minimum of the pixel value as a private parameter
+            maxIntensity = minMaxIntensities[1];
+        }
+
+        if (minIntensity > maxIntensity) {
+            qCritical() << "Error: min intensity > max intensity!!";
+            return nullptr;
+        }
+
+        // get the calculator
+        Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = nullptr;
+        calculator = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
+
+        // Find Hz values if they are required for the unit transformation
+        std::vector<double> hertzValues;
+        if (converter && converter->frameDependent) {
+            hertzValues = _getHertzValues(doubleView.dims());
+        }
+
+        int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+        result = calculator->pixels2histogram(fileId, regionId, doubleView, minIntensity, maxIntensity,
+                                              numberOfBins, spectralIndex, converter, hertzValues, frameLow, stokeFrame);
+
+        /// Package the result
+        cacheVector.clear();
+        cacheVector.push_back(static_cast<double>(result.fileId));
+        cacheVector.push_back(static_cast<double>(result.regionId));
+        cacheVector.push_back(static_cast<double>(result.frameLow));
+        cacheVector.push_back(static_cast<double>(result.stokeFrame));
+        cacheVector.push_back(static_cast<double>(result.num_bins));
+        cacheVector.push_back(static_cast<double>(result.bin_width));
+        cacheVector.push_back(static_cast<double>(result.first_bin_center));
+        std::vector<double> cacheTemp(result.bins.begin(), result.bins.end());
+        cacheVector.insert(cacheVector.end(), cacheTemp.begin(), cacheTemp.end());
+
+        pCache.setEntry(hashKey, cacheVector);
+
+        while(listTemp.size()>200){
+            pCache.deleteTable(listTemp[1]);
+            pCache.listTable(listTemp);
+        }
+
     }
 
-    if (minIntensity > maxIntensity) {
-        qCritical() << "Error: min intensity > max intensity!!";
-        return nullptr;
-    }
-
-    // get the calculator
-    Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = nullptr;
-    calculator = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
-
-    // Find Hz values if they are required for the unit transformation
-    std::vector<double> hertzValues;
-    if (converter && converter->frameDependent) {
-        hertzValues = _getHertzValues(doubleView.dims());
-    }
-
-    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
-    result = calculator->pixels2histogram(fileId, regionId, doubleView, minIntensity, maxIntensity,
-                                          numberOfBins, spectralIndex, converter, hertzValues, frameLow, stokeFrame);
 
     // add RegionHistogramData message
     std::shared_ptr<CARTA::RegionHistogramData> region_histogram_data(new CARTA::RegionHistogramData());

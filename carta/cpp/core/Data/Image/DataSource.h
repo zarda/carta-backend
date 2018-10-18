@@ -16,6 +16,10 @@
 #include "CartaLib/Proto/region_histogram.pb.h"
 #include "CartaLib/Proto/raster_image.pb.h"
 
+#include "core/Data/Image/hashidsxx/hashids.h"
+#include "PCacheSqlite3.h"
+#include <algorithm>
+
 typedef Carta::Lib::RegionHistogramData RegionHistogramData;
 typedef std::shared_ptr<google::protobuf::MessageLite> PBMSharedPtr;
 
