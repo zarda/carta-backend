@@ -26,7 +26,7 @@
 #include "CartaLib/Hooks/ProfileHook.h"
 
 #include "core/Data/Image/hashidsxx/hashids.h"
-#include "PCacheSqlite3.h"
+#include "PCacheSqlite3Vector.h"
 #include <algorithm>
 
 typedef Carta::Lib::RegionHistogramData RegionHistogramData;
