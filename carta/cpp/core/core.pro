@@ -8,7 +8,7 @@ TEMPLATE = lib
 QT += network
 QT += xml
 QT += concurrent
-QT += xml sql
+QT += sql
 
 HEADERS += \
     IConnector.h \
