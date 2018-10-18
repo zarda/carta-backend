@@ -781,8 +781,8 @@ RegionHistogramData DataSource::_getPixels2HistogramData(int fileId, int regionI
 
         pCache.setEntry(hashKey, cacheVector);
 
-        while(listTemp.size()>200){
-            pCache.deleteTable(listTemp[1]);
+        while(listTemp.size()>20000){
+            pCache.deleteTable(listTemp.front());
             pCache.listTable(listTemp);
         }
 
