@@ -577,6 +577,25 @@ PBMSharedPtr LayerGroup::_getXYProfiles(int fileId, int x, int y,
     return results;
 }
 
+bool LayerGroup::_setSpectralRequirements(int fileId, int regionId, int stokeFrame,
+            google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles) const {
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex < 0 ){
+        return false;
+    }
+
+    return m_children[dataIndex]->_setSpectralRequirements(fileId, regionId, stokeFrame, spectralProfiles);
+}
+
+PBMSharedPtr LayerGroup::_getSpectralProfile(int fileId, int x, int y, int stokeFrame) const {
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex < 0 ){
+        return nullptr;
+    }
+
+    return m_children[dataIndex]->_getSpectralProfile(fileId, x, y, stokeFrame);
+}
+
 PBMSharedPtr LayerGroup::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
     int frameLow, int frameHigh, int stokeFrame,
     bool isZFP, int precision, int numSubsets,

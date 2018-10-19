@@ -39,7 +39,7 @@ private:
     casacore::MFrequency::Types _determineRefFrame(
             std::shared_ptr<casacore::ImageInterface<casacore::Float> > img ) const;
     Carta::Lib::Hooks::ProfileResult _generateProfile( casacore::ImageInterface < casacore::Float > * imagePtr,
-            std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo, Carta::Lib::ProfileInfo profileInfo ) const;
+            std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo, const int px, const int py, Carta::Lib::ProfileInfo profileInfo ) const;
     casa::ImageCollapserData::AggregateType _getCombineMethod( Carta::Lib::ProfileInfo profileInfo ) const;
     casacore::ImageRegion* _getEllipsoid(const casacore::CoordinateSystem& cSys,
             const casacore::Vector<casacore::Double>& x, const casacore::Vector<casacore::Double>& y) const;

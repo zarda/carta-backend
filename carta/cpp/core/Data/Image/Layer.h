@@ -17,6 +17,7 @@
 #include <QStack>
 #include <set>
 #include "CartaLib/IPercentileCalculator.h"
+#include "CartaLib/Proto/region_requirements.pb.h"
 
 typedef std::shared_ptr<google::protobuf::MessageLite> PBMSharedPtr;
 
@@ -312,6 +313,25 @@ protected:
     virtual PBMSharedPtr _getXYProfiles(int fileId, int x, int y,
             int frameLow, int frameHigh, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const = 0;
+
+    /**
+     * Returns success or failed when setting spectral requirements
+     * @param region id
+     * @param stoke frame
+     * @param spectral profiles - contains the information of required spectral profiles
+     * @return - true or false
+     */
+    virtual bool _setSpectralRequirements(int fileId, int regionId, int stokeFrame,
+            google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles) const = 0;
+
+    /**
+     * Returns a spectral profile of a point region
+     * @param x - x coordinate of cursor
+     * @param y - y coordinate of cursor
+     * @param stoke frame
+     * @return - a spectral profile
+     */
+    virtual PBMSharedPtr _getSpectralProfile(int fileId, int x, int y, int stokeFrame) const = 0;
 
     /**
      * Returns a vector of pixels.

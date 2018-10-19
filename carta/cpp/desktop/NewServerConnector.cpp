@@ -577,6 +577,29 @@ void NewServerConnector::setCursorSignalSlot(uint32_t eventId, int fileId, CARTA
 
     // send the serialized message to the frontend
     sendSerializedMessage("SPATIAL_PROFILE_DATA", eventId, pbMsg);
+
+    // get spectral profile
+    pbMsg = controller->getSpectralProfile(fileId, x, y, stokeFrame);
+
+    // send the serialized message to the frontend
+    sendSerializedMessage("SPECTRAL_PROFILE_DATA", eventId, pbMsg);
+}
+
+void NewServerConnector::setSpectralRequirementsSignalSlot(uint32_t eventId, int fileId, int regionId, google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles) {
+    // get the controller
+    Carta::Data::Controller* controller = _getController();
+
+    // set the file id as the private parameter in the Stack object
+    controller->setFileId(fileId);
+
+    // set the current channel
+    int stoke = m_currentChannel[fileId][1];
+
+    if (controller->setSpectralRequirements(fileId, regionId, stoke, spectralProfiles)) {
+        qDebug() << "[NewServerConnector] set spectral requirement successfully.";
+    } else {
+        qDebug() << "[NewServerConnector] set spectral requirement failed!";
+    }
 }
 
 void NewServerConnector::sendSerializedMessage(QString respName, uint32_t eventId, PBMSharedPtr msg) {

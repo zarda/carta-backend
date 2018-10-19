@@ -421,6 +421,23 @@ PBMSharedPtr LayerData::_getXYProfiles(int fileId, int x, int y,
     return results;
 }
 
+bool LayerData::_setSpectralRequirements(int fileId, int regionId, int stokeFrame,
+    google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles) const {
+    if ( !m_dataSource ){
+        return false;
+    }
+
+    return m_dataSource->_setSpectralRequirements(fileId, regionId, stokeFrame, spectralProfiles);
+}
+
+PBMSharedPtr LayerData::_getSpectralProfile(int fileId, int x, int y, int stokeFrame) const {
+    if ( !m_dataSource ){
+        return nullptr;
+    }
+
+    return m_dataSource->_getSpectralProfile(fileId, x, y, stokeFrame);
+}
+
 PBMSharedPtr LayerData::_getRasterImageData(int fileId, int xMin, int xMax, int yMin, int yMax, int mip,
     int frameLow, int frameHigh, int stokeFrame,
     bool isZFP, int precision, int numSubsets,

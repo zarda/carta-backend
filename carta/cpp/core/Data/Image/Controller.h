@@ -12,6 +12,7 @@
 #include "CartaLib/InputEvents.h"
 #include "CartaLib/IntensityUnitConverter.h"
 #include "CartaLib/IPercentileCalculator.h"
+#include "CartaLib/Proto/region_requirements.pb.h"
 #include <QString>
 #include <QList>
 #include <QObject>
@@ -259,6 +260,25 @@ public:
     PBMSharedPtr getXYProfiles(int fileId, int x, int y,
             int frameLow, int frameHigh, int stokeFrame,
             Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
+
+    /**
+     * Returns success or failed when setting spectral requirements
+     * @param region id
+     * @param stoke frame
+     * @param spectral profiles - contains the information of required spectral profiles
+     * @return - true or false
+     */
+    bool setSpectralRequirements(int fileId, int regionId, int stokeFrame,
+            google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles) const;
+
+    /**
+     * Returns a spectral profile of a point region
+     * @param x - x coordinate of cursor
+     * @param y - y coordinate of cursor
+     * @param stoke frame
+     * @return - a spectral profile
+     */
+    PBMSharedPtr getSpectralProfile(int fileId, int x, int y, int stokeFrame) const;
 
     /**
      * Returns a vector of pixels.

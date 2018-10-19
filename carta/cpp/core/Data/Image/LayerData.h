@@ -401,6 +401,25 @@ protected:
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const Q_DECL_OVERRIDE;
 
     /**
+     * Returns success or failed when setting spectral requirements
+     * @param region id
+     * @param stoke frame
+     * @param spectral profiles - contains the information of required spectral profiles
+     * @return - true or false
+     */
+    virtual bool _setSpectralRequirements(int fileId, int regionId, int stokeFrame,
+            google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles) const Q_DECL_OVERRIDE;
+
+    /**
+     * Returns a spectral profile of a point region
+     * @param x - x coordinate of cursor
+     * @param y - y coordinate of cursor
+     * @param stoke frame
+     * @return - a spectral profile
+     */
+    virtual PBMSharedPtr _getSpectralProfile(int fileId, int x, int y, int stokeFrame) const Q_DECL_OVERRIDE;
+
+    /**
      * Returns a vector of pixels.
      * @param xMin - lower bound of the x-pixel-coordinate.
      * @param xMax - upper bound 0f the x-pixel-coordinate.

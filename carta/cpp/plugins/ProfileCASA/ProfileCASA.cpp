@@ -54,7 +54,7 @@ casacore::MFrequency::Types ProfileCASA::_determineRefFrame(
 }
 
 Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casacore::ImageInterface < casacore::Float > * imagePtr,
-        std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo,
+        std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo, const int px, const int py,
         Carta::Lib::ProfileInfo profileInfo ) const {
     std::vector<std::pair<double,double> > profileData;
     casacore::CoordinateSystem cSys = imagePtr->coordinates();
@@ -127,8 +127,12 @@ Carta::Lib::Hooks::ProfileResult ProfileCASA::_generateProfile( casacore::ImageI
 			}
 			regionRecord = _getRegionRecord( shape, cSys, x, y);
     	}
-
-
+    } else { // handle regionInfo == nullptr
+        casacore::Vector<casacore::Double> x(1);
+        casacore::Vector<casacore::Double> y(1);
+        x[0] = px;
+        y[0] = py;
+        regionRecord = _getRegionRecord( "Point", cSys, x, y );
     }
     QString spectralType = profileInfo.getSpectralType();
     QString spectralUnit = profileInfo.getSpectralUnit();
@@ -426,7 +430,9 @@ bool ProfileCASA::handleHook(BaseHook & hookData){
 
         std::shared_ptr<Carta::Lib::Regions::RegionBase> regionInfo = hook.paramsPtr->m_regionInfo;
         Carta::Lib::ProfileInfo profileInfo = hook.paramsPtr->m_profileInfo;
-        hook.result = _generateProfile( casaImage, regionInfo, profileInfo );
+        int x = hook.paramsPtr->m_x;
+        int y = hook.paramsPtr->m_y;
+        hook.result = _generateProfile( casaImage, regionInfo, x, y, profileInfo );
         casa_mutex.unlock();
         return true;
     }

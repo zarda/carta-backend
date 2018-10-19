@@ -409,6 +409,15 @@ PBMSharedPtr Controller::getXYProfiles(int fileId, int x, int y,
     return result;
 }
 
+bool Controller::setSpectralRequirements(int fileId, int regionId, int stokeFrame,
+            google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles) const {
+    return m_stack->_setSpectralRequirements(fileId, regionId, stokeFrame, spectralProfiles);
+}
+
+PBMSharedPtr Controller::getSpectralProfile(int fileId, int x, int y, int stokeFrame) const {
+    return m_stack->_getSpectralProfile(fileId, x, y, stokeFrame);
+}
+
 PBMSharedPtr Controller::getRasterImageData(int fileId, int x_min, int x_max, int y_min, int y_max, int mip,
     int frameLow, int frameHigh, int stokeFrame,
     bool isZFP, int precision, int numSubsets,

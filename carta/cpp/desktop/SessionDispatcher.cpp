@@ -145,6 +145,7 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
             qRegisterMetaType<CARTA::SetSpatialRequirements>("CARTA::SetSpatialRequirements");
             qRegisterMetaType<CARTA::FileListRequest>("CARTA::FileListRequest");
             qRegisterMetaType<CARTA::FileInfoRequest>("CARTA::FileInfoRequest");
+            qRegisterMetaType<google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig>>("google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig>");
 
             // start the image viewer
             connect(connector, SIGNAL(startViewerSignal(const QString &)),
@@ -177,6 +178,10 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
             // set cursor
             connect(connector, SIGNAL(setCursorSignal(uint32_t, int, CARTA::Point, CARTA::SetSpatialRequirements)),
                     connector, SLOT(setCursorSignalSlot(uint32_t, int, CARTA::Point, CARTA::SetSpatialRequirements)));
+
+            // set spectral requirements
+            connect(connector, SIGNAL(setSpectralRequirementsSignal(uint32_t, int, int, google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig>)),
+                    connector, SLOT(setSpectralRequirementsSignalSlot(uint32_t, int, int, google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig>)));
 
             // send binary signal to the frontend
             connect(connector, SIGNAL(jsBinaryMessageResultSignal(QString, uint32_t, PBMSharedPtr)),
@@ -302,6 +307,23 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
             CARTA::SetSpatialRequirements spatialReqs = setCursor.spatial_requirements();
             qDebug() << "[SessionDispatcher] Set cursor fileId=" << fileId << ", point=(" << point.x() << ", " << point.y() << ")";
             emit connector->setCursorSignal(eventId, fileId, point, spatialReqs);
+
+        } else if (eventName == "SET_SPECTRAL_REQUIREMENTS") {
+
+            CARTA::SetSpectralRequirements setSpectralRequirements;
+            setSpectralRequirements.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+            int fileId = setSpectralRequirements.file_id();
+            int regionId = setSpectralRequirements.region_id();
+            google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles = setSpectralRequirements.spectral_profiles();
+            qDebug() << "[SessionDispatcher] Set Spectral Requirements fileId=" << fileId << ", regionId=" << regionId;
+            for(auto iter = spectralProfiles.begin(); iter != spectralProfiles.end(); iter++) {
+                qDebug() << "[SessionDispatcher] Spectral profile coordinate="  << QString::fromStdString(iter->coordinate());
+                auto stats_types = iter->stats_types();
+                for(auto statIter = stats_types.begin(); statIter != stats_types.end(); statIter++) {
+                    qDebug() << "[SessionDispatcher] Statistic types="  << QString(*statIter);
+                }
+            }
+            emit connector->setSpectralRequirementsSignal(eventId, fileId, regionId, spectralProfiles);
 
         } else {
             qCritical() << "[SessionDispatcher] There is no event handler:" << eventName;

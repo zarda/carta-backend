@@ -31,6 +31,8 @@
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
 
+#define SPECTRAL_PROGRESS_COMPLETE 1
+
 namespace Carta {
 
 namespace Data {
@@ -1976,11 +1978,24 @@ void DataSource::_viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
 }
 
-void DataSource::_getSpectralProfile() {
+bool DataSource::_setSpectralRequirements(int fileId, int regionId, int stokeFrame,
+    google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles) {
+
+    m_profileInfo.setStokesFrame(stokeFrame);
+    return true;
+}
+
+PBMSharedPtr DataSource::_getSpectralProfile(int fileId, int x, int y, int stoke) {
+
+    qDebug() << "[DataSource] Get spectral profile...................................>";
+
+    // start timer for computing Z profile
+    QElapsedTimer timer;
+    timer.start();
 
     auto result = Globals::instance()->pluginManager()
-        -> prepare <Carta::Lib::Hooks::ProfileHook>(m_image, nullptr/*region info (nullptr is for all region)*/, m_profileInfo);
-
+        -> prepare <Carta::Lib::Hooks::ProfileHook>(m_image, nullptr/*region info (nullptr is for all region)*/,
+                                                    x, y, m_profileInfo);
     auto lam = [=] (const Carta::Lib::Hooks::ProfileResult &data) {
         m_profileResult = data;
     };
@@ -1993,9 +2008,39 @@ void DataSource::_getSpectralProfile() {
         m_profileResult.setError( QString(error) );
     }
 
-    // ********* std::pair<double,double> profileData(xValues[i], jyValues[i]);
+    // pair(first, second): first for channel_vals[], second for spectral profile
     std::vector< std::pair<double,double> > profileData = m_profileResult.getData();
 
+    // create spectral profile data & generate protobuf message
+    std::shared_ptr<CARTA::SpectralProfileData> spectralProfileData(new CARTA::SpectralProfileData());
+    spectralProfileData->set_file_id(fileId);
+    spectralProfileData->set_region_id(0);
+    spectralProfileData->set_stokes(m_profileInfo.getStokesFrame());
+    spectralProfileData->set_progress(SPECTRAL_PROGRESS_COMPLETE);
+    for(auto iter = profileData.begin(); iter != profileData.end(); iter++) {
+        spectralProfileData->add_channel_vals(iter->first);
+    }
+
+    CARTA::SpectralProfile* spectralProfile = spectralProfileData->add_profiles();
+    if (nullptr == spectralProfile) {
+        qDebug() << "Add spectral profile to spectral profile data error.";
+        return nullptr;
+    }
+
+    spectralProfile->set_coordinate("z");
+    for(auto iter = profileData.begin(); iter != profileData.end(); iter++) {
+        spectralProfile->add_vals(iter->second);
+    }
+
+    // end of timer for computing Z profile
+    int elapsedTime = timer.elapsed();
+    if (CARTA_RUNTIME_CHECKS) {
+        qCritical() << "<> Time to get spectral profile:" << elapsedTime << "ms";
+    }
+
+    qDebug() << "[DataSource] .......................................................................Done";
+
+    return spectralProfileData;
 }
 
 DataSource::~DataSource() {
