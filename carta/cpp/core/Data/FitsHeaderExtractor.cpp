@@ -193,7 +193,7 @@ FitsHeaderExtractor::_CasaFitsConverter( casacore::LatticeBase * lbase )
     using namespace casacore;
 
     QStringList errors;
-    bool preferVelocity = false;
+    bool preferVelocity = true;
     bool opticalVelocity = false;
     float minPix = 1.0;
     float maxPix = - 1.0;
