@@ -687,14 +687,18 @@ RegionHistogramData DataSource::_getPixels2HistogramData(int fileId, int regionI
     qDebug() << "[DataSource] Acquiring the regional histogram data...................................>";
     RegionHistogramData result; // results from the "percentileAlgorithms.h"
 
-    /// Prepare hash id
+    // Prepare hash id
     hashidsxx::Hashids hashIds;
     auto m_fileNameTemp = m_fileName;
     m_fileNameTemp.remove('/').remove('\\').remove('.');
     QFileInfo m_fileInfo(m_fileName);
     std::string hashKey =
+            // Use file name & path as key
             m_fileNameTemp.toUtf8().constData() +
-            hashIds.encode(fileId, frameLow, stokeFrame, static_cast<int>(m_fileInfo.lastModified().toMSecsSinceEpoch()));
+            // Generate hash key to validate file
+            hashIds.encode(fileId, frameLow, stokeFrame,
+                           // The last modified time stamp of file in the form of microsecond
+                           static_cast<int>(m_fileInfo.lastModified().toMSecsSinceEpoch()));
     qDebug() << "[DataSource] Historgram Hash Key =" << QString::fromStdString(hashKey);
 
     auto pCache = SqLitePCacheVector(QDir::homePath()+"/CARTA/cache/pcache_histogram.sqlite");
@@ -704,7 +708,11 @@ RegionHistogramData DataSource::_getPixels2HistogramData(int fileId, int regionI
 
     pCache.listTable(listTemp);
 
-    if(std::find(listTemp.begin(), listTemp.end(), hashKey)!=listTemp.end()){
+    // Find hashkey at list
+    if(std::find(listTemp.begin(), listTemp.end(), hashKey) != listTemp.end()){
+        // If true, retrive histogram cache
+        qDebug() << "[DataSource] Loading Histogram Cache.........................";
+
         // start timer for loading Historgram Cache
         QElapsedTimer timer;
         timer.start();
@@ -720,7 +728,6 @@ RegionHistogramData DataSource::_getPixels2HistogramData(int fileId, int regionI
         auto resultTemp         = std::vector<uint32_t>(cacheVector.begin()+7, cacheVector.end());
         result.bins.clear();
         result.bins.insert(result.bins.end(), resultTemp.begin(), resultTemp.end());
-        qDebug() << "[DataSource] Load Histogram Cache.";
 
         // end of timer for loading Historgram Cache
         int elapsedTime = timer.elapsed();
@@ -729,6 +736,7 @@ RegionHistogramData DataSource::_getPixels2HistogramData(int fileId, int regionI
         }
 
     } else {
+        // If false, caculate histogram
         qDebug() << "[DataSource] Calculating the regional histogram data...................................>";
 
         // get the raw data
@@ -785,8 +793,10 @@ RegionHistogramData DataSource::_getPixels2HistogramData(int fileId, int regionI
         std::vector<double> cacheTemp(result.bins.begin(), result.bins.end());
         cacheVector.insert(cacheVector.end(), cacheTemp.begin(), cacheTemp.end());
 
+        // Save to database
         pCache.setEntry(hashKey, cacheVector);
 
+        // Limit the maximum cache size
         while(MAXHISTOGRAMCACHESIZE < listTemp.size()){
             pCache.deleteTable(listTemp.front());
             pCache.listTable(listTemp);
