@@ -2027,6 +2027,7 @@ PBMSharedPtr DataSource::_getSpectralProfile(int fileId, int x, int y, int stoke
         return nullptr;
     }
 
+    spectralProfile->set_coordinate("z");
     for(auto iter = profileData.begin(); iter != profileData.end(); iter++) {
         spectralProfile->add_vals(iter->second);
     }
