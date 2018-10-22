@@ -1115,13 +1115,13 @@ void DataSource::_getXYProfiles(Carta::Lib::NdArray::Double doubleView, const in
     // get X profile
     for (int index = 0; index < imgWidth; index++) {
         float val = (float)doubleView.get({index,y});
-        xProfile.push_back(val); // val == NaN is ok to send to frontend
+        std::isfinite(val) ? xProfile.push_back(val) : xProfile.push_back(NAN); // replace infinite with NaN
     }
 
     // get Y profile
     for (int index = 0; index < imgHeight; index++) {
         float val = (float)doubleView.get({x,index});
-        yProfile.push_back(val); // val == NaN is ok to send to frontend
+        std::isfinite(val) ? yProfile.push_back(val) : yProfile.push_back(NAN); // replace infinite with NaN
     }
 }
 
