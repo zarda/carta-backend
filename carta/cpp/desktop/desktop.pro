@@ -4,7 +4,6 @@
 
 QT  +=  core xml websockets webchannel network
 QT  -=  gui widgets
-QT  +=  sql
 
 HEADERS += \
     DesktopPlatform.h \

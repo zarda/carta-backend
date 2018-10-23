@@ -24,9 +24,6 @@
 #include <cmath>
 #include <QFuture>
 #include <QtConcurrent>
-#include <QFileInfo>
-
-#define MAXHISTOGRAMCACHESIZE 20000
 
 using Carta::Lib::AxisInfo;
 using Carta::Lib::AxisDisplayInfo;
@@ -517,25 +514,26 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
 
 
     // If the disk cache exists, try to look up cached intensity values
-//    for (size_t i = 0; i < percentiles.size(); i++) {
-//        std::shared_ptr<Carta::Lib::IntensityValue> cachedValue = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame, transformationLabel);
 
-//        if (cachedValue /* this intensity cache exists */ &&
-//            cachedValue->error <= calculator->error /* already has an intensity error order smaller than the current choice */ ) {
-//            intensities[i] = cachedValue->value;
+    for (size_t i = 0; i < percentiles.size(); i++) {
+        std::shared_ptr<Carta::Lib::IntensityValue> cachedValue = _readIntensityCache(frameLow, frameHigh, percentiles[i], stokeFrame, transformationLabel);
 
-//            qDebug() << "++++++++ Found percentile" << percentiles[i] << "in cache. Intensity:" << intensities[i] << "+/- (max-min)*" << cachedValue->error;
+        if (cachedValue /* this intensity cache exists */ &&
+            cachedValue->error <= calculator->error /* already has an intensity error order smaller than the current choice */ ) {
+            intensities[i] = cachedValue->value;
 
-//            // We only cache statistics for each distinct frame-dependent calculation
-//            // But we need to apply any constant multipliers
-//            if (converter) {
-//                intensities[i] = intensities[i] * converter->multiplier;
-//            }
+            qDebug() << "++++++++ Found percentile" << percentiles[i] << "in cache. Intensity:" << intensities[i] << "+/- (max-min)*" << cachedValue->error;
 
-//            found[i] = true;
-//            foundCount++;
-//        }
-//    }
+            // We only cache statistics for each distinct frame-dependent calculation
+            // But we need to apply any constant multipliers
+            if (converter) {
+                intensities[i] = intensities[i] * converter->multiplier;
+            }
+
+            found[i] = true;
+            foundCount++;
+        }
+    }
 
     // Not all percentiles were in the cache.  We are going to have to look some up.
     if (foundCount < percentiles.size()) {
@@ -565,6 +563,7 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         }
 
         // if the algorithm is approximate, add extra percentiles from clips, but only if they are not cached
+
         if (calculator->isApproximate) {
             std::shared_ptr<Carta::Data::Clips> m_clips;
             std::vector<double> percentilesFromClips = m_clips->getAllClips2percentiles();
@@ -622,13 +621,14 @@ std::vector<double> DataSource::_getIntensity(int frameLow, int frameHigh,
         clips_map = calculator->percentile2pixels(doubleView, percentilesToCalculate, spectralIndex, converter, hertzValues);
 
         // add all the calculated values to the cache
-//        for (auto &m : clips_map) {
-//            // TODO: check what happens with the close values. Do we also need to cache the value with a different key, or does the serialisation unify them?
-//            // put calculated values in the disk cache if it exists
-//            _setIntensityCache(m.second, calculator->error, frameLow, frameHigh, m.first, stokeFrame, transformationLabel);
 
-//            qDebug() << "++++++++ [set cache] for percentile" << m.first << ", intensity=" << m.second << "+/- (max-min)*" << calculator->error;
-//        }
+        for (auto &m : clips_map) {
+            // TODO: check what happens with the close values. Do we also need to cache the value with a different key, or does the serialisation unify them?
+            // put calculated values in the disk cache if it exists
+            _setIntensityCache(m.second, calculator->error, frameLow, frameHigh, m.first, stokeFrame, transformationLabel);
+
+            qDebug() << "++++++++ [set cache] for percentile" << m.first << ", intensity=" << m.second << "+/- (max-min)*" << calculator->error;
+        }
 
         // set return values (only the intensities which were requested)
 
@@ -686,125 +686,50 @@ RegionHistogramData DataSource::_getPixels2HistogramData(int fileId, int regionI
     int numberOfBins,
     Carta::Lib::IntensityUnitConverter::SharedPtr converter) const {
 
-    qDebug() << "[DataSource] Acquiring the regional histogram data...................................>";
+    qDebug() << "[DataSource] Calculating the regional histogram data...................................>";
     RegionHistogramData result; // results from the "percentileAlgorithms.h"
 
-    // Prepare hash id
-    hashidsxx::Hashids hashIds;
-    auto m_fileNameTemp = m_fileName;
-    m_fileNameTemp.remove('/').remove('\\').remove('.');
-    QFileInfo m_fileInfo(m_fileName);
-    std::string hashKey =
-            // Use file name & path as key
-            m_fileNameTemp.toUtf8().constData() +
-            // Generate hash key to validate file
-            hashIds.encode(fileId, frameLow, stokeFrame,
-                           // The last modified time stamp of file in the form of microsecond
-                           static_cast<int>(m_fileInfo.lastModified().toMSecsSinceEpoch()));
-    qDebug() << "[DataSource] Historgram Hash Key =" << QString::fromStdString(hashKey);
-
-    auto pCache = SqLitePCacheVector(QDir::homePath()+"/CARTA/cache/pcache_histogram.sqlite");
-
-    std::vector<double> cacheVector;
-    std::vector<std::string> listTemp;
-
-    pCache.listTable(listTemp);
-
-    // Find hashkey at list
-    if(std::find(listTemp.begin(), listTemp.end(), hashKey) != listTemp.end()){
-        // If true, retrive histogram cache
-        qDebug() << "[DataSource] Loading Histogram Cache.........................";
-
-        // start timer for loading Historgram Cache
-        QElapsedTimer timer;
-        timer.start();
-
-        pCache.readEntry(hashKey, cacheVector);
-        result.fileId           = static_cast<int>(cacheVector[0]);
-        result.regionId         = static_cast<int>(cacheVector[1]);
-        result.frameLow         = static_cast<int>(cacheVector[2]);
-        result.stokeFrame       = static_cast<int>(cacheVector[3]);
-        result.num_bins         = static_cast<int32_t>(cacheVector[4]);
-        result.bin_width        = static_cast<double>(cacheVector[5]);
-        result.first_bin_center = static_cast<double>(cacheVector[6]);
-        auto resultTemp         = std::vector<uint32_t>(cacheVector.begin()+7, cacheVector.end());
-        result.bins.clear();
-        result.bins.insert(result.bins.end(), resultTemp.begin(), resultTemp.end());
-
-        // end of timer for loading Historgram Cache
-        int elapsedTime = timer.elapsed();
-        if (CARTA_RUNTIME_CHECKS) {
-            qCritical() << "<> Time to load Histogram Cache:" << elapsedTime << "ms";
-        }
-
-    } else {
-        // If false, caculate histogram
-        qDebug() << "[DataSource] Calculating the regional histogram data...................................>";
-
-        // get the raw data
-        Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
-        if (rawData == nullptr) {
-            qCritical() << "Error: could not retrieve image data to calculate missing intensities.";
-            return result;
-        }
-
-        std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
-        Carta::Lib::NdArray::Double doubleView(view.get(), false);
-
-        // get the min/max intensities
-        double minIntensity = 0.0;
-        double maxIntensity = 0.0;
-        std::vector<double> minMaxIntensities = _getIntensity(frameLow, frameHigh, std::vector<double>({0, 1}), stokeFrame, converter);
-        if (minMaxIntensities.size() != 2) {
-            qCritical() << "Error: can not get the min/max intensities!!";
-            return result;
-        } else {
-            minIntensity = minMaxIntensities[0];
-            // assign the minimum of the pixel value as a private parameter
-            maxIntensity = minMaxIntensities[1];
-        }
-
-        if (minIntensity > maxIntensity) {
-            qCritical() << "Error: min intensity > max intensity!!";
-            return result;
-        }
-
-        // get the calculator
-        Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = nullptr;
-        calculator = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
-
-        // Find Hz values if they are required for the unit transformation
-        std::vector<double> hertzValues;
-        if (converter && converter->frameDependent) {
-            hertzValues = _getHertzValues(doubleView.dims());
-        }
-
-        int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
-        result = calculator->pixels2histogram(fileId, regionId, doubleView, minIntensity, maxIntensity,
-                                              numberOfBins, spectralIndex, converter, hertzValues, frameLow, stokeFrame);
-
-        /// Package the result
-        cacheVector.clear();
-        cacheVector.push_back(static_cast<double>(result.fileId));
-        cacheVector.push_back(static_cast<double>(result.regionId));
-        cacheVector.push_back(static_cast<double>(result.frameLow));
-        cacheVector.push_back(static_cast<double>(result.stokeFrame));
-        cacheVector.push_back(static_cast<double>(result.num_bins));
-        cacheVector.push_back(static_cast<double>(result.bin_width));
-        cacheVector.push_back(static_cast<double>(result.first_bin_center));
-        std::vector<double> cacheTemp(result.bins.begin(), result.bins.end());
-        cacheVector.insert(cacheVector.end(), cacheTemp.begin(), cacheTemp.end());
-
-        // Save to database
-        pCache.setEntry(hashKey, cacheVector);
-
-        // Limit the maximum cache size
-        while(MAXHISTOGRAMCACHESIZE < listTemp.size()){
-            pCache.deleteTable(listTemp.front());
-            pCache.listTable(listTemp);
-        }
-
+    // get the raw data
+    Carta::Lib::NdArray::RawViewInterface* rawData = _getRawDataForStoke(frameLow, frameHigh, stokeFrame);
+    if (rawData == nullptr) {
+        qCritical() << "[DataSource] Error: could not retrieve image data to calculate missing intensities.";
+        return result;
     }
+
+    std::shared_ptr<Carta::Lib::NdArray::RawViewInterface> view(rawData);
+    Carta::Lib::NdArray::Double doubleView(view.get(), false);
+
+    // get the min/max intensities
+    double minIntensity = 0.0;
+    double maxIntensity = 0.0;
+    std::vector<double> minMaxIntensities = _getIntensity(frameLow, frameHigh, std::vector<double>({0, 1}), stokeFrame, converter);
+    if (minMaxIntensities.size() != 2) {
+        qCritical() << "[DataSource] Error: can not get the min/max intensities!!";
+        return result;
+    } else {
+        minIntensity = minMaxIntensities[0];
+        // assign the minimum of the pixel value as a private parameter
+        maxIntensity = minMaxIntensities[1];
+    }
+
+    if (minIntensity > maxIntensity) {
+        qCritical() << "[DataSource] Error: min intensity > max intensity!!";
+        return result;
+    }
+
+    // get the calculator
+    Carta::Lib::IPercentilesToPixels<double>::SharedPtr calculator = nullptr;
+    calculator = std::make_shared<Carta::Core::Algorithms::MinMaxPercentiles<double> >();
+
+    // Find Hz values if they are required for the unit transformation
+    std::vector<double> hertzValues;
+    if (converter && converter->frameDependent) {
+        hertzValues = _getHertzValues(doubleView.dims());
+    }
+
+    int spectralIndex = Util::getAxisIndex( m_image, AxisInfo::KnownType::SPECTRAL );
+    result = calculator->pixels2histogram(fileId, regionId, doubleView, minIntensity, maxIntensity,
+                                          numberOfBins, spectralIndex, converter, hertzValues, frameLow, stokeFrame);
 
     qDebug() << "[DataSource] .......................................................................Done";
 

@@ -8,7 +8,6 @@ TEMPLATE = lib
 QT += network
 QT += xml
 QT += concurrent
-QT += sql
 
 HEADERS += \
     IConnector.h \
@@ -84,7 +83,6 @@ HEADERS += \
     Data/Image/Save/SaveService.h \
     Data/Image/Save/SaveView.h \
     Data/Image/Save/SaveViewLayered.h \
-    Data/Image/hashidsxx/hashids.h \
     Data/Selection.h \
     Data/Layout/Layout.h \
     Data/Layout/LayoutNode.h \
@@ -173,8 +171,7 @@ HEADERS += \
     SimpleRemoteVGView.h \
     Hacks/ManagedLayerView.h \
     Hacks/LayeredViewDemo.h \
-    Hacks/InteractiveShapes.h \
-    Data/Image/PCacheSqlite3Vector.h
+    Hacks/InteractiveShapes.h
 
 SOURCES += \
     Viewer.cpp \
@@ -233,7 +230,6 @@ SOURCES += \
     Data/Image/Save/SaveService.cpp \
     Data/Image/Save/SaveView.cpp \
     Data/Image/Save/SaveViewLayered.cpp \
-    Data/Image/hashidsxx/hashids.cpp \
     Data/DataLoader.cpp \
     Data/Error/ErrorReport.cpp \
     Data/Error/ErrorManager.cpp \
@@ -331,8 +327,8 @@ SOURCES += \
     SimpleRemoteVGView.cpp \
     Hacks/ManagedLayerView.cpp \
     Hacks/LayeredViewDemo.cpp \
-    Hacks/InteractiveShapes.cpp \
-    Data/Image/PCacheSqlite3Vector.cpp
+    Hacks/InteractiveShapes.cpp
+
 
 #message( "common            PWD=$$PWD")
 #message( "common         IN_PWD=$$IN_PWD")
@@ -391,7 +387,3 @@ else {
 }
 
 DEPENDPATH += $$PROJECT_ROOT/CartaLib
-
-DISTFILES += \
-    Data/Image/hashidsxx/README.md \
-    Data/Image/hashidsxx/LICENSE
