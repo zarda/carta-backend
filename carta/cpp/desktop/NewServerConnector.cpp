@@ -578,11 +578,18 @@ void NewServerConnector::setCursorSignalSlot(uint32_t eventId, int fileId, CARTA
     // send the serialized message to the frontend
     sendSerializedMessage("SPATIAL_PROFILE_DATA", eventId, pbMsg);
 
-    // get spectral profile
-    pbMsg = controller->getSpectralProfile(fileId, x, y, stokeFrame);
+    // skip spectral profile if there is only single channel in the image
+    // channel numbers = dims[spectralIndicator]
+    int spectralIndicator = controller->getSpectralIndicator();
+    std::vector<int> dims = controller->getImageDimensions();
 
-    // send the serialized message to the frontend
-    sendSerializedMessage("SPECTRAL_PROFILE_DATA", eventId, pbMsg);
+    if(0 <= spectralIndicator && 1 < dims[spectralIndicator]) {
+        // get spectral profile
+        pbMsg = controller->getSpectralProfile(fileId, x, y, stokeFrame);
+
+        // send the serialized message to the frontend
+        sendSerializedMessage("SPECTRAL_PROFILE_DATA", eventId, pbMsg);
+    }
 }
 
 void NewServerConnector::setSpectralRequirementsSignalSlot(uint32_t eventId, int fileId, int regionId, google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles) {
