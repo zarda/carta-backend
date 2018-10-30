@@ -1933,7 +1933,7 @@ PBMSharedPtr DataSource::_getSpectralProfile(int fileId, int x, int y, int stoke
         m_profileResult.setError( QString(error) );
     }
 
-    // pair(first, second): first for channel_vals[], second for spectral profile
+    // pair(first, second): first for channel_vals[](skipped), second for spectral profile
     std::vector< std::pair<double,double> > profileData = m_profileResult.getData();
 
     // create spectral profile data & generate protobuf message
@@ -1942,9 +1942,6 @@ PBMSharedPtr DataSource::_getSpectralProfile(int fileId, int x, int y, int stoke
     spectralProfileData->set_region_id(0);
     spectralProfileData->set_stokes(m_profileInfo.getStokesFrame());
     spectralProfileData->set_progress(SPECTRAL_PROGRESS_COMPLETE);
-    for(auto iter = profileData.begin(); iter != profileData.end(); iter++) {
-        spectralProfileData->add_channel_vals(iter->first);
-    }
 
     CARTA::SpectralProfile* spectralProfile = spectralProfileData->add_profiles();
     if (nullptr == spectralProfile) {
