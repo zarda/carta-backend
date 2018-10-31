@@ -464,8 +464,8 @@ CCCoordinateFormatter::parseCasaCSi( int pixelAxis )
         // Transform each first character to uppercase.
         if ( rawAxisLabel != "" ){
             QStringList longLabelSplit = longLabel.split(" ");
-            for( int i=0; i<longLabelSplit.length(); i++){
-                longLabelSplit[i].replace(0, 1, longLabelSplit[i].at(0).toUpper());
+            for( int i = 0; i < longLabelSplit.size() && longLabelSplit[i].size() > 0; i++){
+                longLabelSplit[i].replace(0, 1, longLabelSplit[i].at(0).toUpper()); // empty string will not be transformed to uppercase
             }
             longLabel = longLabelSplit.join(" ");
         }
