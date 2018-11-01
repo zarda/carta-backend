@@ -203,7 +203,7 @@ qint64 NewServerConnector::refreshView(IView * view)
 
 void NewServerConnector::removeStateCallback(const IConnector::CallbackID & /*id*/)
 {
-    qFatal( "not implemented");
+    qCritical( "not implemented");
 }
 
 
@@ -232,7 +232,7 @@ void NewServerConnector::setConnectorInMap(const QString & sessionID, IConnector
 }
 
 void NewServerConnector::startWebSocket(){
-    // qFatal('NewServerConnector should not start a websocket!');
+    qCritical("NewServerConnector should not start a websocket!");
     CARTA_ASSERT_X( false, "NewServerConnector should not start a websocket!");
 }
 
@@ -274,7 +274,7 @@ void NewServerConnector::onTextMessage(QString message){
 
 void NewServerConnector::onBinaryMessageSignalSlot(const char *message, size_t length){
     if (length < EVENT_NAME_LENGTH + EVENT_ID_LENGTH){
-        qFatal("Illegal message.");
+        qWarning("Illegal message.");
         return;
     }
 
@@ -296,7 +296,7 @@ void NewServerConnector::onBinaryMessageSignalSlot(const char *message, size_t l
 
     if (eventName == "REGISTER_VIEWER") {
         // The message should be handled in sessionDispatcher
-        qFatal("Illegal request in NewServerConnector. Please handle it in SessionDispatcher.");
+        qWarning("Illegal request in NewServerConnector. Please handle it in SessionDispatcher.");
         return;
 
     } else if (eventName == "CLOSE_FILE") {
