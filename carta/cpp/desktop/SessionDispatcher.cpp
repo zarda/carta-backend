@@ -48,7 +48,7 @@ void SessionDispatcher::startWebSocket(){
     m_pWebSocketServer = new QWebSocketServer(QStringLiteral("New QWebServer start"), QWebSocketServer::NonSecureMode, this);
 
     if (!m_pWebSocketServer->listen(QHostAddress::Any, port)) {
-        qFatal("Failed to open web socket server.");
+        qCritical("Failed to open web socket server.");
         return;
     }
 
@@ -94,7 +94,7 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
 
     if (length < EVENT_NAME_LENGTH + EVENT_ID_LENGTH) {
         qDebug() << "message length=" << length << "is not valid!!";
-        qFatal("[SessionDispatcher] Illegal message.");
+        qWarning("[SessionDispatcher] Illegal message.");
         return;
     }
 
@@ -240,7 +240,7 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
     NewServerConnector* connector= sessionList[ws];
 
     if (!connector) {
-        qFatal("[SessionDispatcher] Cannot find the server connector");
+        qCritical("[SessionDispatcher] Cannot find the server connector");
         return;
     }
 
@@ -470,7 +470,7 @@ qint64 SessionDispatcher::refreshView(IView * view) {
 }
 
 void SessionDispatcher::removeStateCallback(const IConnector::CallbackID & /*id*/) {
-    qFatal( "not implemented");
+    qCritical( "not implemented");
 }
 
 Carta::Lib::IRemoteVGView * SessionDispatcher::makeRemoteVGView(QString viewName) {
