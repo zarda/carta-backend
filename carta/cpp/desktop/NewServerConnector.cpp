@@ -449,16 +449,19 @@ void NewServerConnector::setImageViewSignalSlot(uint32_t eventId, int fileId, in
     bool isZFP, int precision, int numSubsets) {
     QString respName = "RASTER_IMAGE_DATA";
 
+    // check if the boundaries are valid
+    if (xMin > xMax || yMin > yMax) {
+        qWarning() << "[NewServerConnector] Invalid image bound [xMin, xMax, yMin, yMax]: [" << xMin << ", " << xMax << ", " << yMin << ", " << yMax << "]";
+        return;
+    }
+
     // check if need to reset image bounds
     if (xMin != m_imageBounds[fileId][0] || xMax != m_imageBounds[fileId][1] ||
         yMin != m_imageBounds[fileId][2] || yMax != m_imageBounds[fileId][3] ||
         mip != m_imageBounds[fileId][4]) {
-        //qDebug() << "[NewServerConnector] Set image bounds [x_min, x_max, y_min, y_max, mip]=["
-        //         << xMin << "," << xMax << "," << yMin << "," << yMax << "," << mip << "], fileId=" << fileId;
         // update image viewer bounds with respect to the fileId
         m_imageBounds[fileId] = {xMin, xMax, yMin, yMax, mip};
-    } else {
-        //qDebug() << "[NewServerConnector] Frontend image viewer signal is repeated, just ignore the signal!!";
+    } else { // Frontend image viewer signal is repeated, just ignore the signal
         return;
     }
 
