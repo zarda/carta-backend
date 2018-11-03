@@ -987,6 +987,9 @@ PBMSharedPtr DataSource::_getXYProfiles(int fileId, int x, int y,
     QElapsedTimer timer;
     timer.start();
 
+    // TODO: need to check the spatial profile to get the corresponding spatial data
+    // now only get 'x', 'y' no matter what the spatial profiles are specified
+
     if (converter && converter->frameDependent) {
         // Find Hz values if they are required for the unit transformation
         std::vector<double> hertzValues = _getHertzValues(doubleView.dims());
@@ -1906,7 +1909,8 @@ void DataSource::_viewResize( const QSize& newSize ){
 bool DataSource::_setSpatialRequirements(int fileId, int regionId,
     google::protobuf::RepeatedPtrField<std::string> spatialProfiles) {
 
-    // TODO: how to store spatial profiles in m_profileInfo
+    // TODO: need to store spatial profile to m_profileInfo &
+    // get corresponding spatial data by checking the spatial profiles
 
     return true;
 }
@@ -1914,7 +1918,10 @@ bool DataSource::_setSpatialRequirements(int fileId, int regionId,
 bool DataSource::_setSpectralRequirements(int fileId, int regionId, int stokeFrame,
     google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles) {
 
+    // TODO: need to modify the way to get corresponding spectral data by checking the spatial profiles
+
     m_profileInfo.setStokesFrame(stokeFrame);
+
     return true;
 }
 
@@ -1925,6 +1932,9 @@ PBMSharedPtr DataSource::_getSpectralProfile(int fileId, int x, int y, int stoke
     // start timer for computing Z profile
     QElapsedTimer timer;
     timer.start();
+
+    // TODO: need to check the spectral profile to get the corresponding spectral data
+    // now only get 'z' no matter what the spectral profile is specified
 
     auto result = Globals::instance()->pluginManager()
         -> prepare <Carta::Lib::Hooks::ProfileHook>(m_image, nullptr/*region info (nullptr is for all region)*/,
