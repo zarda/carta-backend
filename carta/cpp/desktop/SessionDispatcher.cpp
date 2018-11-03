@@ -145,6 +145,7 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
             qRegisterMetaType<CARTA::SetSpatialRequirements>("CARTA::SetSpatialRequirements");
             qRegisterMetaType<CARTA::FileListRequest>("CARTA::FileListRequest");
             qRegisterMetaType<CARTA::FileInfoRequest>("CARTA::FileInfoRequest");
+            qRegisterMetaType<google::protobuf::RepeatedPtrField<std::string>>("google::protobuf::RepeatedPtrField<std::string>");
             qRegisterMetaType<google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig>>("google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig>");
 
             // start the image viewer
@@ -178,6 +179,10 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
             // set cursor
             connect(connector, SIGNAL(setCursorSignal(uint32_t, int, CARTA::Point, CARTA::SetSpatialRequirements)),
                     connector, SLOT(setCursorSignalSlot(uint32_t, int, CARTA::Point, CARTA::SetSpatialRequirements)));
+
+            // set spatial requirements
+            connect(connector, SIGNAL(setSpatialRequirementsSignal(uint32_t, int, int, google::protobuf::RepeatedPtrField<std::string>)),
+                    connector, SLOT(setSpatialRequirementsSignalSlot(uint32_t, int, int, google::protobuf::RepeatedPtrField<std::string>)));
 
             // set spectral requirements
             connect(connector, SIGNAL(setSpectralRequirementsSignal(uint32_t, int, int, google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig>)),
@@ -319,7 +324,7 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
             for(auto iter = spatialProfiles.begin(); iter != spatialProfiles.end(); iter++) {
                 qDebug() << "[SessionDispatcher] Spatial profile="  << QString::fromStdString(*iter);
             }
-            //emit connector->setSpatialRequirementsSignal(eventId, fileId, regionId, spatialProfiles);
+            emit connector->setSpatialRequirementsSignal(eventId, fileId, regionId, spatialProfiles);
 
         } else if (eventName == "SET_SPECTRAL_REQUIREMENTS") {
 
