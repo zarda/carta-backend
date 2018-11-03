@@ -308,6 +308,19 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
             qDebug() << "[SessionDispatcher] Set cursor fileId=" << fileId << ", point=(" << point.x() << ", " << point.y() << ")";
             emit connector->setCursorSignal(eventId, fileId, point, spatialReqs);
 
+        } else if (eventName == "SET_SPATIAL_REQUIREMENTS") {
+
+            CARTA::SetSpatialRequirements setSpatialRequirements;
+            setSpatialRequirements.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+            int fileId = setSpatialRequirements.file_id();
+            int regionId = setSpatialRequirements.region_id();
+            google::protobuf::RepeatedPtrField<std::string> spatialProfiles = setSpatialRequirements.spatial_profiles();
+            qDebug() << "[SessionDispatcher] Set Spatial Requirements fileId=" << fileId << ", regionId=" << regionId;
+            for(auto iter = spatialProfiles.begin(); iter != spatialProfiles.end(); iter++) {
+                qDebug() << "[SessionDispatcher] Spatial profile="  << QString::fromStdString(*iter);
+            }
+            //emit connector->setSpatialRequirementsSignal(eventId, fileId, regionId, spatialProfiles);
+
         } else if (eventName == "SET_SPECTRAL_REQUIREMENTS") {
 
             CARTA::SetSpectralRequirements setSpectralRequirements;
