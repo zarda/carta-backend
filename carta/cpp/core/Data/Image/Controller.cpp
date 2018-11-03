@@ -409,6 +409,11 @@ PBMSharedPtr Controller::getXYProfiles(int fileId, int x, int y,
     return result;
 }
 
+bool Controller::setSpatialRequirements(int fileId, int regionId,
+            google::protobuf::RepeatedPtrField<std::string> spatialProfiles) const {
+    return m_stack->_setSpatialRequirements(fileId, regionId, spatialProfiles);
+}
+
 bool Controller::setSpectralRequirements(int fileId, int regionId, int stokeFrame,
             google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles) const {
     return m_stack->_setSpectralRequirements(fileId, regionId, stokeFrame, spectralProfiles);

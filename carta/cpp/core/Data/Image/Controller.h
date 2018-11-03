@@ -262,6 +262,15 @@ public:
             Carta::Lib::IntensityUnitConverter::SharedPtr converter=nullptr) const;
 
     /**
+     * Returns success or failed when setting spatial requirements
+     * @param region id
+     * @param spatial profiles - contains the information of required spatial profiles
+     * @return - true or false
+     */
+    bool setSpatialRequirements(int fileId, int regionId,
+            google::protobuf::RepeatedPtrField<std::string> spatialProfiles) const;
+
+    /**
      * Returns success or failed when setting spectral requirements
      * @param region id
      * @param stoke frame

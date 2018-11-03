@@ -596,6 +596,10 @@ private:
     void _updateClips( std::shared_ptr<Carta::Lib::NdArray::RawViewInterface>& view,
             double minClipPercentile, double maxClipPercentile, const std::vector<int>& frames );
 
+    // set spatial requirements
+    bool _setSpatialRequirements(int fileId, int regionId,
+            google::protobuf::RepeatedPtrField<std::string> spatialProfiles);
+
     // set spectral requirements
     bool _setSpectralRequirements(int fileId, int regionId, int stokeFrame,
             google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles);

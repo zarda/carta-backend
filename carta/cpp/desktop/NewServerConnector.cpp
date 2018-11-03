@@ -602,13 +602,11 @@ void NewServerConnector::setSpatialRequirementsSignalSlot(uint32_t eventId, int 
     // set the file id as the private parameter in the Stack object
     controller->setFileId(fileId);
 
-/*
-    if (controller->setSatialRequirements(fileId, regionId, spatialProfiles)) {
+    if (controller->setSpatialRequirements(fileId, regionId, spatialProfiles)) {
         qDebug() << "[NewServerConnector] set spatial requirement successfully.";
     } else {
         qDebug() << "[NewServerConnector] set spatial requirement failed!";
     }
-    */
 }
 
 void NewServerConnector::setSpectralRequirementsSignalSlot(uint32_t eventId, int fileId, int regionId, google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles) {

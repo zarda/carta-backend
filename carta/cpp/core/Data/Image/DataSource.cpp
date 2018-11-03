@@ -1903,6 +1903,14 @@ void DataSource::_viewResize( const QSize& newSize ){
     m_renderService-> setOutputSize( newSize );
 }
 
+bool DataSource::_setSpatialRequirements(int fileId, int regionId,
+    google::protobuf::RepeatedPtrField<std::string> spatialProfiles) {
+
+    // TODO: how to store spatial profiles in m_profileInfo
+
+    return true;
+}
+
 bool DataSource::_setSpectralRequirements(int fileId, int regionId, int stokeFrame,
     google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles) {
 
