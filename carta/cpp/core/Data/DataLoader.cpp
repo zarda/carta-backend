@@ -148,6 +148,15 @@ DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileLis
     std::shared_ptr<CARTA::FileListResponse> fileListResponse(new CARTA::FileListResponse());
 
     QString dirName = QString::fromStdString(dir);
+    QDir currentDir = QDir(dirName);
+    if (!currentDir.exists()) {
+        QString message = "Invalid directory. Please check that " +  dirName + " is a valid directory.";
+        qWarning() << message;
+        fileListResponse->set_success(false);
+        fileListResponse->set_message(message.toStdString());
+        return fileListResponse;
+    }
+
     QString rootDirName = dirName;
     bool securityRestricted = isSecurityRestricted();
     //Just get the default if the user is trying for a directory elsewhere and
@@ -172,9 +181,11 @@ DataLoader::PBMSharedPtr DataLoader::getFileList( CARTA::FileListRequest fileLis
     QDir rootDir(rootDirName);
 
     if (!rootDir.exists()) {
-        QString errorMsg = "Please check that " + rootDir.absolutePath() + " is a valid directory.";
-        Util::commandPostProcess( errorMsg );
-        return nullptr;
+        QString message = "Please check that " + rootDir.absolutePath() + " is a valid directory.";
+        qWarning() << message;
+        fileListResponse->set_success(false);
+        fileListResponse->set_message(message.toStdString());
+        return fileListResponse;
     }
 
     // get the carta root path
