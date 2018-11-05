@@ -85,6 +85,7 @@ public slots:
                                 bool isZFP, int precision, int numSubsets);
     void openFileSignalSlot(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId);
     void setCursorSignalSlot(uint32_t eventId, int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs);
+    void setSpatialRequirementsSignalSlot(uint32_t eventId, int fileId, int regionId, google::protobuf::RepeatedPtrField<std::string> spatialProfiles);
     void setSpectralRequirementsSignalSlot(uint32_t eventId, int fileId, int regionId, google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles);
 
     void fileListRequestSignalSlot(uint32_t eventId, CARTA::FileListRequest fileListRequest);
@@ -107,6 +108,7 @@ signals:
                             bool isZFP, int precision, int numSubsets);
     void openFileSignal(uint32_t eventId, QString fileDir, QString fileName, int fileId, int regionId);
     void setCursorSignal(uint32_t eventId, int fileId, CARTA::Point point, CARTA::SetSpatialRequirements setSpatialReqs);
+    void setSpatialRequirementsSignal(uint32_t eventId, int fileId, int regionId, google::protobuf::RepeatedPtrField<std::string> spatialProfiles);
     void setSpectralRequirementsSignal(uint32_t eventId, int fileId, int regionId, google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles);
 
     void fileListRequestSignal(uint32_t eventId, CARTA::FileListRequest fileListRequest);

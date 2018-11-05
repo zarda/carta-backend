@@ -145,6 +145,7 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
             qRegisterMetaType<CARTA::SetSpatialRequirements>("CARTA::SetSpatialRequirements");
             qRegisterMetaType<CARTA::FileListRequest>("CARTA::FileListRequest");
             qRegisterMetaType<CARTA::FileInfoRequest>("CARTA::FileInfoRequest");
+            qRegisterMetaType<google::protobuf::RepeatedPtrField<std::string>>("google::protobuf::RepeatedPtrField<std::string>");
             qRegisterMetaType<google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig>>("google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig>");
 
             // start the image viewer
@@ -178,6 +179,10 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
             // set cursor
             connect(connector, SIGNAL(setCursorSignal(uint32_t, int, CARTA::Point, CARTA::SetSpatialRequirements)),
                     connector, SLOT(setCursorSignalSlot(uint32_t, int, CARTA::Point, CARTA::SetSpatialRequirements)));
+
+            // set spatial requirements
+            connect(connector, SIGNAL(setSpatialRequirementsSignal(uint32_t, int, int, google::protobuf::RepeatedPtrField<std::string>)),
+                    connector, SLOT(setSpatialRequirementsSignalSlot(uint32_t, int, int, google::protobuf::RepeatedPtrField<std::string>)));
 
             // set spectral requirements
             connect(connector, SIGNAL(setSpectralRequirementsSignal(uint32_t, int, int, google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig>)),
@@ -307,6 +312,19 @@ void SessionDispatcher::onBinaryMessage(QByteArray qByteMessage) {
             CARTA::SetSpatialRequirements spatialReqs = setCursor.spatial_requirements();
             qDebug() << "[SessionDispatcher] Set cursor fileId=" << fileId << ", point=(" << point.x() << ", " << point.y() << ")";
             emit connector->setCursorSignal(eventId, fileId, point, spatialReqs);
+
+        } else if (eventName == "SET_SPATIAL_REQUIREMENTS") {
+
+            CARTA::SetSpatialRequirements setSpatialRequirements;
+            setSpatialRequirements.ParseFromArray(message + EVENT_NAME_LENGTH + EVENT_ID_LENGTH, length - EVENT_NAME_LENGTH - EVENT_ID_LENGTH);
+            int fileId = setSpatialRequirements.file_id();
+            int regionId = setSpatialRequirements.region_id();
+            google::protobuf::RepeatedPtrField<std::string> spatialProfiles = setSpatialRequirements.spatial_profiles();
+            qDebug() << "[SessionDispatcher] Set Spatial Requirements fileId=" << fileId << ", regionId=" << regionId;
+            for(auto iter = spatialProfiles.begin(); iter != spatialProfiles.end(); iter++) {
+                qDebug() << "[SessionDispatcher] Spatial profile="  << QString::fromStdString(*iter);
+            }
+            emit connector->setSpatialRequirementsSignal(eventId, fileId, regionId, spatialProfiles);
 
         } else if (eventName == "SET_SPECTRAL_REQUIREMENTS") {
 

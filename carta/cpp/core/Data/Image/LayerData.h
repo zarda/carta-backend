@@ -401,6 +401,15 @@ protected:
             Carta::Lib::IntensityUnitConverter::SharedPtr converter) const Q_DECL_OVERRIDE;
 
     /**
+     * Returns success or failed when setting spatial requirements
+     * @param region id
+     * @param spatial profiles - contains the information of required spatial profiles
+     * @return - true or false
+     */
+    virtual bool _setSpatialRequirements(int fileId, int regionId,
+            google::protobuf::RepeatedPtrField<std::string> spatialProfiles) const Q_DECL_OVERRIDE;
+
+    /**
      * Returns success or failed when setting spectral requirements
      * @param region id
      * @param stoke frame

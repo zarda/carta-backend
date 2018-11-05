@@ -577,6 +577,16 @@ PBMSharedPtr LayerGroup::_getXYProfiles(int fileId, int x, int y,
     return results;
 }
 
+bool LayerGroup::_setSpatialRequirements(int fileId, int regionId,
+            google::protobuf::RepeatedPtrField<std::string> spatialProfiles) const {
+    int dataIndex = _getIndexCurrent();
+    if ( dataIndex < 0 ){
+        return false;
+    }
+
+    return m_children[dataIndex]->_setSpatialRequirements(fileId, regionId, spatialProfiles);
+}
+
 bool LayerGroup::_setSpectralRequirements(int fileId, int regionId, int stokeFrame,
             google::protobuf::RepeatedPtrField<CARTA::SetSpectralRequirements_SpectralConfig> spectralProfiles) const {
     int dataIndex = _getIndexCurrent();
