@@ -627,6 +627,11 @@ void NewServerConnector::setSpectralRequirementsSignalSlot(uint32_t eventId, int
 }
 
 void NewServerConnector::sendSerializedMessage(QString respName, uint32_t eventId, PBMSharedPtr msg) {
+    if (nullptr == msg) {
+        qWarning() << "Respond message is nullptr. Respond: " << respName << ", eventId: " << eventId;
+        return;
+    }
+
     emit jsBinaryMessageResultSignal(respName, eventId, msg);
 }
 
